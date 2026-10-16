@@ -1,0 +1,7 @@
+# Themes and generated art
+
+The portfolio gets its own look ("Inside the machine") instead of the borrowed Freedoom art, and the visitor can choose between more than one look. We split theming into two levels. An art set is everything the game draws and plays: the textures a Level may name, the Bug walk and fix frames, the sound file of each sound event, and the HUD colors. A Theme is a named look of the whole portfolio: an art set plus a look for the HTML screens, chosen with CSS on the root `data-theme`. Paper and Board are two Themes on one machine art set; a later Theme (Dungeon) brings its own art set.
+
+The art set lives in one module of the game layer (`src/game/theme.ts`), with no imports, so the Title Screen can read the Theme ids without game code. The browser shell, the Bugs, the HUD, and the Audio read the art set instead of their own constants, and `createGame` fails when the Level names a texture, or needs a Bug frame, that the art set does not have, so `pnpm test` catches a missing asset. The engine never sees the art set (ADR 0001).
+
+The machine art is generated: a script under `scripts/` draws the textures, Bug frames, and posters, and synthesizes the sounds, from code with a fixed seed and only Node built-ins. We chose generated art over hand-drawn or licensed art because it is original, reproducible, and free of license questions, and a new Theme needs only new drawing code and CSS. We accept that procedural art is simpler than hand-drawn art. The generated files are committed, so the build has no generation step.
