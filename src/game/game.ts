@@ -2,7 +2,10 @@ import { moveCircle } from "../engine/collision";
 import { type Framebuffer, rgb } from "../engine/framebuffer";
 import type { InputSnapshot } from "../engine/input";
 import { type Camera, createRenderer } from "../engine/renderer";
-import { type Level, loadLevel } from "./level";
+import { assertHudCanDraw, createHud, type HudView } from "./hud";
+import { type Level, loadLevel, roomAt } from "./level";
+
+export { HUD_VALUE_COLOR, STATUS_BAR_HEIGHT } from "./hud";
 
 /** Fixed ticks per second. Every speed below is per tick. */
 export const TICKS_PER_SECOND = 60;
@@ -58,6 +61,11 @@ export interface GameState {
 	player: PlayerState;
 	/** While paused, steps change nothing. */
 	paused: boolean;
+	/**
+	 * The name of the Room the player is in. Between Room rectangles (in a doorway,
+	 * for example) it keeps the last Room. It is null before the player enters any Room.
+	 */
+	room: string | null;
 }
 
 export interface Game {
@@ -68,7 +76,7 @@ export interface Game {
 	/** Changes some settings. They apply from the next tick on. */
 	updateSettings(settings: Partial<GameSettings>): void;
 	state(): GameState;
-	/** Draws the current view into a caller-provided 640x360 framebuffer. */
+	/** Draws the current view and the HUD into a caller-provided 640x360 framebuffer. */
 	render(framebuffer: Framebuffer): void;
 }
 
@@ -81,6 +89,8 @@ export function createGame(options: GameOptions): Game {
 	let bobPhase = 0;
 	let bobStrength = 0;
 	const camera: Camera = { x: 0, y: 0, angle: 0, horizonOffset: 0 };
+	for (const { name } of level.rooms) assertHudCanDraw(name, `Room "${name}"`);
+	let room = roomAt(level.rooms, player.x, player.y)?.name ?? null;
 	const renderer = createRenderer({
 		width: SCREEN_WIDTH,
 		height: SCREEN_HEIGHT,
@@ -88,6 +98,9 @@ export function createGame(options: GameOptions): Game {
 		ceilingColor: CEILING_COLOR,
 		floorColor: FLOOR_COLOR,
 	});
+	const hud = createHud(SCREEN_WIDTH, SCREEN_HEIGHT);
+	// Reused every frame, so rendering allocates nothing.
+	const hudView: HudView = { room: null };
 
 	return {
 		step(input) {
@@ -113,6 +126,7 @@ export function createGame(options: GameOptions): Game {
 			const walked = Math.hypot(player.x - fromX, player.y - fromY);
 			bobPhase = (bobPhase + (walked / BOB_TILES) * 2 * Math.PI) % (2 * Math.PI);
 			bobStrength += (Math.min(1, walked / MOVE_SPEED) - bobStrength) * BOB_EASE;
+			room = roomAt(level.rooms, player.x, player.y)?.name ?? room;
 		},
 		pause() {
 			paused = true;
@@ -123,13 +137,15 @@ export function createGame(options: GameOptions): Game {
 		updateSettings(changes) {
 			Object.assign(settings, changes);
 		},
-		state: () => ({ player: { ...player }, paused }),
+		state: () => ({ player: { ...player }, room, paused }),
 		render(framebuffer) {
 			camera.x = player.x;
 			camera.y = player.y;
 			camera.angle = player.angle;
 			camera.horizonOffset = settings.reducedMotion ? 0 : Math.sin(bobPhase) * bobStrength * BOB_PIXELS;
 			renderer.render(framebuffer, level.walls, camera);
+			hudView.room = room;
+			hud.draw(framebuffer, hudView);
 		},
 	};
 }
