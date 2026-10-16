@@ -34,6 +34,9 @@ export interface TitleScreen {
 	dispose(): void;
 }
 
+/** How long the dive may run before the game starts anyway: the 420 ms transition plus a margin. */
+const DIVE_FALLBACK_MS = 600;
+
 /** The menu keys. The arrow keys move the selection (and wrap); Enter chooses the selected item. */
 const MOVES: Record<string, number> = { ArrowUp: -1, ArrowDown: 1 };
 
@@ -53,6 +56,9 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 	const screen = query<HTMLElement>(options.root, "[data-title-screen]");
 	const loadingBar = query<HTMLElement>(options.root, "[data-loading-bar]");
 	const loadError = query<HTMLElement>(options.root, "[data-load-error]");
+	const chip = options.root.querySelector<HTMLElement>("[data-chip]");
+	const dive = query<HTMLElement>(options.root, "[data-dive]");
+	const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
 	const loadErrorText = query<HTMLElement>(options.root, "[data-load-error-text]");
 
 	// The loader: idle (no promise), loading, ready (`loaded` is set), or failed (`loadFailed` is set once NEW GAME shows it).
@@ -77,13 +83,44 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 		console.error(error);
 		starting = false;
 		loadFailed = true;
+		hideDive();
 		screen.hidden = false;
 		loadingBar.hidden = true;
 		loadErrorText.textContent =
 			"The game could not load. Check your connection, then choose NEW GAME to reload the page. Or choose SKIP.";
 		loadError.hidden = false;
 	};
+	const hideDive = () => {
+		dive.hidden = true;
+		dive.classList.remove("is-open");
+	};
+	/**
+	 * Grows the board-colored layer from `from` (the chip in Paper, the pad in Board) to the full
+	 * screen. It resolves on the transition end, or after the fallback timeout when that never comes
+	 * (a hidden tab does not run frames).
+	 */
+	const runDive = (from: HTMLElement) =>
+		new Promise<void>((resolve) => {
+			const rect = from.getBoundingClientRect();
+			const root = dive.ownerDocument.documentElement;
+			dive.style.setProperty("--dive-top", `${rect.top}px`);
+			dive.style.setProperty("--dive-right", `${root.clientWidth - rect.right}px`);
+			dive.style.setProperty("--dive-bottom", `${root.clientHeight - rect.bottom}px`);
+			dive.style.setProperty("--dive-left", `${rect.left}px`);
+			dive.classList.remove("is-open");
+			dive.hidden = false;
+			// Two frames: the first paints the small clip, the second starts the transition.
+			requestAnimationFrame(() => requestAnimationFrame(() => dive.classList.add("is-open")));
+			const finish = () => {
+				clearTimeout(timer);
+				dive.removeEventListener("transitionend", finish);
+				resolve();
+			};
+			const timer = setTimeout(finish, DIVE_FALLBACK_MS);
+			dive.addEventListener("transitionend", finish);
+		});
 	const start = (game: Game) => {
+		hideDive();
 		loadingBar.hidden = true;
 		screen.hidden = true;
 		try {
@@ -106,6 +143,19 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 			console.error(error);
 		}
 		const pending = preload();
+		const from = shownTheme() === "paper" ? chip : newGame.querySelector<HTMLElement>(".title-screen__pad");
+		if (!reducedMotion.matches && from) {
+			// The game starts when the dive ends, or at once if the game is not ready yet: then the bar shows.
+			pending.catch(fail);
+			void runDive(from).then(() => {
+				if (loadFailed) return;
+				if (loaded) return start(loaded.game);
+				hideDive();
+				loadingBar.hidden = false;
+				pending.then(start, () => {});
+			});
+			return;
+		}
 		if (loaded) return start(loaded.game);
 		loadingBar.hidden = false;
 		pending.then(start, fail);
