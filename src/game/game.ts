@@ -43,8 +43,6 @@ const BOB_EASE = 0.2;
 /** The Game core always renders at this size. The browser shell scales it up. */
 export const SCREEN_WIDTH = 640;
 export const SCREEN_HEIGHT = 360;
-export const CEILING_COLOR = rgb(56, 56, 64);
-export const FLOOR_COLOR = rgb(84, 72, 60);
 /** Sprites are drawn at 72 texels per tile, so a Bug (39 texels high) is about half a wall high. */
 const SPRITE_TEXEL_SIZE = 1 / 72;
 
@@ -199,8 +197,8 @@ export function createGame(options: GameOptions): Game {
 		wallTextures,
 		faceTextures: posterFacesFor(level, wallTextures, options.posters),
 		trackTextures: texturesFor(level.doorTracks, options.textures),
-		ceilingColor: CEILING_COLOR,
-		floorColor: FLOOR_COLOR,
+		ceilingColor: rgb(...art.ceiling),
+		floorColor: rgb(...art.floor),
 		viewHeight: SCREEN_HEIGHT - STATUS_BAR_HEIGHT,
 		spriteTexelSize: SPRITE_TEXEL_SIZE,
 	});

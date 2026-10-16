@@ -8,7 +8,6 @@ import {
 	bugFrameNames,
 	createGame,
 	type DoorState,
-	FLOOR_COLOR,
 	type Game,
 	levelTextureNames,
 	SCREEN_HEIGHT,
@@ -54,6 +53,7 @@ function aspect(indexes: number[]): number {
 /** The HUD colors of the machine art set, which the Game core uses by default. */
 const HUD_VALUE_COLOR = rgb(...MACHINE_ART_SET.hud.value);
 const CROSSHAIR_COLOR = rgb(...MACHINE_ART_SET.hud.crosshair);
+const FLOOR_COLOR = rgb(...MACHINE_ART_SET.floor);
 
 const RED = rgb(255, 0, 0);
 const GREEN = rgb(0, 255, 0);
@@ -79,16 +79,26 @@ function solidTexture(color: number): Texture {
 	return columnsTexture([color, color, color, color]);
 }
 
-/** The ceiling is a gray-blue (red = green < blue) at any shade. */
-function isCeiling(pixel: number): boolean {
-	const [red, green, blue] = channels(pixel);
-	return red === green && blue > red;
+/** Every shade the renderer can give a flat color: each channel scaled by the same light level (0 to 256). */
+function shadesOf([red, green, blue]: readonly [number, number, number]): Set<number> {
+	const shades = new Set<number>();
+	for (let level = 0; level <= 256; level++) {
+		shades.add(rgb((red * level) >> 8, (green * level) >> 8, (blue * level) >> 8));
+	}
+	return shades;
 }
 
-/** The floor is a brown (red > green > blue) at any shade. */
+const CEILING_SHADES = shadesOf(MACHINE_ART_SET.ceiling);
+const FLOOR_SHADES = shadesOf(MACHINE_ART_SET.floor);
+
+/** The ceiling is the art set's ceiling color at any shade. */
+function isCeiling(pixel: number): boolean {
+	return CEILING_SHADES.has(pixel);
+}
+
+/** The floor is the art set's floor color at any shade. */
 function isFloor(pixel: number): boolean {
-	const [red, green, blue] = channels(pixel);
-	return red > green && green > blue;
+	return FLOOR_SHADES.has(pixel);
 }
 
 /** The 3D view fills the frame above the status bar; its horizon is in the middle of it. */
@@ -354,7 +364,7 @@ describe("Art set", () => {
 	const bugRoom = tiledRoom("Lobby", { x: 1, y: 1, width: 3, height: 1 });
 	const bugLevel = tiledLevel({
 		rows: ["#####", "#P..#", "#####"],
-		wallTextures: { "#": "STARTAN2" },
+		wallTextures: { "#": "board-a" },
 		extraObjects: [bugRoom, tiledBug({ x: 3.5, y: 1.5 })],
 	});
 
@@ -371,8 +381,8 @@ describe("Art set", () => {
 	it("fails with an error that names a door texture the art set does not have", () => {
 		const level = tiledLevel({
 			rows: ["######", "#P.D.#", "######"],
-			wallTextures: { "#": "STARTAN2" },
-			doorTiles: { D: { texture: "NOSUCHDOOR", track: "DOORTRAK" } },
+			wallTextures: { "#": "board-a" },
+			doorTiles: { D: { texture: "NOSUCHDOOR", track: "door-track" } },
 		});
 		expect(() => createGame({ level, artSet: MACHINE_ART_SET })).toThrow(/texture "NOSUCHDOOR"/);
 	});
@@ -394,18 +404,22 @@ describe("Art set", () => {
 		expect(() => createGame({ level: bugLevel, artSet, sprites: { BEETLE1: image, PATCHED1: image } })).not.toThrow();
 	});
 
-	it("names only committed files: textures, Bug frames with anchors, and sounds", async () => {
+	it("names only committed files: textures, Bug frames with anchors, and sounds", () => {
 		const committed = Object.keys(import.meta.glob(["/public/**/*.png", "/public/**/*.wav", "/public/**/*.json"]));
-		const { folder } = MACHINE_ART_SET;
-		const offsets = (await import(`../../public/${folder}/sprites/offsets.json`)).default as Record<string, unknown>;
+		const { folders } = MACHINE_ART_SET;
+		const allOffsets = import.meta.glob<Record<string, unknown>>("/public/**/offsets.json", {
+			eager: true,
+			import: "default",
+		});
+		const offsets = allOffsets[`/public/${folders.sprites}/offsets.json`] ?? {};
 
-		for (const name of MACHINE_ART_SET.textures) expect(committed).toContain(`/public/${folder}/textures/${name}.png`);
+		for (const name of MACHINE_ART_SET.textures) expect(committed).toContain(`/public/${folders.textures}/${name}.png`);
 		for (const name of bugFrameNames(MACHINE_ART_SET)) {
-			expect(committed).toContain(`/public/${folder}/sprites/${name}.png`);
+			expect(committed).toContain(`/public/${folders.sprites}/${name}.png`);
 			expect(offsets[name]).toEqual({ left: expect.any(Number), top: expect.any(Number) });
 		}
 		for (const file of Object.values(MACHINE_ART_SET.sounds)) {
-			expect(committed).toContain(`/public/${folder}/sounds/${file}.wav`);
+			expect(committed).toContain(`/public/${folders.sounds}/${file}.wav`);
 		}
 	});
 });
@@ -629,7 +643,7 @@ describe("Textured walls", () => {
 				const colors = new Set<number>();
 				for (let y = 0; y < VIEW_HEIGHT; y++) {
 					const pixel = pixelAt(frame, x, y);
-					if (!isCeiling(pixel) && !isFloor(pixel)) colors.add(pixel);
+					if (!isCeiling(pixel) && !isFloor(pixel) && pixel !== CROSSHAIR_COLOR) colors.add(pixel);
 				}
 				if (colors.size > 1) mixed.push(`distance ${distance.toFixed(2)}, column ${x}`);
 			}
@@ -1190,7 +1204,10 @@ describe("Doors", () => {
 		/** How many columns of the horizon row show the door. */
 		function doorColumns(frame: Framebuffer): number {
 			let count = 0;
-			for (let x = 0; x < SCREEN_WIDTH; x++) if (hue(pixelAt(frame, x, HORIZON)) === "green") count++;
+			for (let x = 0; x < SCREEN_WIDTH; x++) {
+				const pixel = pixelAt(frame, x, HORIZON);
+				if (pixel !== CROSSHAIR_COLOR && hue(pixel) === "green") count++;
+			}
 			return count;
 		}
 
@@ -1199,7 +1216,7 @@ describe("Doors", () => {
 			let rows = 0;
 			for (let y = 0; y < VIEW_HEIGHT; y++) {
 				const pixel = pixelAt(frame, SCREEN_WIDTH / 2, y);
-				if (!isCeiling(pixel) && !isFloor(pixel)) rows++;
+				if (!isCeiling(pixel) && !isFloor(pixel) && pixel !== CROSSHAIR_COLOR) rows++;
 			}
 			return rows;
 		}
@@ -1259,7 +1276,7 @@ describe("Doors", () => {
 	});
 
 	it("fails with a clear error when a door tile has no track texture", () => {
-		const level = tiledLevel({ rows: corridor, doorTiles: { D: { texture: "DOOR3", track: "" } } });
+		const level = tiledLevel({ rows: corridor, doorTiles: { D: { texture: "door", track: "" } } });
 		expect(() => createGame({ level })).toThrow(/Door tile gid 2 has no "track" property/);
 	});
 

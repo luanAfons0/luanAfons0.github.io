@@ -28,13 +28,14 @@ import { MACHINE_ART_SET } from "./game/theme";
 // assets load then too: the import is ready when the game can start. startGame() runs the game.
 
 // Decode every wall texture, Bug sprite, and Exhibit poster once, before the first frame.
-// The wall and sprite PNGs are in the art set folder under public/, the posters in public/posters/.
+// The wall and sprite PNGs are in the art set folders under public/, the posters in public/posters/.
 const artSet = MACHINE_ART_SET;
-const artUrl = `${import.meta.env.BASE_URL}${artSet.folder}`;
+const texturesUrl = `${import.meta.env.BASE_URL}${artSet.folders.textures}`;
+const spritesUrl = `${import.meta.env.BASE_URL}${artSet.folders.sprites}`;
 const [textureEntries, spriteEntries, posterEntries] = await Promise.all([
 	Promise.all(
 		levelTextureNames(sampleLevel).map(
-			async (name) => [name, await loadTexture(`${artUrl}/textures/${name}.png`)] as const,
+			async (name) => [name, await loadTexture(`${texturesUrl}/${name}.png`)] as const,
 		),
 	),
 	loadSprites(bugFrameNames(artSet)),
@@ -216,16 +217,16 @@ export function startGame(audio?: Audio): void {
 	requestAnimationFrame(frame);
 }
 
-/** Sprite PNGs have no place for the anchor, so the anchors come from sprites/offsets.json. */
+/** Sprite PNGs have no place for the anchor, so the anchors come from offsets.json in the sprites folder. */
 async function loadSprites(names: readonly string[]): Promise<(readonly [string, SpriteImage])[]> {
-	const response = await fetch(`${artUrl}/sprites/offsets.json`);
+	const response = await fetch(`${spritesUrl}/offsets.json`);
 	if (!response.ok) throw new Error(`Cannot load sprite offsets: HTTP ${response.status}.`);
 	const offsets = (await response.json()) as Record<string, { left: number; top: number } | undefined>;
 	return Promise.all(
 		names.map(async (name) => {
 			const offset = offsets[name];
-			if (!offset) throw new Error(`sprites/offsets.json has no anchor for sprite "${name}".`);
-			const texture = await loadTexture(`${artUrl}/sprites/${name}.png`);
+			if (!offset) throw new Error(`offsets.json has no anchor for sprite "${name}".`);
+			const texture = await loadTexture(`${spritesUrl}/${name}.png`);
 			return [name, { texture, left: offset.left, top: offset.top }] as const;
 		}),
 	);

@@ -31,17 +31,17 @@ export interface HudColors {
 	label: Rgb;
 	/** The hint above the status bar, like "Press E". */
 	hint: Rgb;
-	/** The shadow under the hint, one pixel down and right. */
-	hintShadow: Rgb;
+	/** The one-pixel outline around the hint, so it reads on any wall. */
+	hintOutline: Rgb;
 	crosshair: Rgb;
-	/** The status bar and its top edge. */
+	/** The status bar. */
 	bar: Rgb;
-	barEdge: Rgb;
-	/** Each section box of the status bar, with its sunken bevel. */
-	section: Rgb;
-	bevelDark: Rgb;
-	bevelLight: Rgb;
+	/** The one-pixel lines of the status bar: its top edge and the outline of each section. */
+	outline: Rgb;
 }
+
+/** The kinds of files an art set has, each in its own folder. */
+export type AssetKind = "textures" | "sprites" | "sounds";
 
 /**
  * An art set: everything the game draws and plays. The Level, the Bugs, the HUD, and the Audio
@@ -52,10 +52,10 @@ export interface ArtSet {
 	/** A short name for error messages. */
 	name: string;
 	/**
-	 * The folder under `public/` that holds the files: `textures/<name>.png`, `sprites/<name>.png`
-	 * with their anchors in `sprites/offsets.json`, and `sounds/<file>.wav`.
+	 * The folder under `public/` of each kind of file: `<textures>/<name>.png`, `<sprites>/<name>.png`
+	 * with their anchors in `<sprites>/offsets.json`, and `<sounds>/<file>.wav`.
 	 */
-	folder: string;
+	folders: Readonly<Record<AssetKind, string>>;
 	/** The wall, door, and door track textures a Level may name. */
 	textures: readonly string[];
 	/** The frames of a walking Bug, in order. A Level with Bugs needs at least one. */
@@ -64,31 +64,35 @@ export interface ArtSet {
 	bugFixFrames: readonly string[];
 	/** The WAV file (with no extension) of each sound event. */
 	sounds: Readonly<Record<SoundEvent, string>>;
+	/** The flat colors of the ceiling and the floor, shaded by distance like the walls. */
+	ceiling: Rgb;
+	floor: Rgb;
 	hud: Readonly<HudColors>;
 }
 
 /**
- * The machine art set, which the Paper and Board Themes share. For now it still points at the
- * Freedoom art, so the game looks and sounds as before; the generated machine art replaces it.
+ * The machine art set, which the Paper and Board Themes share: a circuit board. The wall textures
+ * come from `scripts/machine-art.ts`. The Bug frames and the sounds still come from Freedoom
+ * until the generator draws and plays them too.
  */
 export const MACHINE_ART_SET: ArtSet = {
 	name: "machine",
-	folder: "freedoom",
-	textures: ["COMP2", "DOOR3", "DOORTRAK", "STARTAN2", "STARTAN3", "TEKWALL1"],
+	folders: { textures: "machine/textures", sprites: "freedoom/sprites", sounds: "freedoom/sounds" },
+	textures: ["board-a", "board-b", "chip", "rack", "door", "door-track"],
 	// Freedoom's SKUL: two front-view frames walk; six frames show it being fixed.
 	bugWalkFrames: ["SKULA1", "SKULB1"],
 	bugFixFrames: ["SKULF0", "SKULG0", "SKULH0", "SKULI0", "SKULJ0", "SKULK0"],
 	sounds: { shot: "DSPISTOL", "door-open": "DSDOROPN" },
+	ceiling: [11, 13, 15],
+	floor: [22, 27, 30],
+	// Silkscreen grey labels, copper values, silkscreen white hint and crosshair, on solder mask.
 	hud: {
-		value: [220, 40, 32],
-		label: [200, 196, 180],
-		hint: [255, 216, 72],
-		hintShadow: [0, 0, 0],
-		crosshair: [240, 232, 160],
-		bar: [92, 88, 80],
-		barEdge: [150, 144, 132],
-		section: [48, 44, 40],
-		bevelDark: [32, 30, 28],
-		bevelLight: [136, 130, 118],
+		value: [224, 138, 79],
+		label: [154, 161, 165],
+		hint: [233, 235, 230],
+		hintOutline: [26, 32, 36],
+		crosshair: [233, 235, 230],
+		bar: [26, 32, 36],
+		outline: [58, 64, 69],
 	},
 };
