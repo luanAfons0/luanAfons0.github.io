@@ -1,6 +1,6 @@
 import { moveCircle } from "../engine/collision";
 import type { Grid } from "../engine/grid";
-import { castRay } from "../engine/raycast";
+import { castRay, createRayHit } from "../engine/raycast";
 import type { Sprite, SpriteImage } from "../engine/renderer";
 import type { BugSpawn, Room } from "./level";
 
@@ -90,6 +90,8 @@ export function createBugs(spawns: readonly BugSpawn[], images: Readonly<Record<
 		sprite: { x: spawn.x, y: spawn.y, z: FLOAT_HEIGHT, image: walkImages[0] as SpriteImage },
 	}));
 	const sprites: Sprite[] = [];
+	// Reused by every shot.
+	const wallHit = createRayHit();
 	return {
 		total: bugs.length,
 		sprites,
@@ -131,7 +133,9 @@ export function createBugs(spawns: readonly BugSpawn[], images: Readonly<Record<
 			const dirY = Math.sin(angle);
 			let nearest: Bug | undefined;
 			// Cells outside the grid are solid, so the ray always hits a wall.
-			let nearestDistance = castRay(walls, x, y, angle, Number.POSITIVE_INFINITY)?.distance ?? Number.POSITIVE_INFINITY;
+			let nearestDistance = castRay(walls, x, y, angle, Number.POSITIVE_INFINITY, wallHit)
+				? wallHit.distance
+				: Number.POSITIVE_INFINITY;
 			for (const bug of bugs) {
 				if (bug.fixed) continue;
 				const dx = bug.x - x;

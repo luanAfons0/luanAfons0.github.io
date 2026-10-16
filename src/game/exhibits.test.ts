@@ -167,8 +167,10 @@ describe("Exhibits in focus and use", () => {
 
 	it("opens the Exhibit in focus on use and pauses the Game core", () => {
 		const game = facingPoster(1);
+		expect(game.openExhibitId()).toBeNull();
 		game.step(USE);
 		expect(game.state().openExhibit).toBe("orca");
+		expect(game.openExhibitId()).toBe("orca");
 		expect(game.state().paused).toBe(true);
 	});
 
@@ -184,6 +186,7 @@ describe("Exhibits in focus and use", () => {
 		game.step(USE);
 		game.closeExhibit();
 		expect(game.state().openExhibit).toBeNull();
+		expect(game.openExhibitId()).toBeNull();
 		expect(game.state().paused).toBe(false);
 		game.step({ ...IDLE, forward: -1 });
 		expect(game.state().player.x).toBeLessThan(5);

@@ -1,6 +1,6 @@
 import type { Framebuffer } from "./framebuffer";
-import { cellAt, doorAt, type Grid, NOT_A_DOOR } from "./grid";
-import { Face, faceKey } from "./raycast";
+import type { Grid } from "./grid";
+import { createRayHit, Face, faceKey, walkRay } from "./raycast";
 import type { Texture } from "./texture";
 
 export interface Camera {
@@ -89,10 +89,7 @@ const MISSING_TEXTURE: Texture = { width: 1, height: 1, texels: new Uint32Array(
 const NEAR_PLANE = 0.1;
 const NO_SPRITES: ReadonlyArray<Sprite> = [];
 
-/**
- * A raycaster: one ray per screen column, walked through the grid with DDA
- * (a digital differential analyzer: it steps from one cell edge to the next).
- */
+/** A raycaster: one ray per screen column, walked through the grid with `walkRay`. */
 export function createRenderer(options: RendererOptions): Renderer {
 	const { width, height, wallTextures, faceTextures, ceilingColor, floorColor } = options;
 	const trackTextures = options.trackTextures ?? [];
@@ -117,6 +114,8 @@ export function createRenderer(options: RendererOptions): Renderer {
 	}
 	// The wall distance of each column, so sprites behind a wall are hidden.
 	const depthBuffer = new Float64Array(width);
+	// Reused by every ray, so frames allocate nothing.
+	const hit = createRayHit();
 	// The sprites of one frame, sorted far to near. They grow only when a frame has more sprites than before.
 	let spriteOrder = new Int32Array(16);
 	let spriteDepths = new Float64Array(16);
@@ -139,89 +138,45 @@ export function createRenderer(options: RendererOptions): Renderer {
 			const dirY = Math.sin(camera.angle);
 			const planeX = -dirY * planeHalfWidth;
 			const planeY = dirX * planeHalfWidth;
-			// A camera inside an open door cell sees the track on the side walls.
-			const startX = Math.floor(camera.x);
-			const startY = Math.floor(camera.y);
-			const startDoorCell = doorAt(grid, startX, startY) === NOT_A_DOOR ? 0 : cellAt(grid, startX, startY);
 
 			for (let column = 0; column < width; column++) {
 				const cameraX = (2 * (column + 0.5)) / width - 1;
 				const rayX = dirX + planeX * cameraX;
 				const rayY = dirY + planeY * cameraX;
-
-				let mapX = startX;
-				let mapY = startY;
-				const deltaX = rayX === 0 ? Number.POSITIVE_INFINITY : Math.abs(1 / rayX);
-				const deltaY = rayY === 0 ? Number.POSITIVE_INFINITY : Math.abs(1 / rayY);
-				const stepX = rayX < 0 ? -1 : 1;
-				const stepY = rayY < 0 ? -1 : 1;
-				let sideX = (rayX < 0 ? camera.x - mapX : mapX + 1 - camera.x) * deltaX;
-				let sideY = (rayY < 0 ? camera.y - mapY : mapY + 1 - camera.y) * deltaY;
-				let ySide = false;
-				// The door cell value when the ray is inside a door cell, else 0.
-				let doorCell = startDoorCell;
-				let distance: number;
+				// The ray is the view direction plus a part of the view plane, so its hit distance is the
+				// distance along the view direction (not along the ray), and walls do not bulge.
+				walkRay(grid, camera.x, camera.y, rayX, rayY, Number.POSITIVE_INFINITY, hit);
+				const distance = hit.distance;
+				const ySide = hit.face === Face.North || hit.face === Face.South;
 				let texture: Texture;
 				let textureX: number;
-				// Cells outside the grid are solid, so this loop always ends.
-				for (;;) {
-					if (sideX < sideY) {
-						sideX += deltaX;
-						mapX += stepX;
-						ySide = false;
+				if (hit.door) {
+					// The door panel shows the door texture, stretched to exactly one tile wide.
+					texture = wallTextures[hit.cell] ?? MISSING_TEXTURE;
+					textureX = Math.min(texture.width - 1, Math.floor(hit.doorU * texture.width));
+				} else {
+					const { x, y } = hit;
+					const inGrid = x >= 0 && y >= 0 && x < grid.width && y < grid.height;
+					const faceTexture = faceTextures && inGrid ? faceTextures.get(faceKey(grid, x, y, hit.face)) : undefined;
+					// A wall seen from inside a door cell is a side wall of the door: it shows the track.
+					texture =
+						faceTexture ??
+						(hit.insideDoor === 0 ? wallTextures[hit.cell] : trackTextures[hit.insideDoor]) ??
+						MISSING_TEXTURE;
+					// Where the ray hits along the wall face, in tiles. It grows from left to right as the
+					// viewer sees the face, so textures never show mirrored.
+					let u: number;
+					if (ySide) {
+						const hitX = camera.x + distance * rayX;
+						u = rayY > 0 ? -hitX : hitX;
 					} else {
-						sideY += deltaY;
-						mapY += stepY;
-						ySide = true;
+						const hitY = camera.y + distance * rayY;
+						u = rayX > 0 ? hitY : -hitY;
 					}
-					const cell = cellAt(grid, mapX, mapY);
-					if (cell === 0) {
-						doorCell = 0;
-						continue;
-					}
-					const open = doorAt(grid, mapX, mapY);
-					if (open === NOT_A_DOOR) {
-						// A wall. Distance along the view direction (not along the ray), so walls do not bulge.
-						distance = ySide ? sideY - deltaY : sideX - deltaX;
-						let faceTexture: Texture | undefined;
-						if (faceTextures && mapX >= 0 && mapY >= 0 && mapX < grid.width && mapY < grid.height) {
-							const face = ySide ? (stepY > 0 ? Face.North : Face.South) : stepX > 0 ? Face.West : Face.East;
-							faceTexture = faceTextures.get(faceKey(grid, mapX, mapY, face));
-						}
-						// Seen from inside a door cell, a wall is a side wall of the door: it shows the track.
-						texture = faceTexture ?? (doorCell === 0 ? wallTextures[cell] : trackTextures[doorCell]) ?? MISSING_TEXTURE;
-						// Where the ray hits along the wall face, in tiles. It grows from left to right as the
-						// viewer sees the face, so textures never show mirrored.
-						let u: number;
-						if (ySide) {
-							const hitX = camera.x + distance * rayX;
-							u = rayY > 0 ? -hitX : hitX;
-						} else {
-							const hitY = camera.y + distance * rayY;
-							u = rayX > 0 ? hitY : -hitY;
-						}
-						textureX = faceTexture
-							? Math.floor((u - Math.floor(u)) * texture.width)
-							: Math.floor(u * texture.height) % texture.width;
-						if (textureX < 0) textureX += texture.width;
-						break;
-					}
-					// A door cell. Its panel crosses the middle of the cell, across the passage. A door
-					// with walls north and south of it closes a west-east passage, so its panel is at x + 0.5.
-					doorCell = cell;
-					const acrossX = cellAt(grid, mapX, mapY - 1) !== 0;
-					const panel = acrossX ? (mapX + 0.5 - camera.x) / rayX : (mapY + 0.5 - camera.y) / rayY;
-					// The ray must reach the panel before it leaves the cell.
-					if (!(panel > 0 && panel < (sideX < sideY ? sideX : sideY))) continue;
-					// Where the ray crosses the panel line, from 0 to 1 across the cell. The panel has slid
-					// `open` of a tile toward 0, so the ray passes through the gap below `open`.
-					const along = acrossX ? camera.y + panel * rayY - mapY : camera.x + panel * rayX - mapX;
-					if (along < open) continue;
-					distance = panel;
-					ySide = !acrossX;
-					texture = wallTextures[cell] ?? MISSING_TEXTURE;
-					textureX = Math.min(texture.width - 1, Math.floor((along - open) * texture.width));
-					break;
+					textureX = faceTexture
+						? Math.floor((u - Math.floor(u)) * texture.width)
+						: Math.floor(u * texture.height) % texture.width;
+					if (textureX < 0) textureX += texture.width;
 				}
 				depthBuffer[column] = distance;
 				const { texels, height: textureHeight } = texture;

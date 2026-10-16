@@ -4,7 +4,7 @@ import { moveCircle } from "../engine/collision";
 import { type Framebuffer, rgb } from "../engine/framebuffer";
 import { cellAt } from "../engine/grid";
 import type { InputSnapshot } from "../engine/input";
-import { castRay, faceKey } from "../engine/raycast";
+import { castRay, createRayHit, faceKey } from "../engine/raycast";
 import { type Camera, createRenderer, type SpriteImage } from "../engine/renderer";
 import type { Texture } from "../engine/texture";
 import { BUG_SPRITE_NAMES, type BugState, createBugs } from "./bugs";
@@ -148,7 +148,10 @@ export interface Game {
 	closeExhibit(): void;
 	/** Changes some settings. They apply from the next tick on. */
 	updateSettings(settings: Partial<GameSettings>): void;
+	/** A full copy of the state, for tests and tools. It allocates: do not call it every frame. */
 	state(): GameState;
+	/** The id of the open Exhibit, or null (the same as `state().openExhibit`). It allocates nothing. */
+	openExhibitId(): string | null;
 	/** Draws the current view and the HUD into a caller-provided 640x360 framebuffer. */
 	render(framebuffer: Framebuffer): void;
 }
@@ -170,10 +173,13 @@ export function createGame(options: GameOptions): Game {
 	const doors: DoorState[] = level.doors.map(({ x, y }) => ({ x, y, state: "closed", open: 0 }));
 	const exhibitsByFace = new Map<number, string>();
 	for (const { id, x, y, face } of level.exhibits) exhibitsByFace.set(faceKey(level.walls, x, y, face), id);
+	// Reused by every use ray, so steps allocate nothing.
+	const hit = createRayHit();
+	/** Casts the center ray within the use distance into `hit`. */
+	const castUseRay = () => castRay(level.walls, player.x, player.y, player.angle, USE_DISTANCE, hit);
 	const findExhibitInFocus = (): string | null => {
-		if (exhibitsByFace.size === 0) return null;
-		const hit = castRay(level.walls, player.x, player.y, player.angle, USE_DISTANCE);
-		return hit ? (exhibitsByFace.get(faceKey(level.walls, hit.x, hit.y, hit.face)) ?? null) : null;
+		if (exhibitsByFace.size === 0 || !castUseRay() || hit.door) return null;
+		return exhibitsByFace.get(faceKey(level.walls, hit.x, hit.y, hit.face)) ?? null;
 	};
 	let exhibitInFocus = findExhibitInFocus();
 	let openExhibit: string | null = null;
@@ -199,8 +205,8 @@ export function createGame(options: GameOptions): Game {
 
 	/** Starts the slide of the closed door that the center ray hits within the use distance, if there is one. */
 	function useDoorAhead(): void {
-		const hit = castRay(level.walls, player.x, player.y, player.angle, USE_DISTANCE);
-		const door = hit && doors.find(({ x, y }) => x === hit.x && y === hit.y);
+		if (!castUseRay() || !hit.door) return;
+		const door = doors.find(({ x, y }) => x === hit.x && y === hit.y);
 		if (door?.state !== "closed") return;
 		door.state = "opening";
 		options.sound?.("door-open");
@@ -276,6 +282,7 @@ export function createGame(options: GameOptions): Game {
 		updateSettings(changes) {
 			Object.assign(settings, changes);
 		},
+		openExhibitId: () => openExhibit,
 		state: () => ({
 			player: { ...player },
 			room,

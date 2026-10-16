@@ -130,7 +130,7 @@ export function startGame(audio?: Audio): void {
 
 	/** Shows the Exhibit Panel when the Game core opened an Exhibit (the player pressed E on it). */
 	function showOpenExhibit(): void {
-		const id = game.state().openExhibit;
+		const id = game.openExhibitId();
 		if (id === null || exhibitPanel.isOpen()) return;
 		const exhibit = exhibitsById.get(id);
 		if (!exhibit) throw new Error(`The Game core opened Exhibit "${id}", which is not in the Content.`);
@@ -193,7 +193,7 @@ export function startGame(audio?: Audio): void {
 
 	const input: InputSnapshot = { forward: 0, strafe: 0, turn: 0, look: 0, shoot: false, use: false };
 	const tick = () => {
-		Object.assign(input, keyboard.snapshot());
+		keyboard.snapshot(input);
 		// All mouse movement since the last tick goes into this tick, so none is lost or counted twice.
 		input.look = mouse.takeLook();
 		input.shoot = mouse.takeShot();

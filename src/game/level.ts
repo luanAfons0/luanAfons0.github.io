@@ -295,7 +295,11 @@ function loadExhibits(
 
 /** Returns the first Room whose rectangle holds the point, or undefined. */
 export function roomAt(rooms: readonly Room[], x: number, y: number): Room | undefined {
-	return rooms.find((room) => x >= room.x && x < room.x + room.width && y >= room.y && y < room.y + room.height);
+	// A plain loop: the Game core calls it every tick, and a loop allocates nothing.
+	for (const room of rooms) {
+		if (x >= room.x && x < room.x + room.width && y >= room.y && y < room.y + room.height) return room;
+	}
+	return undefined;
 }
 
 /** Tiled 1.9 wrote "class"; 1.10 and later write "type". */

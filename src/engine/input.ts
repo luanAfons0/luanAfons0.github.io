@@ -40,8 +40,12 @@ export interface KeyboardInputOptions {
 }
 
 export interface KeyboardInput {
-	/** The input for the next tick, from the keys that are down now and the use key pressed since the last call. */
-	snapshot(): InputSnapshot;
+	/**
+	 * Writes the input for the next tick into `input`: the axes of the keys that are down now, and
+	 * the use key pressed since the last call. It leaves `look` and `shoot` alone (the mouse owns
+	 * them) and allocates nothing.
+	 */
+	snapshot(input: InputSnapshot): void;
 	/** Removes the event listeners. */
 	dispose(): void;
 }
@@ -75,14 +79,16 @@ export function createKeyboardInput(target: Window, options: KeyboardInputOption
 	target.addEventListener("blur", onBlur);
 
 	return {
-		snapshot() {
-			const input: InputSnapshot = { forward: 0, strafe: 0, turn: 0, look: 0, use: usePressed };
+		snapshot(input) {
+			input.forward = 0;
+			input.strafe = 0;
+			input.turn = 0;
+			input.use = usePressed;
 			usePressed = false;
 			for (const code of down) {
 				const binding = KEY_BINDINGS[code];
 				if (binding) input[binding[0]] += binding[1];
 			}
-			return input;
 		},
 		dispose() {
 			target.removeEventListener("keydown", onKeyDown);

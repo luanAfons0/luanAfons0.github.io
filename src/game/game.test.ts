@@ -1046,6 +1046,19 @@ describe("Doors", () => {
 		expect(game.state().doors[0]).toMatchObject({ state: "closed", open: 0 });
 	});
 
+	it("measures the use range to the door panel the player sees, in the middle of the door cell", () => {
+		// The door cell starts 1.2 tiles ahead, but its panel (at x 4.5) is 1.7 tiles ahead: out of range.
+		const rows = ["#######", "#P..D.#", "#######"];
+		const far = createGame({ level: tiledLevel({ rows, playerOffset: { x: 1.8, y: 0.5 } }) });
+		far.step(USE);
+		expect(far.state().doors[0]?.state).toBe("closed");
+
+		// Its panel is 1.4 tiles ahead: in range.
+		const near = createGame({ level: tiledLevel({ rows, playerOffset: { x: 2.1, y: 0.5 } }) });
+		near.step(USE);
+		expect(near.state().doors[0]?.state).toBe("opening");
+	});
+
 	it("does not open a door the player is not facing", () => {
 		const game = createGame({
 			level: tiledLevel({ rows: corridor, playerOffset: { x: 1.5, y: 0.5 }, playerAngle: 180 }),
@@ -1068,6 +1081,7 @@ describe("Doors", () => {
 		// A Bug stands behind the door. Its Room is too small to walk in, so it stays in the line of fire.
 		const level = tiledLevel({
 			rows: ["#######", "#P.D..#", "#######"],
+			playerOffset: { x: 1.2, y: 0.5 },
 			extraObjects: [tiledRoom("Closet", { x: 4.9, y: 1.4, width: 0.2, height: 0.2 }), tiledBug({ x: 5, y: 1.5 })],
 		});
 		const game = createGame({ level });
@@ -1079,6 +1093,25 @@ describe("Doors", () => {
 		game.step(USE);
 		stepTicks(game, IDLE, 120);
 		game.step(SHOOT);
+		expect(game.state().bugsFixed).toBe(1);
+	});
+
+	it("lets a shot pass through the open part of a door that is still sliding open", () => {
+		// The door slides toward the top wall, so its gap opens at the top of the corridor. The player
+		// and the Bug are both near the top, so the line of fire goes through the gap.
+		const level = tiledLevel({
+			rows: ["#######", "#P.D..#", "#######"],
+			playerOffset: { x: 1.2, y: 0.25 },
+			extraObjects: [tiledRoom("Closet", { x: 4.9, y: 1.15, width: 0.2, height: 0.2 }), tiledBug({ x: 5, y: 1.25 })],
+		});
+		const game = createGame({ level });
+		const SHOOT: InputSnapshot = { ...IDLE, shoot: true };
+
+		game.step(USE);
+		stepTicks(game, IDLE, 25);
+		expect(game.state().doors[0]?.state).toBe("opening");
+		game.step(SHOOT);
+
 		expect(game.state().bugsFixed).toBe(1);
 	});
 

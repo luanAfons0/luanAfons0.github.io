@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { createKeyboardInput, isTextEntry, type KeyboardInput } from "./input";
+import { createKeyboardInput, type InputSnapshot, isTextEntry, type KeyboardInput } from "./input";
 
 let keyboard: KeyboardInput | undefined;
 
@@ -27,7 +27,25 @@ function element(selector: string): HTMLElement {
 	return found;
 }
 
+const empty = (): InputSnapshot => ({ forward: 0, strafe: 0, turn: 0, look: 0, shoot: false, use: false });
+
 describe("Keyboard input", () => {
+	it("writes the keys that are down into the caller's snapshot, and the use key once per press", () => {
+		keyboard = createKeyboardInput(window);
+		const input = empty();
+		input.look = 12;
+		input.shoot = true;
+
+		press(element("canvas"), "KeyW");
+		press(element("canvas"), "KeyD");
+		press(element("canvas"), "KeyE");
+		keyboard.snapshot(input);
+
+		expect(input).toEqual({ forward: 1, strafe: 1, turn: 0, look: 12, shoot: true, use: true });
+		keyboard.snapshot(input);
+		expect(input.use).toBe(false);
+	});
+
 	it("keeps the arrow keys from scrolling the page while the game has the keys", () => {
 		keyboard = createKeyboardInput(window);
 		expect(press(element("canvas"), "ArrowDown").defaultPrevented).toBe(true);
@@ -37,10 +55,13 @@ describe("Keyboard input", () => {
 		keyboard = createKeyboardInput(window, {
 			belongsToPage: (target) => target instanceof Element && target.closest(".overlay") !== null,
 		});
+		const input = empty();
+
 		const event = press(element(".overlay article"), "ArrowDown");
+		keyboard.snapshot(input);
 
 		expect(event.defaultPrevented).toBe(false);
-		expect(keyboard.snapshot().forward).toBe(0);
+		expect(input.forward).toBe(0);
 	});
 });
 
