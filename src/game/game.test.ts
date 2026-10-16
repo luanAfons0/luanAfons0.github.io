@@ -5,6 +5,7 @@ import { createFixedStepLoop } from "../engine/loop";
 import { createTexture, type Texture } from "../engine/texture";
 import {
 	createGame,
+	type DoorState,
 	FLOOR_COLOR,
 	type Game,
 	HUD_VALUE_COLOR,
@@ -15,10 +16,17 @@ import {
 	TICKS_PER_SECOND,
 } from "./game";
 import sampleLevel from "./levels/sample.json";
-import { TEST_WALL_TEXTURE, tiledLevel, tiledRoom } from "./test-support/tiled-level";
+import {
+	TEST_DOOR_TEXTURE,
+	TEST_TRACK_TEXTURE,
+	TEST_WALL_TEXTURE,
+	tiledLevel,
+	tiledRoom,
+} from "./test-support/tiled-level";
 
-const IDLE: InputSnapshot = { forward: 0, strafe: 0, turn: 0, look: 0 };
+const IDLE: InputSnapshot = { forward: 0, strafe: 0, turn: 0, look: 0, use: false };
 const FORWARD: InputSnapshot = { ...IDLE, forward: 1 };
+const USE: InputSnapshot = { ...IDLE, use: true };
 
 function stepTicks(game: Game, input: InputSnapshot, ticks: number): void {
 	for (let i = 0; i < ticks; i++) game.step(input);
@@ -145,7 +153,7 @@ describe("Game core", () => {
 
 	it("gives the same position for the same input no matter how ticks are grouped into frames", () => {
 		const rows = ["########", "#......#", "#.P....#", "#......#", "#......#", "########"];
-		const curve: InputSnapshot = { forward: 1, strafe: 0.5, turn: 0.4, look: 0 };
+		const curve: InputSnapshot = { forward: 1, strafe: 0.5, turn: 0.4, look: 0, use: false };
 		const frameGroupings = {
 			"60 Hz": Array(60).fill(1000 / 60),
 			"144 Hz": Array(144).fill(1000 / 144),
@@ -210,7 +218,7 @@ describe("Game core", () => {
 		const start = game.state().player;
 
 		game.pause();
-		stepTicks(game, { forward: 1, strafe: 1, turn: 1, look: 50 }, 60);
+		stepTicks(game, { forward: 1, strafe: 1, turn: 1, look: 50, use: false }, 60);
 
 		expect(game.state().paused).toBe(true);
 		expect(game.state().player).toEqual(start);
@@ -571,5 +579,200 @@ describe("Textured walls", () => {
 
 		expect(names.length).toBeGreaterThan(0);
 		for (const name of names) expect(committed).toContain(`/public/freedoom/textures/${name}.png`);
+	});
+});
+
+describe("Doors", () => {
+	// A corridor: the player starts at x 1.5 and faces east, at a door in the cell x 3..4.
+	const corridor = ["######", "#P.D.#", "######"];
+
+	it("lists each door cell of the Level as closed in the Game core state", () => {
+		const game = createGame({ level: tiledLevel({ rows: corridor }) });
+		expect(game.state().doors).toEqual([{ x: 3, y: 1, state: "closed", open: 0 }]);
+	});
+
+	it("stops the player at a closed door", () => {
+		const game = createGame({ level: tiledLevel({ rows: corridor }) });
+		stepTicks(game, FORWARD, 60);
+		expect(game.state().player.x).toBeLessThan(3);
+		expect(game.state().player.x).toBeGreaterThan(2.5);
+	});
+
+	it("opens a closed door when the player uses it, keeps it open, and lets the player walk through", () => {
+		const game = createGame({ level: tiledLevel({ rows: corridor }) });
+		stepTicks(game, FORWARD, 30); // walk up to the door
+		game.step(USE);
+		expect(game.state().doors[0]?.state).toBe("opening");
+
+		stepTicks(game, IDLE, 120);
+		expect(game.state().doors[0]).toMatchObject({ state: "open", open: 1 });
+
+		stepTicks(game, FORWARD, 60);
+		expect(game.state().player.x).toBeGreaterThan(4);
+		expect(game.state().doors[0]).toMatchObject({ state: "open", open: 1 });
+	});
+
+	it("slides the door open over several ticks after one use", () => {
+		const game = createGame({ level: tiledLevel({ rows: corridor, playerOffset: { x: 1.5, y: 0.5 } }) });
+		game.step(USE);
+		game.step(IDLE);
+		const { open } = game.state().doors[0] as DoorState;
+		expect(open).toBeGreaterThan(0);
+		expect(open).toBeLessThan(1);
+	});
+
+	it("does not open a door that is out of use range", () => {
+		const game = createGame({ level: tiledLevel({ rows: ["########", "#P...D.#", "########"] }) });
+		game.step(USE);
+		stepTicks(game, IDLE, 120);
+		expect(game.state().doors[0]).toMatchObject({ state: "closed", open: 0 });
+	});
+
+	it("does not open a door the player is not facing", () => {
+		const game = createGame({
+			level: tiledLevel({ rows: corridor, playerOffset: { x: 1.5, y: 0.5 }, playerAngle: 180 }),
+		});
+		game.step(USE);
+		stepTicks(game, IDLE, 120);
+		expect(game.state().doors[0]).toMatchObject({ state: "closed", open: 0 });
+	});
+
+	it("does not slide a door while the game is paused", () => {
+		const game = createGame({ level: tiledLevel({ rows: corridor, playerOffset: { x: 1.5, y: 0.5 } }) });
+		game.step(USE);
+		const opening = game.state().doors[0];
+		game.pause();
+		stepTicks(game, IDLE, 120);
+		expect(game.state().doors[0]).toEqual(opening);
+	});
+
+	describe("rendering", () => {
+		// Walls are red, the door is green, and the door track is blue.
+		const textures = {
+			[TEST_WALL_TEXTURE]: solidTexture(RED),
+			[TEST_DOOR_TEXTURE]: solidTexture(GREEN),
+			[TEST_TRACK_TEXTURE]: solidTexture(BLUE),
+		};
+		/** The player at x 1.5 faces east, at a door in the cell x 3..4, with a wall 4 tiles behind it. */
+		const hall = ["##########", "#P.D....##", "##########"];
+
+		function render(game: Game): Framebuffer {
+			const frame = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+			game.render(frame);
+			return frame;
+		}
+
+		/** The main color channel of a pixel: the brightest one, or "none" for gray. */
+		function hue(pixel: number): "red" | "green" | "blue" | "none" {
+			const [red, green, blue] = channels(pixel);
+			if (red > green && red > blue) return "red";
+			if (green > red && green > blue) return "green";
+			if (blue > red && blue > green) return "blue";
+			return "none";
+		}
+
+		/** How many columns of the horizon row show the door. */
+		function doorColumns(frame: Framebuffer): number {
+			let count = 0;
+			for (let x = 0; x < SCREEN_WIDTH; x++) if (hue(pixelAt(frame, x, HORIZON)) === "green") count++;
+			return count;
+		}
+
+		/** The number of rows in the center column that are not floor or ceiling. */
+		function centerWallHeight(frame: Framebuffer): number {
+			let rows = 0;
+			for (let y = 0; y < VIEW_HEIGHT; y++) {
+				const pixel = pixelAt(frame, SCREEN_WIDTH / 2, y);
+				if (!isCeiling(pixel) && !isFloor(pixel)) rows++;
+			}
+			return rows;
+		}
+
+		it("draws a closed door with the door texture", () => {
+			const game = createGame({ level: tiledLevel({ rows: hall }), textures });
+			expect(hue(pixelAt(render(game), SCREEN_WIDTH / 2, HORIZON))).toBe("green");
+		});
+
+		it("draws the door as a thin panel in the middle of its cell", () => {
+			// The door panel is at x 3.5, 2 tiles from the player: as high as a wall 2 tiles away.
+			const door = createGame({ level: tiledLevel({ rows: hall }), textures });
+			const wall = createGame({
+				level: tiledLevel({ rows: ["######", "#P..##", "######"], playerOffset: { x: 1, y: 0.5 } }),
+				textures,
+			});
+			expect(centerWallHeight(render(door))).toBe(centerWallHeight(render(wall)));
+		});
+
+		it("slides the door texture aside as the door opens, and shows what is behind it", () => {
+			const game = createGame({ level: tiledLevel({ rows: hall, playerOffset: { x: 1.5, y: 0.5 } }), textures });
+			const closed = doorColumns(render(game));
+			game.step(USE);
+			while ((game.state().doors[0] as DoorState).open < 0.5) game.step(IDLE);
+			const halfOpen = render(game);
+			stepTicks(game, IDLE, 120);
+			const open = render(game);
+
+			expect(closed).toBeGreaterThan(0);
+			expect(doorColumns(halfOpen)).toBeGreaterThan(0);
+			expect(doorColumns(halfOpen)).toBeLessThan(closed * 0.7);
+			expect(doorColumns(open)).toBe(0);
+			// Through the open door, the player sees the far wall.
+			expect(hue(pixelAt(open, SCREEN_WIDTH / 2, HORIZON))).toBe("red");
+		});
+
+		it("draws the door track on the side walls of the door cell", () => {
+			// Right in front of the door cell, the edge columns look at its side walls.
+			const game = createGame({ level: tiledLevel({ rows: hall, playerOffset: { x: 1.75, y: 0.5 } }), textures });
+			const frame = render(game);
+			expect(hue(pixelAt(frame, 0, HORIZON))).toBe("blue");
+			expect(hue(pixelAt(frame, SCREEN_WIDTH - 1, HORIZON))).toBe("blue");
+		});
+
+		it("draws a door in a north-south passage too", () => {
+			const game = createGame({
+				level: tiledLevel({ rows: ["###", "#P#", "#.#", "#D#", "#.#", "###"], playerAngle: 90 }),
+				textures,
+			});
+			expect(hue(pixelAt(render(game), SCREEN_WIDTH / 2, HORIZON))).toBe("green");
+		});
+	});
+
+	it("fails with a clear error when a door is not in a doorway", () => {
+		const level = tiledLevel({ rows: ["#####", "#P..#", "#.D.#", "#####"] });
+		expect(() => createGame({ level })).toThrow(/door at cell \(2, 2\) must have walls on two opposite sides/);
+	});
+
+	it("fails with a clear error when a door tile has no track texture", () => {
+		const level = tiledLevel({ rows: corridor, doorTiles: { D: { texture: "DOOR3", track: "" } } });
+		expect(() => createGame({ level })).toThrow(/Door tile gid 2 has no "track" property/);
+	});
+
+	it("lists the door and track textures in the textures the Level uses", () => {
+		expect(levelTextureNames(tiledLevel({ rows: corridor }))).toEqual([
+			TEST_DOOR_TEXTURE,
+			TEST_TRACK_TEXTURE,
+			TEST_WALL_TEXTURE,
+		]);
+	});
+
+	it("has a door between two Rooms in the real sample Level", () => {
+		type TiledObject = { type: string; name: string; x: number; y: number; width: number; height: number };
+		const { layers, tilewidth: size } = sampleLevel as unknown as {
+			layers: { objects?: TiledObject[] }[];
+			tilewidth: number;
+		};
+		const rooms = layers.flatMap((layer) => layer.objects ?? []).filter((object) => object.type === "room");
+		/** The name of the Room that holds the center of a cell. */
+		const roomOf = (x: number, y: number) => {
+			const [px, py] = [(x + 0.5) * size, (y + 0.5) * size];
+			return rooms.find((r) => px >= r.x && px < r.x + r.width && py >= r.y && py < r.y + r.height)?.name;
+		};
+		const joinsTwoRooms = ({ x, y }: DoorState) =>
+			[
+				[roomOf(x - 1, y), roomOf(x + 1, y)],
+				[roomOf(x, y - 1), roomOf(x, y + 1)],
+			].some(([a, b]) => a !== undefined && b !== undefined && a !== b);
+
+		expect(createGame({ level: sampleLevel }).state().doors.some(joinsTwoRooms)).toBe(true);
 	});
 });

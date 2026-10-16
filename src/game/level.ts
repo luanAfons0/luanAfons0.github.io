@@ -1,10 +1,15 @@
-import type { Grid } from "../engine/grid";
+import { type Grid, NOT_A_DOOR } from "../engine/grid";
 
 /** The Level model: what the Game core needs from a Tiled map. Positions are in tiles. */
 export interface Level {
-	walls: Grid;
+	/** Wall and door cells. Its `doors` array marks every door cell, all closed. */
+	walls: Grid & { doors: Float32Array };
 	/** The texture name for each wall cell value (a Tiled gid). Unused values are empty. */
 	wallTextures: ReadonlyArray<string | undefined>;
+	/** The track texture (for the side walls of the door cell) for each door cell value. */
+	doorTracks: ReadonlyArray<string | undefined>;
+	/** The door cells, row by row. */
+	doors: ReadonlyArray<{ x: number; y: number }>;
 	playerStart: { x: number; y: number; angle: number };
 	rooms: Room[];
 }
@@ -22,6 +27,10 @@ const WALL_LAYER = "walls";
 const PLAYER_START = "player_start";
 /** The tile property that names the wall texture of a wall tile. */
 const TEXTURE_PROPERTY = "texture";
+/** A wall tile with this bool property set is a door. */
+const DOOR_PROPERTY = "door";
+/** The tile property that names the texture of the side walls of a door cell (the door track). */
+const TRACK_PROPERTY = "track";
 /** Wall cells are stored as bytes. */
 const MAX_WALL_GID = 255;
 const ROOM = "room";
@@ -55,9 +64,22 @@ export function loadLevel(json: unknown): Level {
 	});
 	const tilesets = asArray(map.tilesets, "Level tilesets").map((tileset) => asRecord(tileset, "Level tileset"));
 	const wallTextures: (string | undefined)[] = [];
+	const doorTracks: (string | undefined)[] = [];
 	for (const gid of new Set(cells)) {
-		if (gid !== 0) wallTextures[gid] = wallTexture(tilesets, gid);
+		if (gid === 0) continue;
+		const tile = wallTile(tilesets, gid);
+		wallTextures[gid] = tile.texture;
+		doorTracks[gid] = tile.track;
 	}
+	const walls = { width, height, cells, doors: new Float32Array(width * height).fill(NOT_A_DOOR) };
+	const doors: { x: number; y: number }[] = [];
+	cells.forEach((gid, i) => {
+		if (doorTracks[gid] === undefined) return;
+		const door = { x: i % width, y: Math.floor(i / width) };
+		assertDoorFits(walls, door, doorTracks);
+		doors.push(door);
+		walls.doors[i] = 0;
+	});
 
 	const objects = layers
 		.filter((layer) => layer.type === "objectgroup")
@@ -71,8 +93,10 @@ export function loadLevel(json: unknown): Level {
 	const angleDegrees = asNumber(property(start, "angle") ?? 0, `"${PLAYER_START}" angle`);
 
 	return {
-		walls: { width, height, cells },
+		walls,
 		wallTextures,
+		doorTracks,
+		doors,
 		playerStart: {
 			x: asNumber(start.x, `"${PLAYER_START}" x`) / tileWidth,
 			y: asNumber(start.y, `"${PLAYER_START}" y`) / tileHeight,
@@ -86,8 +110,11 @@ export function loadLevel(json: unknown): Level {
 	};
 }
 
-/** Finds the "texture" property of a wall tile in the tileset that holds its gid. */
-function wallTexture(tilesets: Record<string, unknown>[], gid: number): string {
+/**
+ * Reads the properties of a wall tile in the tileset that holds its gid: its "texture", and for a
+ * door tile ("door" set to true) its "track" texture.
+ */
+function wallTile(tilesets: Record<string, unknown>[], gid: number): { texture: string; track?: string } {
 	let tileset: Record<string, unknown> | undefined;
 	let firstGid = 0;
 	for (const candidate of tilesets) {
@@ -104,11 +131,38 @@ function wallTexture(tilesets: Record<string, unknown>[], gid: number): string {
 	const tile = (Array.isArray(tileset.tiles) ? tileset.tiles : []).find(
 		(t: unknown) => typeof t === "object" && t !== null && (t as { id?: unknown }).id === gid - firstGid,
 	);
-	const texture = tile ? property(tile as Record<string, unknown>, TEXTURE_PROPERTY) : undefined;
+	const properties = (tile ?? {}) as Record<string, unknown>;
+	const texture = property(properties, TEXTURE_PROPERTY);
 	if (typeof texture !== "string" || texture === "") {
 		throw new Error(`Wall tile gid ${gid} has no "${TEXTURE_PROPERTY}" property.`);
 	}
-	return texture;
+	if (property(properties, DOOR_PROPERTY) !== true) return { texture };
+	const track = property(properties, TRACK_PROPERTY);
+	if (typeof track !== "string" || track === "") {
+		throw new Error(`Door tile gid ${gid} has no "${TRACK_PROPERTY}" property.`);
+	}
+	return { texture, track };
+}
+
+/**
+ * A door sits in a doorway: walls (not doors) on two opposite sides, and empty cells on the other two.
+ * The renderer and the player both need this shape.
+ */
+function assertDoorFits(walls: Grid, door: { x: number; y: number }, doorTracks: (string | undefined)[]): void {
+	const at = (dx: number, dy: number) => {
+		const x = door.x + dx;
+		const y = door.y + dy;
+		if (x < 0 || y < 0 || x >= walls.width || y >= walls.height) return "wall";
+		const gid = walls.cells[y * walls.width + x] as number;
+		return gid === 0 ? "empty" : doorTracks[gid] === undefined ? "wall" : "door";
+	};
+	const westEast = at(-1, 0) === "empty" && at(1, 0) === "empty" && at(0, -1) === "wall" && at(0, 1) === "wall";
+	const northSouth = at(0, -1) === "empty" && at(0, 1) === "empty" && at(-1, 0) === "wall" && at(1, 0) === "wall";
+	if (!westEast && !northSouth) {
+		throw new Error(
+			`The door at cell (${door.x}, ${door.y}) must have walls on two opposite sides and empty cells on the other two.`,
+		);
+	}
 }
 
 /** Rooms are named rectangle objects (type "room"). The object name is the Room name. */

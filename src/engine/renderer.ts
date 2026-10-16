@@ -1,5 +1,5 @@
 import type { Framebuffer } from "./framebuffer";
-import { cellAt, type Grid } from "./grid";
+import { cellAt, doorAt, type Grid, NOT_A_DOOR } from "./grid";
 import type { Texture } from "./texture";
 
 export interface Camera {
@@ -19,6 +19,11 @@ export interface RendererOptions {
 	 * so a 64x128 texture repeats twice across one tile and a 256x128 texture spans two tiles.
 	 */
 	wallTextures: ReadonlyArray<Texture | undefined>;
+	/**
+	 * For each door cell value: the track texture of the side walls of the door cell.
+	 * The door panel itself uses `wallTextures`, stretched to exactly one tile wide.
+	 */
+	trackTextures?: ReadonlyArray<Texture | undefined>;
 	/** Flat colors, shaded by distance like the walls. */
 	ceilingColor: number;
 	floorColor: number;
@@ -34,7 +39,10 @@ export interface RendererOptions {
 }
 
 export interface Renderer {
-	/** Draws one frame. It allocates no memory. */
+	/**
+	 * Draws one frame. It allocates no memory. A door cell (see `Grid.doors`) shows a thin panel
+	 * in the middle of the cell, slid aside by its open amount, and the track texture on its side walls.
+	 */
 	render(framebuffer: Framebuffer, grid: Grid, camera: Camera): void;
 }
 
@@ -50,6 +58,7 @@ const MISSING_TEXTURE: Texture = { width: 1, height: 1, texels: new Uint32Array(
  */
 export function createRenderer(options: RendererOptions): Renderer {
 	const { width, height, wallTextures, ceilingColor, floorColor } = options;
+	const trackTextures = options.trackTextures ?? [];
 	const viewHeight = options.viewHeight ?? height;
 	if (viewHeight < 1 || viewHeight > height) throw new Error(`viewHeight must be 1 to ${height}, got ${viewHeight}.`);
 	const planeHalfWidth = options.planeHalfWidth ?? 0.9;
@@ -87,14 +96,18 @@ export function createRenderer(options: RendererOptions): Renderer {
 			const dirY = Math.sin(camera.angle);
 			const planeX = -dirY * planeHalfWidth;
 			const planeY = dirX * planeHalfWidth;
+			// A camera inside an open door cell sees the track on the side walls.
+			const startX = Math.floor(camera.x);
+			const startY = Math.floor(camera.y);
+			const startDoorCell = doorAt(grid, startX, startY) === NOT_A_DOOR ? 0 : cellAt(grid, startX, startY);
 
 			for (let column = 0; column < width; column++) {
 				const cameraX = (2 * (column + 0.5)) / width - 1;
 				const rayX = dirX + planeX * cameraX;
 				const rayY = dirY + planeY * cameraX;
 
-				let mapX = Math.floor(camera.x);
-				let mapY = Math.floor(camera.y);
+				let mapX = startX;
+				let mapY = startY;
 				const deltaX = rayX === 0 ? Number.POSITIVE_INFINITY : Math.abs(1 / rayX);
 				const deltaY = rayY === 0 ? Number.POSITIVE_INFINITY : Math.abs(1 / rayY);
 				const stepX = rayX < 0 ? -1 : 1;
@@ -102,9 +115,13 @@ export function createRenderer(options: RendererOptions): Renderer {
 				let sideX = (rayX < 0 ? camera.x - mapX : mapX + 1 - camera.x) * deltaX;
 				let sideY = (rayY < 0 ? camera.y - mapY : mapY + 1 - camera.y) * deltaY;
 				let ySide = false;
-				let cell = 0;
+				// The door cell value when the ray is inside a door cell, else 0.
+				let doorCell = startDoorCell;
+				let distance: number;
+				let texture: Texture;
+				let textureX: number;
 				// Cells outside the grid are solid, so this loop always ends.
-				while (cell === 0) {
+				for (;;) {
 					if (sideX < sideY) {
 						sideX += deltaX;
 						mapX += stepX;
@@ -114,25 +131,50 @@ export function createRenderer(options: RendererOptions): Renderer {
 						mapY += stepY;
 						ySide = true;
 					}
-					cell = cellAt(grid, mapX, mapY);
+					const cell = cellAt(grid, mapX, mapY);
+					if (cell === 0) {
+						doorCell = 0;
+						continue;
+					}
+					const open = doorAt(grid, mapX, mapY);
+					if (open === NOT_A_DOOR) {
+						// A wall. Seen from inside a door cell, it is a side wall of the door: the track.
+						// Distance along the view direction (not along the ray), so walls do not bulge.
+						distance = ySide ? sideY - deltaY : sideX - deltaX;
+						texture = (doorCell === 0 ? wallTextures[cell] : trackTextures[doorCell]) ?? MISSING_TEXTURE;
+						// Where the ray hits along the wall face, in tiles. It grows from left to right as the
+						// viewer sees the face, so textures never show mirrored.
+						let u: number;
+						if (ySide) {
+							const hitX = camera.x + distance * rayX;
+							u = rayY > 0 ? -hitX : hitX;
+						} else {
+							const hitY = camera.y + distance * rayY;
+							u = rayX > 0 ? hitY : -hitY;
+						}
+						textureX = Math.floor(u * texture.height) % texture.width;
+						if (textureX < 0) textureX += texture.width;
+						break;
+					}
+					// A door cell. Its panel crosses the middle of the cell, across the passage. A door
+					// with walls north and south of it closes a west-east passage, so its panel is at x + 0.5.
+					doorCell = cell;
+					const acrossX = cellAt(grid, mapX, mapY - 1) !== 0;
+					const panel = acrossX ? (mapX + 0.5 - camera.x) / rayX : (mapY + 0.5 - camera.y) / rayY;
+					// The ray must reach the panel before it leaves the cell.
+					if (!(panel > 0 && panel < (sideX < sideY ? sideX : sideY))) continue;
+					// Where the ray crosses the panel line, from 0 to 1 across the cell. The panel has slid
+					// `open` of a tile toward 0, so the ray passes through the gap below `open`.
+					const along = acrossX ? camera.y + panel * rayY - mapY : camera.x + panel * rayX - mapX;
+					if (along < open) continue;
+					distance = panel;
+					ySide = !acrossX;
+					texture = wallTextures[cell] ?? MISSING_TEXTURE;
+					textureX = Math.min(texture.width - 1, Math.floor((along - open) * texture.width));
+					break;
 				}
-				// Distance along the view direction (not along the ray), so walls do not bulge.
-				const distance = ySide ? sideY - deltaY : sideX - deltaX;
 
-				const texture = wallTextures[cell] ?? MISSING_TEXTURE;
 				const { texels, height: textureHeight } = texture;
-				// Where the ray hits along the wall face, in tiles. It grows from left to right as the
-				// viewer sees the face, so textures never show mirrored.
-				let u: number;
-				if (ySide) {
-					const hitX = camera.x + distance * rayX;
-					u = rayY > 0 ? -hitX : hitX;
-				} else {
-					const hitY = camera.y + distance * rayY;
-					u = rayX > 0 ? hitY : -hitY;
-				}
-				let textureX = Math.floor(u * textureHeight) % texture.width;
-				if (textureX < 0) textureX += texture.width;
 				const columnStart = textureX * textureHeight;
 
 				const lineHeight = projection / distance;

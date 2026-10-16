@@ -1,4 +1,4 @@
-import { cellAt, type Grid } from "./grid";
+import { type Grid, isSolid } from "./grid";
 
 export interface Position {
 	x: number;
@@ -6,7 +6,7 @@ export interface Position {
 }
 
 /**
- * Moves a circle by (dx, dy) through the grid and pushes it out of solid cells.
+ * Moves a circle by (dx, dy) through the grid and pushes it out of solid cells (see `isSolid`).
  * The push goes along the wall normal only, so the circle slides along walls.
  * It changes `position` in place and allocates nothing.
  */
@@ -27,7 +27,7 @@ function pushOut(grid: Grid, position: Position, radius: number): void {
 	const maxY = Math.floor(position.y + radius);
 	for (let cy = minY; cy <= maxY; cy++) {
 		for (let cx = minX; cx <= maxX; cx++) {
-			if (cellAt(grid, cx, cy) === 0) continue;
+			if (!isSolid(grid, cx, cy)) continue;
 			// Closest point of the cell square to the circle center.
 			const nearestX = clamp(position.x, cx, cx + 1);
 			const nearestY = clamp(position.y, cy, cy + 1);

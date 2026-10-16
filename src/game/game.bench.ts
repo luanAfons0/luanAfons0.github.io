@@ -15,7 +15,7 @@ describe("60 FPS target", () => {
 		const game = createGame({ level: sampleLevel, textures });
 		const framebuffer = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
 		const result = await bench("step and render", () => {
-			game.step({ forward: 0, strafe: 0, turn: 1, look: 0 });
+			game.step({ forward: 0, strafe: 0, turn: 1, look: 0, use: false });
 			game.render(framebuffer);
 		}).run();
 		console.log(`mean ${result.latency.mean.toFixed(3)} ms per frame (budget ${FRAME_BUDGET_MS.toFixed(1)} ms)`);

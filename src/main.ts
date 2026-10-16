@@ -81,7 +81,7 @@ const framebuffer = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
 // Shares memory with the framebuffer, so there is no copy per frame.
 const image = new ImageData(new Uint8ClampedArray(framebuffer.pixels.buffer), SCREEN_WIDTH, SCREEN_HEIGHT);
 
-const input: InputSnapshot = { forward: 0, strafe: 0, turn: 0, look: 0 };
+const input: InputSnapshot = { forward: 0, strafe: 0, turn: 0, look: 0, use: false };
 const tick = () => {
 	Object.assign(input, keyboard.snapshot());
 	// All mouse movement since the last tick goes into this tick, so none is lost or counted twice.

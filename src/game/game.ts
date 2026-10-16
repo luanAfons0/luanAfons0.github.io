@@ -1,5 +1,6 @@
 import { moveCircle } from "../engine/collision";
 import { type Framebuffer, rgb } from "../engine/framebuffer";
+import { isSolid } from "../engine/grid";
 import type { InputSnapshot } from "../engine/input";
 import { type Camera, createRenderer } from "../engine/renderer";
 import type { Texture } from "../engine/texture";
@@ -20,6 +21,12 @@ const BOB_PIXELS = 4;
 const BOB_TILES = 1.5;
 /** How fast the bob fades in when the player starts walking and fades out when it stops (0 to 1 per tick). */
 const BOB_EASE = 0.2;
+/** Use reaches a door whose cell is at most this far in front of the player center, in tiles. */
+const USE_RANGE = 1.5;
+/** How far the use check moves forward per test point, in tiles. */
+const USE_PROBE_STEP = 1 / 32;
+/** A door slides fully open in this many ticks. */
+const DOOR_OPEN_TICKS = 45;
 
 /** The Game core always renders at this size. The browser shell scales it up. */
 export const SCREEN_WIDTH = 640;
@@ -47,7 +54,7 @@ export interface GameOptions {
 	/** Parsed Tiled JSON for the Level. */
 	level: unknown;
 	/**
-	 * Decoded textures by name. It must hold every texture the Level names (see `levelTextureNames`).
+	 * Decoded textures by name. It must hold every wall, door, and track texture the Level names (see `levelTextureNames`).
 	 * Leave it out only when the walls do not matter (as in movement tests): walls then draw magenta.
 	 */
 	textures?: Readonly<Record<string, Texture>>;
@@ -61,6 +68,16 @@ export interface PlayerState {
 	angle: number;
 }
 
+export interface DoorState {
+	/** The door cell, in tiles. */
+	x: number;
+	y: number;
+	/** A door starts closed. Use starts its slide; once open, it stays open. */
+	state: "closed" | "opening" | "open";
+	/** How far the door has slid open, from 0 (closed) to 1 (open). */
+	open: number;
+}
+
 export interface GameState {
 	player: PlayerState;
 	/** While paused, steps change nothing. */
@@ -70,6 +87,8 @@ export interface GameState {
 	 * for example) it keeps the last Room. It is null before the player enters any Room.
 	 */
 	room: string | null;
+	/** Every door of the Level, row by row. */
+	doors: DoorState[];
 }
 
 export interface Game {
@@ -95,10 +114,12 @@ export function createGame(options: GameOptions): Game {
 	const camera: Camera = { x: 0, y: 0, angle: 0, horizonOffset: 0 };
 	for (const { name } of level.rooms) assertHudCanDraw(name, `Room "${name}"`);
 	let room = roomAt(level.rooms, player.x, player.y)?.name ?? null;
+	const doors: DoorState[] = level.doors.map(({ x, y }) => ({ x, y, state: "closed", open: 0 }));
 	const renderer = createRenderer({
 		width: SCREEN_WIDTH,
 		height: SCREEN_HEIGHT,
-		wallTextures: wallTexturesFor(level, options.textures),
+		wallTextures: texturesFor(level.wallTextures, options.textures),
+		trackTextures: texturesFor(level.doorTracks, options.textures),
 		ceilingColor: CEILING_COLOR,
 		floorColor: FLOOR_COLOR,
 		viewHeight: SCREEN_HEIGHT - STATUS_BAR_HEIGHT,
@@ -107,9 +128,35 @@ export function createGame(options: GameOptions): Game {
 	// Reused every frame, so rendering allocates nothing.
 	const hudView: HudView = { room: null };
 
+	/** Starts the slide of the closed door that the player faces within use range, if there is one. */
+	function useDoorAhead(): void {
+		const dirX = Math.cos(player.angle);
+		const dirY = Math.sin(player.angle);
+		for (let distance = USE_PROBE_STEP; distance <= USE_RANGE; distance += USE_PROBE_STEP) {
+			const x = Math.floor(player.x + dirX * distance);
+			const y = Math.floor(player.y + dirY * distance);
+			if (!isSolid(level.walls, x, y)) continue;
+			const door = doors.find((d) => d.x === x && d.y === y);
+			if (door?.state === "closed") door.state = "opening";
+			return;
+		}
+	}
+
+	function slideDoors(): void {
+		const open = level.walls.doors;
+		for (const door of doors) {
+			if (door.state !== "opening") continue;
+			door.open = Math.min(1, door.open + 1 / DOOR_OPEN_TICKS);
+			if (door.open === 1) door.state = "open";
+			open[door.y * level.walls.width + door.x] = door.open;
+		}
+	}
+
 	return {
 		step(input) {
 			if (paused) return;
+			if (input.use) useDoorAhead();
+			slideDoors();
 			const lookDirection = settings.invertMouse ? -1 : 1;
 			player.angle += clampAxis(input.turn) * TURN_SPEED;
 			player.angle += input.look * LOOK_SPEED * settings.mouseSensitivity * lookDirection;
@@ -142,7 +189,7 @@ export function createGame(options: GameOptions): Game {
 		updateSettings(changes) {
 			Object.assign(settings, changes);
 		},
-		state: () => ({ player: { ...player }, room, paused }),
+		state: () => ({ player: { ...player }, room, paused, doors: doors.map((door) => ({ ...door })) }),
 		render(framebuffer) {
 			camera.x = player.x;
 			camera.y = player.y;
@@ -157,16 +204,18 @@ export function createGame(options: GameOptions): Game {
 
 /** The names of the textures that a Level (parsed Tiled JSON) uses, so the caller can load them first. */
 export function levelTextureNames(level: unknown): string[] {
-	const names = loadLevel(level).wallTextures.filter((name) => name !== undefined);
+	const { wallTextures, doorTracks } = loadLevel(level);
+	const names = [...wallTextures, ...doorTracks].filter((name) => name !== undefined);
 	return [...new Set(names)].sort();
 }
 
-function wallTexturesFor(level: Level, textures: GameOptions["textures"]): (Texture | undefined)[] {
+/** Looks up the texture of each cell value by name. */
+function texturesFor(names: Level["wallTextures"], textures: GameOptions["textures"]): (Texture | undefined)[] {
 	if (!textures) return [];
-	return level.wallTextures.map((name) => {
+	return names.map((name) => {
 		if (name === undefined) return undefined;
 		const texture = textures[name];
-		if (!texture) throw new Error(`The Level uses wall texture "${name}", but no texture has that name.`);
+		if (!texture) throw new Error(`The Level uses texture "${name}", but no texture has that name.`);
 		return texture;
 	});
 }

@@ -1,7 +1,7 @@
 /**
  * Builds small Tiled JSON Levels for tests, from ASCII rows.
- * `#` is a wall tile (gid 1), `.` is empty, `P` is empty and holds the player start.
- * Other wall characters can be added with `wallTextures`.
+ * `#` is a wall tile (gid 1), `D` is a door tile, `.` is empty, `P` is empty and holds the player start.
+ * Other wall characters can be added with `wallTextures`, and other door characters with `doorTiles`.
  * Tiled stores object positions in pixels, so this helper does too.
  */
 export const TILE_SIZE = 64;
@@ -20,12 +20,22 @@ export interface TiledLevelOptions {
 	 * in key order starting at 1. Default: `#` has `TEST_WALL_TEXTURE`.
 	 */
 	wallTextures?: Record<string, string>;
+	/**
+	 * Door tiles by character: the door texture and the track texture of its side walls.
+	 * Their gids come after the wall tiles. Default: `D` is a door with `TEST_DOOR_TEXTURE`.
+	 */
+	doorTiles?: Record<string, { texture: string; track: string }>;
 }
+
+/** The textures of the default `D` door tile. */
+export const TEST_DOOR_TEXTURE = "TEST_DOOR";
+export const TEST_TRACK_TEXTURE = "TEST_TRACK";
 
 export function tiledLevel(options: TiledLevelOptions): unknown {
 	const { rows, playerAngle = 0, playerOffset = { x: 0.5, y: 0.5 } } = options;
 	const wallTextures = options.wallTextures ?? { "#": TEST_WALL_TEXTURE };
-	const wallChars = Object.keys(wallTextures);
+	const doorTiles = options.doorTiles ?? { D: { texture: TEST_DOOR_TEXTURE, track: TEST_TRACK_TEXTURE } };
+	const wallChars = [...Object.keys(wallTextures), ...Object.keys(doorTiles)];
 	const height = rows.length;
 	const width = rows[0]?.length ?? 0;
 	const data: number[] = [];
@@ -92,10 +102,14 @@ export function tiledLevel(options: TiledLevelOptions): unknown {
 				tileheight: TILE_SIZE,
 				tilecount: wallChars.length,
 				columns: 0,
-				tiles: Object.values(wallTextures).map((texture, id) => ({
-					id,
-					properties: [{ name: "texture", type: "string", value: texture }],
-				})),
+				tiles: [
+					...Object.values(wallTextures).map((texture) => [{ name: "texture", type: "string", value: texture }]),
+					...Object.values(doorTiles).map(({ texture, track }) => [
+						{ name: "texture", type: "string", value: texture },
+						{ name: "door", type: "bool", value: true },
+						{ name: "track", type: "string", value: track },
+					]),
+				].map((properties, id) => ({ id, properties })),
 			},
 		],
 	};
