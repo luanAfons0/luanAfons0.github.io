@@ -3,6 +3,7 @@ import { createFramebuffer, type Framebuffer, rgb } from "../engine/framebuffer"
 import type { InputSnapshot } from "../engine/input";
 import { createFixedStepLoop } from "../engine/loop";
 import { createTexture, type Texture } from "../engine/texture";
+import { EXHIBITS } from "./content";
 import {
 	createGame,
 	FLOOR_COLOR,
@@ -316,7 +317,7 @@ describe("Game core", () => {
 	});
 
 	it("loads the real sample Level", () => {
-		const game = createGame({ level: sampleLevel });
+		const game = createGame({ level: sampleLevel, content: EXHIBITS });
 		expect(game.state().player).toEqual({ x: 1.5, y: 1.5, angle: 0 });
 		expect(game.state().room).toBe("Lobby");
 	});
