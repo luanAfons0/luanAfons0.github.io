@@ -616,6 +616,26 @@
 	}
 }
 
+/* The NEW GAME dive. title-screen.ts sets the --dive-* insets (the chip or pad box) and adds
+   is-open. Reduced motion never shows it: the game starts at once. */
+.title-screen__dive {
+	position: fixed;
+	inset: 0;
+	z-index: 5;
+	background: var(--board);
+	clip-path: inset(var(--dive-top, 50%) var(--dive-right, 50%) var(--dive-bottom, 50%) var(--dive-left, 50%));
+	pointer-events: none;
+}
+
+.title-screen__dive[hidden] {
+	display: none;
+}
+
+.title-screen__dive.is-open {
+	clip-path: inset(0);
+	transition: clip-path 420ms cubic-bezier(0.77, 0, 0.175, 1);
+}
+
 @media (prefers-reduced-motion: no-preference) {
 	.timing__clock {
 		animation: title-clock 0.5s steps(2) infinite;
