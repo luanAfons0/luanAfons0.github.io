@@ -2,14 +2,16 @@
  * The input for one fixed tick.
  * forward, strafe, and turn are key axes in [-1, 1]: +1 moves forward, moves right, turns right.
  * look is the mouse movement to the right since the last tick, in screen pixels (not clamped).
- * use is true when the player pressed use (E) since the last tick, or still holds it.
+ * shoot is true in the one tick after the player pressed the fire button.
+ * use is true on the one tick after the player presses the use key (not while the key is held).
  */
 export interface InputSnapshot {
 	forward: number;
 	strafe: number;
 	turn: number;
 	look: number;
-	use: boolean;
+	shoot?: boolean;
+	use?: boolean;
 }
 
 type Axis = "forward" | "strafe" | "turn";
@@ -25,10 +27,12 @@ const KEY_BINDINGS: Record<string, [Axis, number]> = {
 	ArrowLeft: ["turn", -1],
 	ArrowRight: ["turn", 1],
 };
+
+/** The key that uses what the player looks at. It counts once per press, not while it is held. */
 const USE_KEY = "KeyE";
 
 export interface KeyboardInput {
-	/** The input for the next tick, from the keys that are down now. */
+	/** The input for the next tick, from the keys that are down now and the use key pressed since the last call. */
 	snapshot(): InputSnapshot;
 	/** Removes the event listeners. */
 	dispose(): void;
@@ -37,14 +41,12 @@ export interface KeyboardInput {
 /** Tracks the keys that are down and turns them into one input snapshot per tick. */
 export function createKeyboardInput(target: Window): KeyboardInput {
 	const down = new Set<string>();
-	// A tap shorter than one tick still counts as one use.
 	let usePressed = false;
 
 	const onKeyDown = (event: KeyboardEvent) => {
 		if (isFormControl(event.target)) return;
 		if (event.code === USE_KEY) {
-			usePressed = true;
-			down.add(event.code);
+			if (!event.repeat) usePressed = true;
 			return;
 		}
 		if (!(event.code in KEY_BINDINGS)) return;
@@ -55,7 +57,10 @@ export function createKeyboardInput(target: Window): KeyboardInput {
 		down.delete(event.code);
 	};
 	// A key released while the window has no focus never sends keyup.
-	const onBlur = () => down.clear();
+	const onBlur = () => {
+		down.clear();
+		usePressed = false;
+	};
 
 	target.addEventListener("keydown", onKeyDown);
 	target.addEventListener("keyup", onKeyUp);
@@ -63,7 +68,7 @@ export function createKeyboardInput(target: Window): KeyboardInput {
 
 	return {
 		snapshot() {
-			const input: InputSnapshot = { forward: 0, strafe: 0, turn: 0, look: 0, use: usePressed || down.has(USE_KEY) };
+			const input: InputSnapshot = { forward: 0, strafe: 0, turn: 0, look: 0, use: usePressed };
 			usePressed = false;
 			for (const code of down) {
 				const binding = KEY_BINDINGS[code];

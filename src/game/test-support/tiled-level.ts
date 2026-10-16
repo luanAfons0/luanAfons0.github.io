@@ -131,3 +131,46 @@ export function tiledRoom(name: string, rect: { x: number; y: number; width: num
 		visible: true,
 	};
 }
+
+let nextExhibitId = 2000;
+
+/**
+ * A Tiled point object for an Exhibit placement. `x` and `y` are the wall cell, in tiles.
+ * `facing` is the side of the wall the poster is on.
+ */
+export function tiledExhibit(id: string, cell: { x: number; y: number }, facing: string): object {
+	return {
+		id: nextExhibitId++,
+		name: "",
+		type: "exhibit",
+		x: (cell.x + 0.5) * TILE_SIZE,
+		y: (cell.y + 0.5) * TILE_SIZE,
+		width: 0,
+		height: 0,
+		rotation: 0,
+		point: true,
+		visible: true,
+		properties: [
+			{ name: "id", type: "string", value: id },
+			{ name: "facing", type: "string", value: facing },
+		],
+	};
+}
+
+let nextBugId = 3000;
+
+/** A Tiled point object for a Bug spawn. The position is in tiles. */
+export function tiledBug(position: { x: number; y: number }): object {
+	return {
+		id: nextBugId++,
+		name: "",
+		type: "bug",
+		x: position.x * TILE_SIZE,
+		y: position.y * TILE_SIZE,
+		width: 0,
+		height: 0,
+		rotation: 0,
+		point: true,
+		visible: true,
+	};
+}

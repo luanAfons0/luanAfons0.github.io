@@ -1,4 +1,5 @@
-import { type Grid, NOT_A_DOOR } from "../engine/grid";
+import { cellAt, doorAt, type Grid, NOT_A_DOOR } from "../engine/grid";
+import { Face } from "../engine/raycast";
 
 /** The Level model: what the Game core needs from a Tiled map. Positions are in tiles. */
 export interface Level {
@@ -12,6 +13,26 @@ export interface Level {
 	doors: ReadonlyArray<{ x: number; y: number }>;
 	playerStart: { x: number; y: number; angle: number };
 	rooms: Room[];
+	exhibits: ExhibitPlacement[];
+	/** Where each Bug starts, and the Room it walks in. */
+	bugSpawns: BugSpawn[];
+}
+
+/** Where an Exhibit hangs: one face of one wall cell. Tiled stores only the Exhibit `id`, not its content. */
+export interface ExhibitPlacement {
+	id: string;
+	/** The wall cell, in tiles. */
+	x: number;
+	y: number;
+	/** The side of the wall the poster is on. */
+	face: Face;
+}
+
+/** A Bug spawn: a Tiled point object (type "bug") inside a Room. Positions are in tiles. */
+export interface BugSpawn {
+	x: number;
+	y: number;
+	room: Room;
 }
 
 /** One named area of the Level: a Tiled rectangle object. Positions are in tiles. */
@@ -34,6 +55,16 @@ const TRACK_PROPERTY = "track";
 /** Wall cells are stored as bytes. */
 const MAX_WALL_GID = 255;
 const ROOM = "room";
+const BUG = "bug";
+const EXHIBIT = "exhibit";
+const FACINGS: Record<string, Face> = { north: Face.North, east: Face.East, south: Face.South, west: Face.West };
+/** The cell in front of each face, as an offset from the wall cell. */
+export const FACE_OFFSETS: Record<Face, [number, number]> = {
+	[Face.North]: [0, -1],
+	[Face.East]: [1, 0],
+	[Face.South]: [0, 1],
+	[Face.West]: [-1, 0],
+};
 /** Tiled keeps flip and rotation flags in the top bits of a gid. */
 const GID_MASK = 0x0fffffff;
 
@@ -91,7 +122,11 @@ export function loadLevel(json: unknown): Level {
 	}
 	const start = starts[0] as Record<string, unknown>;
 	const angleDegrees = asNumber(property(start, "angle") ?? 0, `"${PLAYER_START}" angle`);
-
+	const rooms = loadRooms(
+		objects.filter((object) => objectType(object) === ROOM),
+		tileWidth,
+		tileHeight,
+	);
 	return {
 		walls,
 		wallTextures,
@@ -102,8 +137,17 @@ export function loadLevel(json: unknown): Level {
 			y: asNumber(start.y, `"${PLAYER_START}" y`) / tileHeight,
 			angle: (angleDegrees * Math.PI) / 180,
 		},
-		rooms: loadRooms(
-			objects.filter((object) => objectType(object) === ROOM),
+		rooms,
+		bugSpawns: loadBugSpawns(
+			objects.filter((object) => objectType(object) === BUG),
+			walls,
+			rooms,
+			tileWidth,
+			tileHeight,
+		),
+		exhibits: loadExhibits(
+			objects.filter((object) => objectType(object) === EXHIBIT),
+			walls,
 			tileWidth,
 			tileHeight,
 		),
@@ -187,6 +231,66 @@ function loadRooms(objects: Record<string, unknown>[], tileWidth: number, tileHe
 		});
 	}
 	return rooms;
+}
+
+/** Bugs are point objects (type "bug"). Each one must be on an empty cell inside a Room. */
+function loadBugSpawns(
+	objects: Record<string, unknown>[],
+	walls: Grid,
+	rooms: readonly Room[],
+	tileWidth: number,
+	tileHeight: number,
+): BugSpawn[] {
+	return objects.map((object) => {
+		const what = `Bug object ${String(object.id)}`;
+		const x = asNumber(object.x, `${what} x`) / tileWidth;
+		const y = asNumber(object.y, `${what} y`) / tileHeight;
+		if (cellAt(walls, Math.floor(x), Math.floor(y)) !== 0) throw new Error(`${what} is inside a wall.`);
+		const room = roomAt(rooms, x, y);
+		if (!room) throw new Error(`${what} is in no Room. Put each Bug inside a Room rectangle.`);
+		return { x, y, room };
+	});
+}
+
+/**
+ * Exhibits are point objects (type "exhibit") inside a wall cell. The `id` property names the
+ * Exhibit in the Content, and the `facing` property (north, east, south, or west) names the side
+ * of the wall the poster is on. The cell on that side must be empty, so the player can see it.
+ */
+function loadExhibits(
+	objects: Record<string, unknown>[],
+	walls: Grid,
+	tileWidth: number,
+	tileHeight: number,
+): ExhibitPlacement[] {
+	const exhibits: ExhibitPlacement[] = [];
+	for (const object of objects) {
+		const id = property(object, "id");
+		if (typeof id !== "string" || id.trim() === "") {
+			throw new Error(`Exhibit object ${String(object.id)} has no "id" property.`);
+		}
+		const facing = property(object, "facing");
+		const face = typeof facing === "string" ? FACINGS[facing] : undefined;
+		if (face === undefined) {
+			throw new Error(`Exhibit "${id}" needs a "facing" property: north, east, south, or west.`);
+		}
+		const x = Math.floor(asNumber(object.x, `Exhibit "${id}" x`) / tileWidth);
+		const y = Math.floor(asNumber(object.y, `Exhibit "${id}" y`) / tileHeight);
+		const isWall = cellAt(walls, x, y) !== 0 && doorAt(walls, x, y) === NOT_A_DOOR;
+		if (!isWall || x >= walls.width || y >= walls.height || x < 0 || y < 0) {
+			throw new Error(`Exhibit "${id}" must be on a wall cell, but cell (${x}, ${y}) is not a wall in the Level.`);
+		}
+		const [dx, dy] = FACE_OFFSETS[face];
+		if (cellAt(walls, x + dx, y + dy) !== 0) {
+			throw new Error(`Exhibit "${id}" faces ${facing}, but the cell on that side of (${x}, ${y}) is not empty.`);
+		}
+		if (exhibits.some((other) => other.id === id)) throw new Error(`Exhibit "${id}" is placed twice in the Level.`);
+		if (exhibits.some((other) => other.x === x && other.y === y && other.face === face)) {
+			throw new Error(`Exhibit "${id}" hangs on the same wall face as another Exhibit.`);
+		}
+		exhibits.push({ id, x, y, face });
+	}
+	return exhibits;
 }
 
 /** Returns the first Room whose rectangle holds the point, or undefined. */

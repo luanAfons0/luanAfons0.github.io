@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
+import { drawText } from "../engine/font";
 import { createFramebuffer, type Framebuffer, rgb } from "../engine/framebuffer";
 import type { InputSnapshot } from "../engine/input";
 import { createFixedStepLoop } from "../engine/loop";
 import { createTexture, type Texture } from "../engine/texture";
+import { EXHIBITS } from "./content";
 import {
+	BUG_SPRITE_NAMES,
+	CROSSHAIR_COLOR,
 	createGame,
 	type DoorState,
 	FLOOR_COLOR,
@@ -20,11 +24,12 @@ import {
 	TEST_DOOR_TEXTURE,
 	TEST_TRACK_TEXTURE,
 	TEST_WALL_TEXTURE,
+	tiledBug,
 	tiledLevel,
 	tiledRoom,
 } from "./test-support/tiled-level";
 
-const IDLE: InputSnapshot = { forward: 0, strafe: 0, turn: 0, look: 0, use: false };
+const IDLE: InputSnapshot = { forward: 0, strafe: 0, turn: 0, look: 0 };
 const FORWARD: InputSnapshot = { ...IDLE, forward: 1 };
 const USE: InputSnapshot = { ...IDLE, use: true };
 
@@ -153,7 +158,7 @@ describe("Game core", () => {
 
 	it("gives the same position for the same input no matter how ticks are grouped into frames", () => {
 		const rows = ["########", "#......#", "#.P....#", "#......#", "#......#", "########"];
-		const curve: InputSnapshot = { forward: 1, strafe: 0.5, turn: 0.4, look: 0, use: false };
+		const curve: InputSnapshot = { forward: 1, strafe: 0.5, turn: 0.4, look: 0 };
 		const frameGroupings = {
 			"60 Hz": Array(60).fill(1000 / 60),
 			"144 Hz": Array(144).fill(1000 / 144),
@@ -218,7 +223,7 @@ describe("Game core", () => {
 		const start = game.state().player;
 
 		game.pause();
-		stepTicks(game, { forward: 1, strafe: 1, turn: 1, look: 50, use: false }, 60);
+		stepTicks(game, { forward: 1, strafe: 1, turn: 1, look: 50 }, 60);
 
 		expect(game.state().paused).toBe(true);
 		expect(game.state().player).toEqual(start);
@@ -324,9 +329,15 @@ describe("Game core", () => {
 	});
 
 	it("loads the real sample Level", () => {
-		const game = createGame({ level: sampleLevel });
+		const game = createGame({ level: sampleLevel, content: EXHIBITS });
 		expect(game.state().player).toEqual({ x: 1.5, y: 1.5, angle: 0 });
 		expect(game.state().room).toBe("Lobby");
+	});
+
+	it("spreads several Bugs over every Room of the real sample Level", () => {
+		const { bugs, bugsTotal } = createGame({ level: sampleLevel, content: EXHIBITS }).state();
+		expect(bugsTotal).toBeGreaterThanOrEqual(5);
+		expect(new Set(bugs.map((bug) => bug.room))).toEqual(new Set(["Lobby", "Workshop", "Archive"]));
 	});
 });
 
@@ -582,6 +593,369 @@ describe("Textured walls", () => {
 	});
 });
 
+describe("Bugs", () => {
+	// One Room, 9 tiles wide. The player starts at the west end and faces east.
+	const rows = ["###########", "#P........#", "#.........#", "#.........#", "###########"];
+	const room = tiledRoom("Lobby", { x: 1, y: 1, width: 9, height: 3 });
+
+	function bugLevel(bugs: { x: number; y: number }[], options: { rows?: string[]; rooms?: object[] } = {}) {
+		return tiledLevel({
+			rows: options.rows ?? rows,
+			playerAngle: 0,
+			extraObjects: [...(options.rooms ?? [room]), ...bugs.map(tiledBug)],
+		});
+	}
+
+	it.each([
+		["is in no Room", { x: 5.5, y: 1.5 }, [], /Bug object \d+ is in no Room/],
+		["is inside a wall", { x: 4.5, y: 1.5 }, [room], /Bug object \d+ is inside a wall/],
+	])("fails with a clear error when a Bug spawn %s", (_, bug, rooms, error) => {
+		const walled = ["###########", "#P..#.....#", "#.........#", "#.........#", "###########"];
+		expect(() => createGame({ level: bugLevel([bug], { rows: walled, rooms }) })).toThrow(error);
+	});
+
+	it("reads the Bug spawns from the Level, and no Bug is fixed at the start", () => {
+		const game = createGame({
+			level: bugLevel([
+				{ x: 5.5, y: 1.5 },
+				{ x: 7.5, y: 3.5 },
+			]),
+		});
+
+		const state = game.state();
+		expect(state.bugsTotal).toBe(2);
+		expect(state.bugsFixed).toBe(0);
+		expect(state.goalComplete).toBe(false);
+		expect(state.bugs.map(({ x, y, room }) => ({ x, y, room }))).toEqual([
+			{ x: 5.5, y: 1.5, room: "Lobby" },
+			{ x: 7.5, y: 3.5, room: "Lobby" },
+		]);
+	});
+
+	const SHOOT: InputSnapshot = { ...IDLE, shoot: true };
+
+	it("fixes a Bug when the player shoots at it", () => {
+		const game = createGame({ level: bugLevel([{ x: 6.5, y: 1.5 }]) });
+
+		game.step(SHOOT);
+
+		expect(game.state().bugsFixed).toBe(1);
+		expect(game.state().bugs[0]?.fixed).toBe(true);
+	});
+
+	it("fixes no Bug when the shot misses", () => {
+		const game = createGame({ level: bugLevel([{ x: 6.5, y: 3.5 }]) });
+
+		game.step(SHOOT);
+
+		expect(game.state().bugsFixed).toBe(0);
+	});
+
+	it("fixes only the nearest Bug when two Bugs are in the line of fire", () => {
+		const game = createGame({
+			level: bugLevel([
+				{ x: 8.5, y: 1.5 },
+				{ x: 4.5, y: 1.5 },
+			]),
+		});
+
+		game.step(SHOOT);
+
+		expect(game.state().bugsFixed).toBe(1);
+		expect(game.state().bugs.map((bug) => bug.fixed)).toEqual([false, true]);
+	});
+
+	it("does not fix a Bug behind a wall", () => {
+		// A wall at x = 4 stands between the player and the Bug.
+		const walled = ["###########", "#P..#.....#", "#.........#", "#.........#", "###########"];
+		const game = createGame({ level: bugLevel([{ x: 6.5, y: 1.5 }], { rows: walled }) });
+
+		game.step(SHOOT);
+
+		expect(game.state().bugsFixed).toBe(0);
+	});
+
+	it("shoots once per shot input, not on the ticks without one", () => {
+		const game = createGame({
+			level: bugLevel([
+				{ x: 4.5, y: 1.5 },
+				{ x: 7.5, y: 1.5 },
+			]),
+		});
+
+		game.step(SHOOT);
+		stepTicks(game, IDLE, 5);
+
+		expect(game.state().bugsFixed).toBe(1);
+	});
+
+	it("completes the goal when the player fixes every Bug, and fixed Bugs stay fixed", () => {
+		// One Bug east of the player, one south of it.
+		const game = createGame({
+			level: bugLevel([
+				{ x: 6.5, y: 1.5 },
+				{ x: 1.5, y: 3.5 },
+			]),
+		});
+
+		game.step(SHOOT);
+		expect(game.state().goalComplete).toBe(false);
+		// A quarter turn to the right faces south (+y).
+		stepTicks(game, { ...IDLE, turn: 1 }, TICKS_PER_SECOND / 2);
+		game.step(SHOOT);
+
+		expect(game.state().bugsFixed).toBe(2);
+		expect(game.state().goalComplete).toBe(true);
+		stepTicks(game, SHOOT, 10 * TICKS_PER_SECOND);
+		expect(game.state().bugsFixed).toBe(2);
+		expect(game.state().bugs.every((bug) => bug.fixed)).toBe(true);
+		expect(game.state().goalComplete).toBe(true);
+	});
+
+	it("has no goal to complete in a Level with no Bugs", () => {
+		const game = createGame({ level: bugLevel([]) });
+		expect(game.state().bugsTotal).toBe(0);
+		expect(game.state().goalComplete).toBe(false);
+	});
+
+	describe("walking", () => {
+		// Two Rooms side by side with an open doorway between them: the Lab (x 1..4) and the Hall (x 4..10).
+		const open = ["###########", "#.........#", "#.........#", "#P........#", "###########"];
+		const lab = tiledRoom("Lab", { x: 1, y: 1, width: 3, height: 3 });
+		const hall = tiledRoom("Hall", { x: 4, y: 1, width: 6, height: 3 });
+		const spawns = [
+			{ x: 2.5, y: 1.5 },
+			{ x: 3.5, y: 2.5 },
+			{ x: 5.5, y: 2.5 },
+		];
+
+		it("walks slowly, and every Bug stays inside its Room", () => {
+			const game = createGame({ level: bugLevel(spawns, { rows: open, rooms: [lab, hall] }) });
+			const rects = { Lab: { x: 1, y: 1, width: 3, height: 3 }, Hall: { x: 4, y: 1, width: 6, height: 3 } };
+			let previous = game.state().bugs;
+			let fastest = 0;
+
+			for (let tick = 0; tick < 60 * TICKS_PER_SECOND; tick++) {
+				game.step(IDLE);
+				const bugs = game.state().bugs;
+				bugs.forEach((bug, i) => {
+					const rect = rects[bug.room as keyof typeof rects];
+					expect(bug.x).toBeGreaterThan(rect.x);
+					expect(bug.x).toBeLessThan(rect.x + rect.width);
+					expect(bug.y).toBeGreaterThan(rect.y);
+					expect(bug.y).toBeLessThan(rect.y + rect.height);
+					const last = previous[i] as { x: number; y: number };
+					fastest = Math.max(fastest, Math.hypot(bug.x - last.x, bug.y - last.y));
+				});
+				previous = bugs;
+			}
+
+			// Slow: less than half the player's 3 tiles per second.
+			expect(fastest * TICKS_PER_SECOND).toBeLessThan(1.5);
+			// But they do walk: no Bug is at its spawn after a minute.
+			game.state().bugs.forEach((bug, i) => {
+				expect({ x: bug.x, y: bug.y }).not.toEqual(spawns[i]);
+			});
+		});
+
+		it("stops a Bug when it is fixed", () => {
+			const game = createGame({ level: bugLevel([{ x: 6.5, y: 1.5 }]) });
+			game.step(SHOOT);
+			const fixedAt = game.state().bugs[0];
+
+			stepTicks(game, IDLE, 5 * TICKS_PER_SECOND);
+
+			expect(game.state().bugs[0]).toEqual(fixedAt);
+		});
+
+		it("never hurts the player: the player stays where it is and the game keeps running among the Bugs", () => {
+			const crowd = Array.from({ length: 6 }, (_, i) => ({ x: 1.5 + (i % 3), y: 1.5 + Math.floor(i / 3) }));
+			const game = createGame({ level: bugLevel(crowd, { rows: open, rooms: [lab, hall] }) });
+			const start = game.state().player;
+
+			stepTicks(game, IDLE, 30 * TICKS_PER_SECOND);
+
+			expect(game.state().player).toEqual(start);
+			expect(game.state().paused).toBe(false);
+		});
+	});
+
+	describe("sprites", () => {
+		/** Every Bug frame is a solid green 30x39 image, anchored like the Freedoom SKUL frames. */
+		const greenBug = (() => {
+			const rgba = new Uint8Array(30 * 39 * 4);
+			new Uint32Array(rgba.buffer).fill(GREEN);
+			const image = { texture: createTexture(30, 39, rgba), left: 15, top: 35 };
+			return Object.fromEntries(BUG_SPRITE_NAMES.map((name) => [name, image]));
+		})();
+
+		/** Green pixels are Bug pixels: the walls, floor, and ceiling here have no green. */
+		function bugPixels(frame: Framebuffer): number[] {
+			const found: number[] = [];
+			frame.pixels.forEach((pixel, i) => {
+				const [red, green, blue] = channels(pixel);
+				if (green > 0 && red === 0 && blue === 0) found.push(i);
+			});
+			return found;
+		}
+
+		function render(game: Game): Framebuffer {
+			const frame = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+			game.render(frame);
+			return frame;
+		}
+
+		function bugGame(bugs: { x: number; y: number }[], rowsOverride?: string[]): Game {
+			return createGame({
+				level: bugLevel(bugs, { rows: rowsOverride }),
+				textures: { [TEST_WALL_TEXTURE]: solidTexture(WHITE) },
+				sprites: greenBug,
+			});
+		}
+
+		it("draws a Bug in front of the player, in the middle of the view", () => {
+			const pixels = bugPixels(render(bugGame([{ x: 4.5, y: 1.5 }])));
+
+			expect(pixels.length).toBeGreaterThan(100);
+			expect(pixels).toContain(HORIZON * SCREEN_WIDTH + SCREEN_WIDTH / 2);
+		});
+
+		it("hides a Bug behind a wall", () => {
+			const walled = ["###########", "#P..#.....#", "#.........#", "#.........#", "###########"];
+			expect(bugPixels(render(bugGame([{ x: 6.5, y: 1.5 }], walled)))).toEqual([]);
+		});
+
+		it("draws a nearer Bug over a farther one", () => {
+			const center = HORIZON * SCREEN_WIDTH + SCREEN_WIDTH / 2;
+			const nearOnly = render(bugGame([{ x: 3.5, y: 1.5 }])).pixels[center];
+			// The farther Bug comes first in the Level, and the nearer one still covers it.
+			const both = render(
+				bugGame([
+					{ x: 8.5, y: 1.5 },
+					{ x: 3.5, y: 1.5 },
+				]),
+			).pixels[center];
+			const farOnly = render(bugGame([{ x: 8.5, y: 1.5 }])).pixels[center];
+
+			expect(brightness(farOnly as number)).toBeLessThan(brightness(nearOnly as number));
+			expect(both).toBe(nearOnly);
+		});
+
+		it("removes a fixed Bug from the view once its death animation ends", () => {
+			const game = bugGame([{ x: 4.5, y: 1.5 }]);
+			game.step(SHOOT);
+			expect(bugPixels(render(game)).length).toBeGreaterThan(0);
+
+			stepTicks(game, IDLE, 2 * TICKS_PER_SECOND);
+
+			expect(bugPixels(render(game))).toEqual([]);
+		});
+
+		it("fails with a clear error when a Bug sprite is missing", () => {
+			const { SKULB1: _, ...withoutOne } = greenBug;
+			expect(() => createGame({ level: bugLevel([]), sprites: withoutOne })).toThrow(/SKULB1/);
+		});
+
+		it("names Bug sprites that are committed Freedoom PNGs with anchors", async () => {
+			const committed = Object.keys(import.meta.glob("/public/freedoom/sprites/*.png"));
+			const offsets = (await import("../../public/freedoom/sprites/offsets.json")).default as Record<string, unknown>;
+
+			for (const name of BUG_SPRITE_NAMES) {
+				expect(committed).toContain(`/public/freedoom/sprites/${name}.png`);
+				expect(offsets[name]).toEqual({ left: expect.any(Number), top: expect.any(Number) });
+			}
+		});
+	});
+
+	describe("HUD counter", () => {
+		/** The value pixels drawn in the right part of the status bar, moved to start at (0, 0). */
+		function counterShape(frame: Framebuffer): string[] {
+			const found: [number, number][] = [];
+			for (let y = SCREEN_HEIGHT - STATUS_BAR_HEIGHT; y < SCREEN_HEIGHT; y++) {
+				for (let x = SCREEN_WIDTH - 200; x < SCREEN_WIDTH; x++) {
+					if (pixelAt(frame, x, y) === HUD_VALUE_COLOR) found.push([x, y]);
+				}
+			}
+			const minX = Math.min(...found.map(([x]) => x));
+			const minY = Math.min(...found.map(([, y]) => y));
+			return found.map(([x, y]) => `${x - minX},${y - minY}`).sort();
+		}
+
+		/** The shape of `text` in the HUD value font (scale 2), from the font itself. */
+		function textShape(text: string): string[] {
+			const frame = createFramebuffer(200, 40);
+			drawText(frame, text, 0, 0, HUD_VALUE_COLOR, 2);
+			const found: [number, number][] = [];
+			frame.pixels.forEach((pixel, i) => {
+				if (pixel === HUD_VALUE_COLOR) found.push([i % 200, Math.floor(i / 200)]);
+			});
+			const minX = Math.min(...found.map(([x]) => x));
+			const minY = Math.min(...found.map(([, y]) => y));
+			return found.map(([x, y]) => `${x - minX},${y - minY}`).sort();
+		}
+
+		function renderNow(game: Game): Framebuffer {
+			const frame = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+			game.render(frame);
+			return frame;
+		}
+
+		it("shows Bugs fixed out of the total, and counts up when the player fixes one", () => {
+			const game = createGame({
+				level: bugLevel([
+					{ x: 6.5, y: 1.5 },
+					{ x: 7.5, y: 3.5 },
+				]),
+			});
+
+			expect(counterShape(renderNow(game))).toEqual(textShape("0/2"));
+			game.step(SHOOT);
+			expect(counterShape(renderNow(game))).toEqual(textShape("1/2"));
+		});
+	});
+
+	describe("shot feedback", () => {
+		// The player stands still and faces a wall 3.5 tiles away. Only a shake can move the wall's top edge.
+		const still = ["#######", "#P...##", "#######"];
+
+		/** The screen row of the wall's top edge in the center column, once per tick. */
+		function wallTopRowsAfterShot(settings: Parameters<typeof createGame>[0]["settings"]): Set<number> {
+			const game = createGame({ level: tiledLevel({ rows: still }), settings });
+			const framebuffer = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+			const rowsSeen = new Set<number>();
+			game.step(SHOOT);
+			for (let i = 0; i < 20; i++) {
+				game.render(framebuffer);
+				let y = 0;
+				while (isCeiling(pixelAt(framebuffer, SCREEN_WIDTH / 4, y))) y++;
+				rowsSeen.add(y);
+				game.step(IDLE);
+			}
+			return rowsSeen;
+		}
+
+		it("shakes the view for a moment after a shot", () => {
+			expect(wallTopRowsAfterShot({}).size).toBeGreaterThan(1);
+		});
+
+		it("does not shake the view when reduced motion is on", () => {
+			expect(wallTopRowsAfterShot({ reducedMotion: true }).size).toBe(1);
+		});
+
+		it("draws a crosshair in the middle of the view, where shots go", () => {
+			const game = createGame({ level: tiledLevel({ rows: still }) });
+			const frame = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+			game.render(frame);
+			const centerX = SCREEN_WIDTH / 2;
+			const near = (dx: number, dy: number) =>
+				[1, 2, 3, 4, 5, 6].some((step) => pixelAt(frame, centerX + dx * step, HORIZON + dy * step) === CROSSHAIR_COLOR);
+
+			expect(near(1, 0) && near(-1, 0) && near(0, 1) && near(0, -1)).toBe(true);
+			expect(pixelAt(frame, 0, HORIZON)).not.toBe(CROSSHAIR_COLOR);
+		});
+	});
+});
+
 describe("Doors", () => {
 	// A corridor: the player starts at x 1.5 and faces east, at a door in the cell x 3..4.
 	const corridor = ["######", "#P.D.#", "######"];
@@ -644,6 +1018,24 @@ describe("Doors", () => {
 		game.pause();
 		stepTicks(game, IDLE, 120);
 		expect(game.state().doors[0]).toEqual(opening);
+	});
+
+	it("stops a shot at a closed door, and lets it pass once the door is open", () => {
+		// A Bug stands behind the door. Its Room is too small to walk in, so it stays in the line of fire.
+		const level = tiledLevel({
+			rows: ["#######", "#P.D..#", "#######"],
+			extraObjects: [tiledRoom("Closet", { x: 4.9, y: 1.4, width: 0.2, height: 0.2 }), tiledBug({ x: 5, y: 1.5 })],
+		});
+		const game = createGame({ level });
+		const SHOOT: InputSnapshot = { ...IDLE, shoot: true };
+
+		game.step(SHOOT);
+		expect(game.state().bugsFixed).toBe(0);
+
+		game.step(USE);
+		stepTicks(game, IDLE, 120);
+		game.step(SHOOT);
+		expect(game.state().bugsFixed).toBe(1);
 	});
 
 	describe("rendering", () => {
@@ -773,6 +1165,6 @@ describe("Doors", () => {
 				[roomOf(x, y - 1), roomOf(x, y + 1)],
 			].some(([a, b]) => a !== undefined && b !== undefined && a !== b);
 
-		expect(createGame({ level: sampleLevel }).state().doors.some(joinsTwoRooms)).toBe(true);
+		expect(createGame({ level: sampleLevel, content: EXHIBITS }).state().doors.some(joinsTwoRooms)).toBe(true);
 	});
 });
