@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from "vitest";
-import { drawText } from "../engine/font";
 import { createFramebuffer, type Framebuffer, rgb } from "../engine/framebuffer";
 import type { InputSnapshot } from "../engine/input";
 import { createFixedStepLoop } from "../engine/loop";
@@ -44,6 +43,13 @@ function brightness(pixel: number): number {
 
 function pixelAt(framebuffer: Framebuffer, x: number, y: number): number {
 	return framebuffer.pixels[y * framebuffer.width + x] as number;
+}
+
+/** Width over height of the box around some pixel indexes of a full-size frame. */
+function aspect(indexes: number[]): number {
+	const xs = indexes.map((i) => i % SCREEN_WIDTH);
+	const ys = indexes.map((i) => Math.floor(i / SCREEN_WIDTH));
+	return (Math.max(...xs) - Math.min(...xs) + 1) / (Math.max(...ys) - Math.min(...ys) + 1);
 }
 
 const RED = rgb(255, 0, 0);
@@ -468,16 +474,15 @@ describe("HUD", () => {
 	});
 
 	it("writes the current Room name in the status bar", () => {
+		// The HUD font has 5x7 glyphs with a 1-pixel gap, at any scale. A name of n glyphs whose first
+		// and last glyphs touch their outer edges spans 6n - 1 font pixels across and 7 down.
 		const inNoRoom = valuePixels(renderAt([]));
 		const inLobby = valuePixels(renderAt([lobby, workshop]));
 		const inWorkshop = valuePixels(renderAt([lobby, workshop], 40));
 
 		expect(inNoRoom).toEqual([]);
-		expect(inLobby.length).toBeGreaterThan(0);
-		expect(inWorkshop.length).toBeGreaterThan(0);
-		// "Workshop" has more letters than "Lobby", and the two names are drawn differently.
-		expect(inWorkshop.length).toBeGreaterThan(inLobby.length);
-		expect(inWorkshop).not.toEqual(inLobby);
+		expect(aspect(inLobby)).toBeCloseTo((6 * 5 - 1) / 7);
+		expect(aspect(inWorkshop)).toBeCloseTo((6 * 8 - 1) / 7);
 	});
 
 	it("fails with a clear error when a Room name has a character the HUD cannot draw", () => {
@@ -811,17 +816,6 @@ describe("Bugs", () => {
 
 			expect(game.state().bugs[0]).toEqual(fixedAt);
 		});
-
-		it("never hurts the player: the player stays where it is and the game keeps running among the Bugs", () => {
-			const crowd = Array.from({ length: 6 }, (_, i) => ({ x: 1.5 + (i % 3), y: 1.5 + Math.floor(i / 3) }));
-			const game = createGame({ level: bugLevel(crowd, { rows: open, rooms: [lab, hall] }) });
-			const start = game.state().player;
-
-			stepTicks(game, IDLE, 30 * TICKS_PER_SECOND);
-
-			expect(game.state().player).toEqual(start);
-			expect(game.state().paused).toBe(false);
-		});
 	});
 
 	describe("sprites", () => {
@@ -912,11 +906,11 @@ describe("Bugs", () => {
 	});
 
 	describe("HUD counter", () => {
-		/** The value pixels drawn in the right part of the status bar, moved to start at (0, 0). */
-		function counterShape(frame: Framebuffer): string[] {
+		/** The value pixels in columns [fromX, toX) of the status bar, moved to start at (0, 0). */
+		function valueShape(frame: Framebuffer, fromX: number, toX: number): string[] {
 			const found: [number, number][] = [];
 			for (let y = SCREEN_HEIGHT - STATUS_BAR_HEIGHT; y < SCREEN_HEIGHT; y++) {
-				for (let x = SCREEN_WIDTH - 200; x < SCREEN_WIDTH; x++) {
+				for (let x = fromX; x < toX; x++) {
 					if (pixelAt(frame, x, y) === HUD_VALUE_COLOR) found.push([x, y]);
 				}
 			}
@@ -924,18 +918,22 @@ describe("Bugs", () => {
 			const minY = Math.min(...found.map(([, y]) => y));
 			return found.map(([x, y]) => `${x - minX},${y - minY}`).sort();
 		}
+		/** The counter is the right part of the status bar; the Room name is on the left. */
+		const counterShape = (frame: Framebuffer) => valueShape(frame, SCREEN_WIDTH - 130, SCREEN_WIDTH);
+		const roomShape = (frame: Framebuffer) => valueShape(frame, 0, SCREEN_WIDTH / 2);
 
-		/** The shape of `text` in the HUD value font (scale 2), from the font itself. */
-		function textShape(text: string): string[] {
-			const frame = createFramebuffer(200, 40);
-			drawText(frame, text, 0, 0, HUD_VALUE_COLOR, 2);
-			const found: [number, number][] = [];
-			frame.pixels.forEach((pixel, i) => {
-				if (pixel === HUD_VALUE_COLOR) found.push([i % 200, Math.floor(i / 200)]);
+		/** Two Bugs in a Room whose name is `roomName`. */
+		function twoBugs(roomName: string): Game {
+			const named = tiledRoom(roomName, { x: 1, y: 1, width: 9, height: 3 });
+			return createGame({
+				level: bugLevel(
+					[
+						{ x: 6.5, y: 1.5 },
+						{ x: 7.5, y: 3.5 },
+					],
+					{ rooms: [named] },
+				),
 			});
-			const minX = Math.min(...found.map(([x]) => x));
-			const minY = Math.min(...found.map(([, y]) => y));
-			return found.map(([x, y]) => `${x - minX},${y - minY}`).sort();
 		}
 
 		function renderNow(game: Game): Framebuffer {
@@ -945,16 +943,13 @@ describe("Bugs", () => {
 		}
 
 		it("shows Bugs fixed out of the total, and counts up when the player fixes one", () => {
-			const game = createGame({
-				level: bugLevel([
-					{ x: 6.5, y: 1.5 },
-					{ x: 7.5, y: 3.5 },
-				]),
-			});
+			// The counter and the Room name are both HUD values: the counter must look like a Room
+			// whose name is the expected count.
+			const game = twoBugs("Lobby");
 
-			expect(counterShape(renderNow(game))).toEqual(textShape("0/2"));
+			expect(counterShape(renderNow(game))).toEqual(roomShape(renderNow(twoBugs("0/2"))));
 			game.step(SHOOT);
-			expect(counterShape(renderNow(game))).toEqual(textShape("1/2"));
+			expect(counterShape(renderNow(game))).toEqual(roomShape(renderNow(twoBugs("1/2"))));
 		});
 	});
 

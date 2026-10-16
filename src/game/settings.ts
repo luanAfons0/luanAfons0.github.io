@@ -7,6 +7,7 @@
 export interface Settings {
 	/** Multiplies the mouse turn. 1 is the default speed. */
 	mouseSensitivity: number;
+	/** Mouse movement to the right turns the player left. */
 	invertMouse: boolean;
 	sound: boolean;
 }

@@ -12,12 +12,14 @@ import { checkContent, type Exhibit } from "./content";
 import { assertHudCanDraw, createHud, type HudView, STATUS_BAR_HEIGHT } from "./hud";
 import { type Level, loadLevel, roomAt } from "./level";
 import { createPosterFace } from "./poster";
+import { DEFAULT_SETTINGS, type Settings } from "./settings";
+import { TICKS_PER_SECOND } from "./ticks";
 
 export { BUG_SPRITE_NAMES } from "./bugs";
 export { CROSSHAIR_COLOR, HUD_HINT_COLOR, HUD_VALUE_COLOR, STATUS_BAR_HEIGHT } from "./hud";
 
-/** Fixed ticks per second. Every speed below is per tick. */
-export const TICKS_PER_SECOND = 60;
+export { TICKS_PER_SECOND } from "./ticks";
+
 const MOVE_SPEED = 3 / TICKS_PER_SECOND; // tiles per tick
 const TURN_SPEED = Math.PI / TICKS_PER_SECOND; // radians per tick
 const PLAYER_RADIUS = 0.25; // tiles
@@ -46,19 +48,16 @@ export const FLOOR_COLOR = rgb(84, 72, 60);
 /** Sprites are drawn at 72 texels per tile, so a Bug (39 texels high) is about half a wall high. */
 const SPRITE_TEXEL_SIZE = 1 / 72;
 
-/** Player settings that change how the Game core reads input and draws the view. */
-export interface GameSettings {
-	/** Multiplies the mouse turn. 1 is the default speed. */
-	mouseSensitivity: number;
-	/** Mouse movement to the right turns the player left. */
-	invertMouse: boolean;
-	/** The system asks for reduced motion: no head bob and no screen shake. */
-	reducedMotion: boolean;
-}
+/**
+ * Player settings that change how the Game core reads input and draws the view: the saved
+ * mouse settings (see `Settings`), and whether the system asks for reduced motion (no head bob
+ * and no screen shake).
+ */
+export type GameSettings = Pick<Settings, "mouseSensitivity" | "invertMouse"> & { reducedMotion: boolean };
 
 export const DEFAULT_GAME_SETTINGS: Readonly<GameSettings> = {
-	mouseSensitivity: 1,
-	invertMouse: false,
+	mouseSensitivity: DEFAULT_SETTINGS.mouseSensitivity,
+	invertMouse: DEFAULT_SETTINGS.invertMouse,
 	reducedMotion: false,
 };
 

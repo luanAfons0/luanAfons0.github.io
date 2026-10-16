@@ -17,8 +17,3 @@ export function createFramebuffer(width: number, height: number): Framebuffer {
 export function rgb(r: number, g: number, b: number): number {
 	return ((0xff << 24) | ((b & 0xff) << 16) | ((g & 0xff) << 8) | (r & 0xff)) >>> 0;
 }
-
-/** Multiplies the color channels of a pixel by `factor` (0 to 1) and keeps it opaque. */
-export function shade(pixel: number, factor: number): number {
-	return rgb((pixel & 0xff) * factor, ((pixel >>> 8) & 0xff) * factor, ((pixel >>> 16) & 0xff) * factor);
-}

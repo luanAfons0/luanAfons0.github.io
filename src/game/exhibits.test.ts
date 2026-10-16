@@ -148,20 +148,27 @@ describe("Exhibits in focus and use", () => {
 		expect(game.state().exhibitInFocus).toBeNull();
 	});
 
-	it('shows "Press E" in the HUD, above the status bar, only while an Exhibit is in focus', () => {
+	it('shows "Press E" in the HUD, centered above the status bar, only while an Exhibit is in focus', () => {
 		const hintPixels = (game: Game) => {
 			const framebuffer = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
 			game.render(framebuffer);
-			const rows = new Set<number>();
+			const found: [number, number][] = [];
 			framebuffer.pixels.forEach((pixel, i) => {
-				if (pixel === HUD_HINT_COLOR) rows.add(Math.floor(i / SCREEN_WIDTH));
+				if (pixel === HUD_HINT_COLOR) found.push([i % SCREEN_WIDTH, Math.floor(i / SCREEN_WIDTH)]);
 			});
-			return [...rows];
+			return found;
 		};
 
 		const inFocus = hintPixels(facingPoster(1));
-		expect(inFocus.length).toBeGreaterThan(0);
-		expect(Math.max(...inFocus)).toBeLessThan(SCREEN_HEIGHT - STATUS_BAR_HEIGHT);
+		const xs = inFocus.map(([x]) => x);
+		const ys = inFocus.map(([, y]) => y);
+		const width = Math.max(...xs) - Math.min(...xs) + 1;
+		const height = Math.max(...ys) - Math.min(...ys) + 1;
+		// The HUD font has 5x7 glyphs with a 1-pixel gap, at any scale. "Press E" is 7 glyphs (the space
+		// is one), and P and E touch their outer edges: 6 * 7 - 1 = 41 font pixels across, 7 down.
+		expect(width / height).toBeCloseTo(41 / 7);
+		expect((Math.min(...xs) + Math.max(...xs) + 1) / 2).toBeCloseTo(SCREEN_WIDTH / 2, 0);
+		expect(Math.max(...ys)).toBeLessThan(SCREEN_HEIGHT - STATUS_BAR_HEIGHT);
 		expect(hintPixels(facingPoster(2.5))).toEqual([]);
 	});
 

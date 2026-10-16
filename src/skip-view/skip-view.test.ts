@@ -1,4 +1,6 @@
 // @vitest-environment happy-dom
+// The real page links its stylesheet, and the tests have no server: happy-dom must not fetch it.
+// @vitest-environment-options { "settings": { "disableCSSFileLoading": true, "handleDisabledFileLoadingAsSuccess": true } }
 import { describe, expect, it } from "vitest";
 import { EXHIBITS, type Exhibit } from "../game/content";
 import { loadLevel } from "../game/level";

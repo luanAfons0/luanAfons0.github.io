@@ -3,14 +3,15 @@ import type { Grid } from "../engine/grid";
 import { castRay, createRayHit } from "../engine/raycast";
 import type { Sprite, SpriteImage } from "../engine/renderer";
 import type { BugSpawn, Room } from "./level";
+import { TICKS_PER_SECOND } from "./ticks";
 
-/** Bugs walk at 0.6 tiles per second (the player walks at 3). Per tick at 60 ticks per second. */
-const WALK_SPEED = 0.6 / 60;
+/** Bugs walk at 0.6 tiles per second (the player walks at 3). Per tick. */
+const WALK_SPEED = 0.6 / TICKS_PER_SECOND;
 /** A Bug keeps this far from walls and from the edges of its Room, in tiles. */
 const BUG_RADIUS = 0.2;
 /** A Bug keeps one heading for 1 to 4 seconds (in ticks), then picks a new one. */
-const MIN_HEADING_TICKS = 60;
-const MAX_HEADING_TICKS = 240;
+const MIN_HEADING_TICKS = 1 * TICKS_PER_SECOND;
+const MAX_HEADING_TICKS = 4 * TICKS_PER_SECOND;
 /** The same seed every visit, so the Game core stays deterministic. */
 const WANDER_SEED = 0x8badf00d;
 
@@ -51,7 +52,7 @@ interface Bug {
 	sprite: Sprite;
 }
 
-/** The Bugs of a Level: harmless enemies that walk in their Room until the player fixes them. */
+/** The Bugs of a Level: they do no harm, and walk in their Room until the player fixes them. */
 export interface Bugs {
 	readonly total: number;
 	fixedCount(): number;

@@ -35,7 +35,7 @@ export interface BugSpawn {
 	room: Room;
 }
 
-/** One named area of the Level: a Tiled rectangle object. Positions are in tiles. */
+/** A Room: a named Tiled rectangle object in the Level. Positions are in tiles. */
 export interface Room {
 	name: string;
 	x: number;
