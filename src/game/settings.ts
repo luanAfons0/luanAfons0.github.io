@@ -1,8 +1,11 @@
+import { isTheme, type Theme } from "./theme";
+
 /**
  * The player's settings, saved in `localStorage` between visits.
  * Only settings are saved: game progress is not, so each visit starts a fresh Level.
  * Storage can fail (private windows, blocked site data), so every access is in a
  * try/catch and the game falls back to the defaults.
+ * The Title Screen reads and writes them too (the Theme), so this module imports only the Theme module.
  */
 export interface Settings {
 	/** Multiplies the mouse turn. 1 is the default speed. */
@@ -10,6 +13,11 @@ export interface Settings {
 	/** Mouse movement to the right turns the player left. */
 	invertMouse: boolean;
 	sound: boolean;
+	/**
+	 * The Theme the visitor chose. Missing means "follow the system": a light system setting shows
+	 * Paper and a dark one shows Board. The head script in index.html reads it from the same key.
+	 */
+	theme?: Theme;
 }
 
 export const DEFAULT_SETTINGS: Readonly<Settings> = {
@@ -20,6 +28,7 @@ export const DEFAULT_SETTINGS: Readonly<Settings> = {
 
 export const MOUSE_SENSITIVITY_RANGE = { min: 0.2, max: 3, step: 0.1 } as const;
 
+/** The storage key. The head script in index.html reads the Theme from it too: change both together. */
 const STORAGE_KEY = "portfolio.settings.v1";
 
 /** Reads the saved settings. A missing, broken, or unreadable value gives the default. */
@@ -40,6 +49,7 @@ export function loadSettings(): Settings {
 				: DEFAULT_SETTINGS.mouseSensitivity,
 		invertMouse: typeof values.invertMouse === "boolean" ? values.invertMouse : DEFAULT_SETTINGS.invertMouse,
 		sound: typeof values.sound === "boolean" ? values.sound : DEFAULT_SETTINGS.sound,
+		...(isTheme(values.theme) ? { theme: values.theme } : {}),
 	};
 }
 

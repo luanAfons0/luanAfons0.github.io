@@ -1,218 +1,670 @@
-/* The Title Screen: a classic 1990s shooter menu, in plain HTML and CSS. */
-
-:root {
-	--title-red: #e0382a;
-	--title-red-hot: #ff6a3c;
-	--title-gold: #f0c040;
-	--title-bone: #e8dcc4;
-	--title-muted: #b8aa90;
-	--title-bg: #0c0907;
-	--title-display:
-		Impact, Haettenschweiler, "Arial Narrow Bold", "Franklin Gothic Bold", "Liberation Sans Narrow",
-		"DejaVu Sans Condensed", sans-serif-condensed, sans-serif;
-	--title-mono: ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
-}
+/*
+ * The Title Screen in two looks (src/theme.css chooses one):
+ * - Paper: a datasheet cover. Part number LA-1, the name, a Features list, and a chip pinout where
+ *   pins 1 to 3 are the menu and the other pins list the controls.
+ * - Board: the name in silkscreen on the board, and the menu as copper pads.
+ * One markup serves both. Colors come from the look tokens in theme.css; the sizes and the layout
+ * that differ come from the --ts-* tokens below.
+ */
 
 /* The game canvas waits under the Title Screen until NEW GAME. */
 #screen[hidden] {
 	display: none;
 }
 
+/* The Title Screen, with the Paper layout tokens. */
 .title-screen {
 	box-sizing: border-box;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	gap: clamp(20px, 5vh, 44px);
+	display: grid;
+	place-items: center;
 	width: 100vw;
-	height: 100vh;
-	padding: 24px 16px;
+	height: 100dvh;
 	overflow-y: auto;
-	/* A dark tech wall with a red glow from below, like the menu over a title picture. */
-	background:
-		radial-gradient(ellipse at 50% 110%, rgb(160 30 10 / 0.45), transparent 60%),
-		radial-gradient(ellipse at center, transparent 30%, rgb(0 0 0 / 0.85) 100%),
-		linear-gradient(rgb(12 9 7 / 0.86), rgb(12 9 7 / 0.86)),
-		url("/freedoom/textures/STARTAN2.png") center / 256px 256px,
-		var(--title-bg);
-	image-rendering: pixelated;
-	color: var(--title-bone);
-	text-align: center;
+	background-color: var(--surface);
+	background-image: var(--ts-texture);
+	background-size: 240px 240px;
+	color: var(--text);
+	font: 16px / 1.5 var(--font-sans);
+
+	--ts-columns: 1fr 1fr;
+	--ts-align: stretch;
+	--ts-texture: none;
+	--ts-main-padding: 2.72em 1.6em 0 3.52em;
+	--ts-main-gap: 1.92em;
+	--ts-fig-padding: 2.72em 3.52em 0 1.6em;
+	--ts-fig-gap: 1.28em;
+	--ts-fig-align: center;
+	--ts-name-font: 800 6.08em / 0.88 var(--font-sans);
+	--ts-name-stretch: 72%;
+	--ts-name-spacing: -0.02em;
+	--ts-desc-size: 1.45em;
+	--ts-pinout-columns: auto 1.28em 9.6em 1.28em auto;
+	--ts-pin-height: 2.32em;
+	--ts-pin-gap: 0.72em;
+	--ts-menu-justify: flex-end;
+	--ts-item-size: 1.35em;
+	--ts-item-small: 1;
+	--ts-item-padding: 0.45em 0.7em;
+	--ts-item-gap: 0.6em;
+	--ts-item-trace: block;
+	--ts-note-border: 1px;
+}
+
+/* The Board layout. Keep the two blocks below the same: the first is the saved Theme, the second the
+   system setting when no Theme is saved. */
+:root[data-theme="board"] .title-screen {
+	--ts-columns: 1.15fr 1fr;
+	--ts-align: center;
+	--ts-texture: var(--board-traces);
+	--ts-main-padding: 0 1.6em 0 4.8em;
+	--ts-main-gap: 1.44em;
+	--ts-fig-padding: 0 4.8em 0 1.6em;
+	--ts-fig-gap: 1.92em;
+	--ts-fig-align: flex-start;
+	--ts-name-font: 400 4.96em / 1 var(--font-silk);
+	--ts-name-stretch: normal;
+	--ts-name-spacing: 0;
+	--ts-desc-size: 1.4em;
+	--ts-pinout-columns: auto;
+	--ts-pin-height: auto;
+	--ts-pin-gap: 1.12em;
+	--ts-menu-justify: flex-start;
+	--ts-item-size: 2.4em;
+	--ts-item-small: 0.667;
+	--ts-item-padding: 0;
+	--ts-item-gap: 1.2em;
+	--ts-item-trace: none;
+	--ts-note-border: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme]) .title-screen {
+		--ts-columns: 1.15fr 1fr;
+		--ts-align: center;
+		--ts-texture: var(--board-traces);
+		--ts-main-padding: 0 1.6em 0 4.8em;
+		--ts-main-gap: 1.44em;
+		--ts-fig-padding: 0 4.8em 0 1.6em;
+		--ts-fig-gap: 1.92em;
+		--ts-fig-align: flex-start;
+		--ts-name-font: 400 4.96em / 1 var(--font-silk);
+		--ts-name-stretch: normal;
+		--ts-name-spacing: 0;
+		--ts-desc-size: 1.4em;
+		--ts-pinout-columns: auto;
+		--ts-pin-height: auto;
+		--ts-pin-gap: 1.12em;
+		--ts-menu-justify: flex-start;
+		--ts-item-size: 2.4em;
+		--ts-item-small: 0.667;
+		--ts-item-padding: 0;
+		--ts-item-gap: 1.2em;
+		--ts-item-trace: none;
+		--ts-note-border: 2px;
+	}
 }
 
 .title-screen[hidden] {
 	display: none;
 }
 
-.title-screen__logo {
+.title-screen *,
+.title-screen *::before,
+.title-screen *::after {
+	box-sizing: border-box;
+}
+
+.title-screen ::selection {
+	background: var(--copper);
+	color: var(--paper);
+}
+
+/* The sheet: a 16:9 page that fits the window, like the game view. Sizes inside are in em of its
+   font size, which grows with the sheet and never drops below 14px. */
+.title-screen__sheet {
+	--u: min(1vw, 1.7778vh);
+
+	position: relative;
 	display: grid;
-	gap: 6px;
-	margin: 0;
-	font-weight: 400;
-	line-height: 1;
+	grid-template-columns: var(--ts-columns);
+	grid-template-rows: auto 1fr auto;
+	align-items: var(--ts-align);
+	width: calc(100 * var(--u));
+	min-height: calc(56.25 * var(--u));
+	font-size: max(14px, calc(1.25 * var(--u)));
+}
+
+.title-screen kbd {
+	display: inline-block;
+	min-width: 1.6em;
+	padding: 0 5px;
+	border: 1px solid currentColor;
+	border-radius: 2px;
+	font: 400 0.75em / 1.5 var(--font-silk);
+	text-align: center;
+}
+
+/* Paper: the datasheet header. */
+.title-screen__head {
+	grid-column: 1 / -1;
+	display: flex;
+	align-items: stretch;
+	justify-content: space-between;
+	margin: 0 3.52em;
+	padding-top: 2.56em;
+	border-bottom: 3px solid var(--line);
+}
+
+.title-screen__part {
+	padding: 0.5em 0.9em 0.35em;
+	background: var(--ink);
+	color: var(--paper);
+	font: 400 1.25em / 1 var(--font-silk);
+}
+
+.title-screen__head-note {
+	align-self: end;
+	padding-bottom: 0.4em;
+	color: var(--text-2);
+	font-size: 0.95em;
+}
+
+.title-screen__main {
+	grid-row: 2;
+	grid-column: 1;
+	display: flex;
+	flex-direction: column;
+	gap: var(--ts-main-gap);
+	padding: var(--ts-main-padding);
+}
+
+/* Board: the part reference over the name. */
+.title-screen__ref {
+	color: var(--text-2);
+	font: 400 1em / 1 var(--font-silk);
 }
 
 .title-screen__name {
-	font: 400 clamp(48px, 12vw, 128px) / 0.9 var(--title-display);
-	letter-spacing: 0.02em;
-	text-transform: uppercase;
-	/* Molten metal letters with a deep extrusion. */
-	background: linear-gradient(180deg, #fff2a0 0%, #f8b030 28%, #e05a18 55%, #a01c08 80%, #5a0c04 100%);
-	background-clip: text;
-	-webkit-background-clip: text;
-	color: transparent;
-	filter: drop-shadow(0 2px 0 #3a0802) drop-shadow(0 2px 0 #200401) drop-shadow(0 3px 0 #000)
-		drop-shadow(0 10px 14px rgb(0 0 0 / 0.8));
-	transform: perspective(500px) rotateX(14deg);
-}
-
-.title-screen__tagline {
-	color: var(--title-gold);
-	font: 700 clamp(14px, 2.4vw, 20px) / 1 var(--title-mono);
-	letter-spacing: 0.6em;
-	/* Letter spacing adds space after the last letter too; this centers the word again. */
-	padding-left: 0.6em;
-	text-shadow: 2px 2px 0 #000;
-	text-transform: uppercase;
-}
-
-.title-screen__menu ul {
-	display: grid;
-	gap: 10px;
 	margin: 0;
-	padding: 0;
-	list-style: none;
+	font: var(--ts-name-font);
+	font-stretch: var(--ts-name-stretch);
+	letter-spacing: var(--ts-name-spacing);
+	text-wrap: balance;
 }
 
+.title-screen__desc {
+	max-width: 30ch;
+	margin: 0;
+	color: light-dark(var(--ink), var(--silk-2));
+	font-size: var(--ts-desc-size);
+	line-height: 1.38;
+}
+
+.title-screen__features h2 {
+	max-width: 34em;
+	margin: 0 0 0.5em;
+	padding-bottom: 0.3em;
+	border-bottom: 1px solid var(--line);
+	font: 700 1em / 1.2 var(--font-sans);
+}
+
+.title-screen__features ul {
+	max-width: 34em;
+	margin: 0;
+	padding: 0 0 0 1.1em;
+}
+
+.title-screen__features li {
+	margin: 0.15em 0;
+}
+
+.title-screen__features li::marker {
+	content: "\25A0  ";
+	font-size: 0.7em;
+}
+
+/* Board: the chip outline around the name, with its reference designator. */
+.title-screen__outline {
+	position: absolute;
+	top: 50%;
+	left: 2.88em;
+	width: 41.6em;
+	height: 24em;
+	border: 2px solid var(--silk-3);
+	pointer-events: none;
+	translate: 0 -50%;
+}
+
+.title-screen__outline::before {
+	content: "U1";
+	position: absolute;
+	top: -1.6em;
+	left: 0;
+	color: var(--silk-2);
+	font: 400 0.9em / 1 var(--font-silk);
+}
+
+.title-screen__fig {
+	grid-row: 2;
+	grid-column: 2;
+	display: flex;
+	flex-direction: column;
+	align-items: var(--ts-fig-align);
+	justify-content: center;
+	gap: var(--ts-fig-gap);
+	margin: 0;
+	padding: var(--ts-fig-padding);
+}
+
+.title-screen__caption {
+	margin: 0;
+	font-size: 0.95em;
+	font-weight: 700;
+	text-align: center;
+}
+
+.title-screen__caption span {
+	color: var(--text-2);
+	font-weight: 400;
+}
+
+/* Paper: the datasheet footer. */
+.title-screen__foot {
+	grid-column: 1 / -1;
+	display: flex;
+	justify-content: space-between;
+	gap: 2em;
+	margin: 0 3.52em;
+	padding: 0.7em 0 1.76em;
+	border-top: 1px solid var(--line-2);
+	color: var(--text-2);
+	font-size: 0.95em;
+}
+
+.title-screen__foot kbd,
+.title-screen__hint kbd {
+	color: var(--text);
+}
+
+/* Board: the hint under the pads. */
+.title-screen__hint {
+	margin: 0;
+	color: var(--text-2);
+	font-size: 0.95em;
+	line-height: 1.8;
+}
+
+/* The pinout: a 10-pin chip. Paper shows it all; Board keeps only the menu labels, as pads. */
+.pinout {
+	display: grid;
+	grid-template-columns: var(--ts-pinout-columns);
+	grid-auto-rows: var(--ts-pin-height);
+	align-items: center;
+	row-gap: var(--ts-pin-gap);
+}
+
+.pinout__label {
+	grid-row: var(--row);
+	grid-column: 1;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 0.6em;
+	padding-right: 0.8em;
+	white-space: nowrap;
+}
+
+.pinout__label--menu {
+	justify-content: var(--ts-menu-justify);
+}
+
+.pinout__label--r {
+	grid-column: 5;
+	justify-content: flex-start;
+	padding-right: 0;
+	padding-left: 0.8em;
+}
+
+.pinout__pin {
+	grid-row: var(--row);
+	width: 100%;
+	height: 0.8em;
+	background: var(--pad);
+}
+
+.pinout__pin--l {
+	grid-column: 2;
+	border-radius: 1px 0 0 1px;
+}
+
+.pinout__pin--r {
+	grid-column: 4;
+	border-radius: 0 1px 1px 0;
+}
+
+/* The pin of the selected menu item turns copper. */
+.pinout__label:has(.is-selected) + .pinout__pin {
+	background: var(--live-trace);
+}
+
+.pinout__body {
+	position: relative;
+	grid-row: 1 / span 5;
+	grid-column: 3;
+	align-self: stretch;
+	display: grid;
+	place-items: center;
+	margin: -0.72em 0;
+	border-radius: 2px;
+	background: var(--ink);
+	color: var(--paper);
+}
+
+/* The pin-1 notch. */
+.pinout__body::before {
+	content: "";
+	position: absolute;
+	top: -1px;
+	left: 50%;
+	width: 1.92em;
+	height: 0.96em;
+	border-radius: 0 0 0.96em 0.96em;
+	background: var(--surface);
+	translate: -50% 0;
+}
+
+.pinout__marking {
+	font: 400 1.25em / 1.3 var(--font-silk);
+	text-align: center;
+}
+
+.pinout__marking small {
+	display: block;
+	color: var(--silk-2);
+	font-size: 0.6em;
+	text-transform: uppercase;
+}
+
+.pinout__num {
+	width: 1.4em;
+	color: var(--text-2);
+	font: 400 0.85em / 1 var(--font-silk);
+	text-align: center;
+}
+
+.pinout__name {
+	font: 400 1em / 1 var(--font-silk);
+}
+
+.pinout__name--nc {
+	color: var(--text-2);
+}
+
+.pinout__key {
+	color: var(--text-2);
+	font-size: 0.9em;
+}
+
+/* A menu item: a pin label in Paper, a pad in Board. Selection is a step change. */
 .title-screen__item {
 	position: relative;
-	display: inline-block;
-	padding: 2px 14px;
-	background: none;
+	display: inline-flex;
+	align-items: center;
+	gap: var(--ts-item-gap);
+	padding: var(--ts-item-padding);
 	border: 0;
-	color: var(--title-red);
+	background: none;
+	color: var(--text);
 	cursor: pointer;
-	font: 400 clamp(32px, 6vw, 52px) / 1.1 var(--title-display);
-	letter-spacing: 0.04em;
+	font: 400 var(--ts-item-size) / 1 var(--font-silk);
 	text-decoration: none;
-	text-shadow:
-		2px 0 0 #000,
-		-2px 0 0 #000,
-		0 2px 0 #000,
-		0 -2px 0 #000,
-		3px 4px 0 #3a0802;
-	text-transform: uppercase;
 }
 
-/* The skull cursor next to the selected item, as in the classic menus. */
-.title-screen__item::before {
+.title-screen__item--small {
+	font-size: calc(var(--ts-item-size) * var(--ts-item-small));
+}
+
+/* Paper: the copper trace from the selected label to its pin. */
+.title-screen__item::after {
+	content: "";
+	display: var(--ts-item-trace);
+	position: absolute;
+	top: 50%;
+	right: calc(-0.8em / 1.35 - 1px);
+	width: 0;
+	height: 3px;
+	background: var(--live-trace);
+	translate: 0 -50%;
+}
+
+.title-screen__item.is-selected {
+	background: light-dark(var(--ink), transparent);
+	color: light-dark(var(--paper), var(--copper-hot));
+}
+
+.title-screen__item.is-selected::after {
+	width: calc(0.8em / 1.35 + 1px);
+}
+
+.title-screen__item:focus-visible {
+	outline: 2px solid var(--focus);
+	outline-offset: 4px;
+}
+
+.title-screen__item:active {
+	translate: 0 1px;
+}
+
+/* Board: the pad, with its trace toward the chip outline. The NEW GAME dive grows from it. */
+.title-screen__pad {
+	position: relative;
+	flex: none;
+	width: 1.1em;
+	height: 0.8em;
+	border-radius: 1px;
+	background: var(--pad);
+}
+
+.title-screen__pad::before {
 	content: "";
 	position: absolute;
 	top: 50%;
 	right: 100%;
-	width: 0.6em;
-	height: 0.78em;
-	background: url("/freedoom/sprites/SKULA1.png") center / contain no-repeat;
-	image-rendering: pixelated;
-	opacity: 0;
-	transform: translateY(-50%);
+	width: 3.2em;
+	height: 3px;
+	background: var(--mask-trace);
+	translate: 0 -50%;
 }
 
-.title-screen__item.is-selected {
-	color: var(--title-red-hot);
+.title-screen__item.is-selected .title-screen__pad,
+.title-screen__item.is-selected .title-screen__pad::before {
+	background: var(--live-trace);
 }
 
-.title-screen__item.is-selected::before {
-	opacity: 1;
-}
-
-.title-screen__item:focus-visible {
-	outline: 3px solid var(--title-gold);
-	outline-offset: 4px;
-}
-
-.title-screen__loading {
-	display: grid;
-	gap: 8px;
-	justify-items: center;
-	color: var(--title-gold);
-	font: 700 16px / 1 var(--title-mono);
-	letter-spacing: 0.3em;
-	text-transform: uppercase;
-}
-
+/* Loading and the load error. */
 .title-screen__loading[hidden],
 .title-screen__error[hidden] {
 	display: none;
 }
 
-.title-screen__loading-track {
+.title-screen__loading {
+	width: 100%;
+	max-width: 30em;
+}
+
+/* Paper: a timing diagram. The clock marches while the game loads. */
+.timing {
+	display: grid;
+	gap: 0.4em;
+}
+
+.timing__row {
+	display: grid;
+	grid-template-columns: 4.6em 1fr;
+	align-items: center;
+	gap: 0.6em;
+}
+
+.timing__signal {
+	color: var(--text-2);
+	font: 400 0.85em / 1 var(--font-silk);
+	text-align: right;
+}
+
+.timing__wave {
 	display: block;
-	box-sizing: border-box;
-	width: min(280px, calc(100vw - 32px));
-	height: 18px;
-	padding: 3px;
-	background: #000;
-	border: 2px solid #6b5a3c;
+	width: 100%;
+	height: 1.6em;
 	overflow: hidden;
 }
 
-/* No progress events come from a dynamic import, so the bar shows that work goes on, not how much. */
-.title-screen__loading-fill {
-	display: block;
-	width: 100%;
-	height: 100%;
-	background: repeating-linear-gradient(90deg, var(--title-red) 0 10px, #000 10px 14px);
+.timing__wave path {
+	fill: none;
+	stroke: var(--ink);
+	stroke-width: 2;
+	shape-rendering: crispEdges;
 }
 
+.timing__wave--data path {
+	stroke: var(--ink-2);
+}
+
+.timing__label {
+	margin: 0.2em 0 0 5.2em;
+	color: var(--text-2);
+	font-size: 0.9em;
+}
+
+/* Board: a row of LEDs that light in steps. */
+.leds {
+	display: flex;
+	align-items: center;
+	gap: 0.7em;
+}
+
+.leds__label {
+	margin-right: 0.4em;
+	color: var(--text-2);
+	font: 400 0.9em / 1 var(--font-silk);
+}
+
+.leds__led {
+	width: 0.9em;
+	height: 0.9em;
+	border-radius: 1px;
+	background: var(--silk-3);
+}
+
+/* The load error: a datasheet note in Paper, a fault label in Board. */
 .title-screen__error {
-	max-width: 36em;
+	max-width: 30em;
 	margin: 0;
-	color: var(--title-gold);
-	font: 16px / 1.5 var(--title-mono);
+	padding: 0.8em 1em;
+	border: var(--ts-note-border) solid light-dark(var(--ink), var(--silk-2));
+	background: light-dark(var(--paper-2), transparent);
+	color: var(--text);
+	line-height: 1.45;
 }
 
-.title-screen__hint {
-	margin: 0;
-	color: var(--title-muted);
-	font: 14px / 1.7 var(--title-mono);
+.title-screen__error-label {
+	font-weight: 700;
 }
 
-.title-screen__hint kbd {
-	display: inline-block;
-	min-width: 1.4em;
-	padding: 0 4px;
-	border: 1px solid #6b5a3c;
-	background: #1c1814;
-	color: var(--title-bone);
-	font: inherit;
+.title-screen__error-label--board {
+	color: var(--copper-hot);
+	font: 400 1em / 1 var(--font-silk);
+}
+
+/* Narrow or tall windows (a tablet with a mouse): one column, no chip outline. */
+@media (max-aspect-ratio: 1 / 1) {
+	.title-screen {
+		place-items: start center;
+	}
+
+	.title-screen__sheet {
+		--u: 1.6vw;
+
+		width: 100%;
+		grid-template-columns: 1fr;
+		grid-template-rows: auto;
+		align-content: start;
+		align-items: start;
+		min-height: 100%;
+		padding-bottom: 2em;
+	}
+
+	.title-screen__main,
+	.title-screen__fig {
+		grid-row: auto;
+		grid-column: 1;
+		padding: 2em 1.5em 0;
+	}
+
+	.title-screen__head,
+	.title-screen__foot {
+		margin: 0 1.5em;
+	}
+
+	.title-screen__foot {
+		flex-direction: column;
+		gap: 0.5em;
+		margin-top: 2em;
+	}
+
+	.title-screen__outline {
+		display: none;
+	}
 }
 
 @media (prefers-reduced-motion: no-preference) {
-	.title-screen__item {
-		transition: color 80ms linear;
+	.timing__clock {
+		animation: title-clock 0.5s steps(2) infinite;
 	}
 
-	/* The skull flickers in two steps, like the old two-frame cursor. */
-	.title-screen__item.is-selected::before {
-		animation: title-skull 0.5s steps(1) infinite;
+	.leds__led {
+		animation: title-led 0.84s steps(1) infinite;
 	}
 
-	.title-screen__loading-fill {
-		background-size: 28px 100%;
-		animation: title-loading 0.6s linear infinite;
+	.leds__led:nth-child(3) {
+		animation-delay: 0.12s;
+	}
+
+	.leds__led:nth-child(4) {
+		animation-delay: 0.24s;
+	}
+
+	.leds__led:nth-child(5) {
+		animation-delay: 0.36s;
+	}
+
+	.leds__led:nth-child(6) {
+		animation-delay: 0.48s;
+	}
+
+	.leds__led:nth-child(7) {
+		animation-delay: 0.6s;
+	}
+
+	.leds__led:nth-child(8) {
+		animation-delay: 0.72s;
 	}
 }
 
-@keyframes title-skull {
-	50% {
-		filter: brightness(1.5) saturate(1.3);
-	}
-}
-
-@keyframes title-loading {
+/* One clock period is 40 units of the wave's view box. */
+@keyframes title-clock {
 	to {
-		background-position: 28px 0;
+		transform: translateX(-40px);
+	}
+}
+
+@keyframes title-led {
+	0%,
+	60% {
+		background: var(--copper);
+	}
+
+	61%,
+	100% {
+		background: var(--silk-3);
 	}
 }

@@ -2,12 +2,17 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { Face } from "../engine/raycast";
+import { DEFAULT_SETTINGS, loadSettings, saveSettings } from "../game/settings";
+import { titleScreenPage } from "./page";
 import { createTitleScreen, type TitleScreen, type TitleScreenOptions } from "./title-screen";
 
 const BASE = "/portfolio/";
 
-/** The real index.html, with the base path Vite puts in. */
-const PAGE = readFileSync(resolve(import.meta.dirname, "../../index.html"), "utf8").replaceAll("%BASE_URL%", BASE);
+/** The real index.html, as Vite builds it: the base path and the Level counts put in. */
+const PAGE = titleScreenPage(
+	readFileSync(resolve(import.meta.dirname, "../../index.html"), "utf8").replaceAll("%BASE_URL%", BASE),
+);
 /** The page body without its script: the Title Screen markup and the game canvas. */
 const BODY = PAGE.slice(PAGE.indexOf("<body>") + "<body>".length, PAGE.indexOf("</body>")).replace(
 	/<script[\s\S]*?<\/script>/g,
@@ -18,6 +23,9 @@ let screens: TitleScreen[] = [];
 
 beforeEach(() => {
 	document.body.innerHTML = BODY;
+	document.documentElement.removeAttribute("data-theme");
+	localStorage.clear();
+	systemScheme("light");
 });
 
 afterEach(() => {
@@ -26,8 +34,18 @@ afterEach(() => {
 	vi.restoreAllMocks();
 });
 
+/** Sets the system light or dark setting that `prefers-color-scheme` reports. */
+function systemScheme(scheme: "light" | "dark") {
+	(window as unknown as HappyDomWindow).happyDOM.settings.device.prefersColorScheme = scheme;
+}
+
+interface HappyDomWindow {
+	happyDOM: { settings: { device: { prefersColorScheme: string } } };
+}
+
 const newGame = () => item("new-game");
 const skip = () => item("skip");
+const themeItem = () => item("theme");
 
 function item(name: string): HTMLElement {
 	const element = document.querySelector<HTMLElement>(`[data-menu-item="${name}"]`);
@@ -92,7 +110,7 @@ function press(code: string): KeyboardEvent {
 }
 
 describe("Title Screen keyboard", () => {
-	it("moves the selection and the focus with the arrow keys, and wraps at both ends", () => {
+	it("moves the selection and the focus across all three items with the arrow keys, and wraps at both ends", () => {
 		setUp();
 		expect(newGame().classList.contains("is-selected")).toBe(true);
 
@@ -102,7 +120,14 @@ describe("Title Screen keyboard", () => {
 		expect(newGame().classList.contains("is-selected")).toBe(false);
 
 		press("ArrowDown");
+		expect(document.activeElement).toBe(themeItem());
+		expect(themeItem().classList.contains("is-selected")).toBe(true);
+
+		press("ArrowDown");
 		expect(document.activeElement).toBe(newGame());
+
+		press("ArrowUp");
+		expect(document.activeElement).toBe(themeItem());
 
 		press("ArrowUp");
 		expect(document.activeElement).toBe(skip());
@@ -110,6 +135,18 @@ describe("Title Screen keyboard", () => {
 		press("ArrowUp");
 		expect(document.activeElement).toBe(newGame());
 		expect(newGame().classList.contains("is-selected")).toBe(true);
+	});
+
+	it("selects the item the visitor points at or focuses", () => {
+		setUp();
+
+		themeItem().dispatchEvent(new Event("pointerenter"));
+		expect(themeItem().classList.contains("is-selected")).toBe(true);
+		expect(newGame().classList.contains("is-selected")).toBe(false);
+
+		skip().focus();
+		expect(skip().classList.contains("is-selected")).toBe(true);
+		expect(themeItem().classList.contains("is-selected")).toBe(false);
 	});
 
 	it("keeps the arrow keys from scrolling the page", () => {
@@ -308,5 +345,145 @@ describe("Title Screen analytics on a SKIP click", () => {
 		skip().addEventListener("click", (event) => event.preventDefault());
 		skip().click();
 		expect(track).toHaveBeenCalledExactlyOnceWith("skip");
+	});
+});
+
+/** The inline script in the page head (the phone redirect and the saved Theme), run on a desktop. */
+function runHeadScript() {
+	const head = PAGE.slice(0, PAGE.indexOf("</head>"));
+	const script = /<script>([\s\S]*?)<\/script>/.exec(head)?.[1];
+	if (!script) throw new Error("index.html has no inline script in its head.");
+	const desktop = (query: string) => ({ matches: query === "(pointer: fine)" || query === "(any-pointer: fine)" });
+	new Function("matchMedia", "location", script)(desktop, { replace: vi.fn() });
+}
+
+const shownTheme = () => document.documentElement.getAttribute("data-theme");
+const themeLabel = () => themeItem().textContent?.replace(/\s+/g, " ").trim();
+
+describe("Theme", () => {
+	it.each([
+		["light", "Paper"],
+		["dark", "Board"],
+	] as const)("follows a %s system setting when no Theme is saved: the Theme item shows %s", (scheme, label) => {
+		systemScheme(scheme);
+		runHeadScript();
+		setUp();
+
+		expect(shownTheme()).toBeNull();
+		expect(themeLabel()).toBe(`Theme: ${label}`);
+	});
+
+	it("applies a saved Theme in the head script, before the first paint", () => {
+		saveSettings({ ...DEFAULT_SETTINGS, theme: "board" });
+
+		runHeadScript();
+		expect(shownTheme()).toBe("board");
+
+		setUp();
+		expect(themeLabel()).toBe("Theme: Board");
+	});
+
+	it("falls back to the system setting when storage is broken", () => {
+		systemScheme("dark");
+		vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+			throw new Error("Blocked site data.");
+		});
+
+		runHeadScript();
+		setUp();
+
+		expect(shownTheme()).toBeNull();
+		expect(themeLabel()).toBe("Theme: Board");
+	});
+
+	it("ignores a saved Theme that is not a Theme", () => {
+		localStorage.setItem("portfolio.settings.v1", JSON.stringify({ ...DEFAULT_SETTINGS, theme: "neon" }));
+
+		runHeadScript();
+		setUp();
+
+		expect(shownTheme()).toBeNull();
+		expect(loadSettings().theme).toBeUndefined();
+		expect(themeLabel()).toBe("Theme: Paper");
+	});
+
+	it("switches the look when the visitor chooses the Theme item, saves it, keeps the item selected, and sends theme/<id>", () => {
+		saveSettings({ ...DEFAULT_SETTINGS, sound: false });
+		const track = vi.fn();
+		setUp({ track });
+
+		press("ArrowUp");
+		press("Enter");
+
+		expect(shownTheme()).toBe("board");
+		expect(loadSettings()).toEqual({ ...DEFAULT_SETTINGS, sound: false, theme: "board" });
+		expect(themeLabel()).toBe("Theme: Board");
+		expect(themeItem().classList.contains("is-selected")).toBe(true);
+		expect(document.activeElement).toBe(themeItem());
+		expect(track).toHaveBeenCalledExactlyOnceWith("theme/board");
+
+		themeItem().click();
+
+		expect(shownTheme()).toBe("paper");
+		expect(loadSettings().theme).toBe("paper");
+		expect(themeLabel()).toBe("Theme: Paper");
+		expect(track).toHaveBeenLastCalledWith("theme/paper");
+	});
+
+	it("switches away from the system look on the first choice", () => {
+		systemScheme("dark");
+		const { load, navigate } = setUp();
+
+		themeItem().click();
+
+		expect(shownTheme()).toBe("paper");
+		expect(load).not.toHaveBeenCalled();
+		expect(navigate).not.toHaveBeenCalled();
+	});
+
+	it("still switches the look when storage is broken", () => {
+		vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+			throw new Error("Storage is full.");
+		});
+		setUp();
+
+		themeItem().click();
+
+		expect(shownTheme()).toBe("board");
+		expect(themeLabel()).toBe("Theme: Board");
+	});
+});
+
+describe("Title Screen Features", () => {
+	const room = { name: "Lobby", x: 0, y: 0, width: 4, height: 4 };
+
+	it("counts the Rooms, Exhibits, and Bugs of the Level", () => {
+		const level = {
+			rooms: [room],
+			exhibits: [
+				{ id: "a", x: 0, y: 1, face: Face.West },
+				{ id: "b", x: 0, y: 2, face: Face.West },
+			],
+			bugSpawns: [{ x: 1, y: 1, room }],
+		};
+
+		const page = titleScreenPage("<li><!--level-features--></li>", level);
+
+		expect(page).toBe("<li>1 Room, 2 Exhibits, 1 Bug to fix</li>");
+	});
+
+	it("fills the real page from the real Level", () => {
+		expect(PAGE).not.toContain("level-features");
+		expect(document.querySelector("[data-title-screen]")?.textContent).toMatch(
+			/\d+ Rooms?, \d+ Exhibits?, \d+ Bugs? to fix/,
+		);
+	});
+});
+
+describe("Title Screen page", () => {
+	it("has the page title and no em dash in its copy", () => {
+		expect(PAGE).toContain("<title>Luan Afonso, portfolio</title>");
+		expect(PAGE).not.toContain("\u2014");
+		expect(PAGE).not.toContain("&mdash;");
 	});
 });

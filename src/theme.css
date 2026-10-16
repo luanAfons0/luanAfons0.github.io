@@ -1,0 +1,121 @@
+/*
+ * The Themes of the HTML surfaces (see GLOSSARY.md): Paper (a datasheet: cool paper, black ink) and
+ * Board (a circuit board: solder mask, silkscreen, copper). Every page and overlay uses this sheet:
+ * the Title Screen, the Pause Menu, the Exhibit Panel, the resume prompt, and the Skip View.
+ *
+ * How a look is chosen:
+ * - data-theme="paper" or data-theme="board" on the root: the saved Theme (the head script in
+ *   index.html sets it before the first paint, and the Theme item or switch changes it).
+ * - No data-theme: the system setting. Light gives Paper, dark gives Board.
+ *
+ * The look sets `color-scheme` on the root (light for Paper, dark for Board), so the look tokens
+ * below pick their value with light-dark(). A surface that is Board in both Themes (the Pause Menu,
+ * the resume prompt) sets `color-scheme: dark` on itself, or uses the palette tokens directly.
+ * The .only-paper and .only-board classes hide an element in the other look.
+ *
+ * Copper marks only live or selected things. Copper text fails contrast on paper: on Paper, copper
+ * is for traces, pins, underlines, and focus rings, never for text.
+ */
+
+/* Archivo (variable width 62% to 125%, weight 100 to 900) and Silkscreen, both under the SIL Open
+   Font License (OFL.txt next to each file). Latin subsets from Fontsource. */
+@font-face {
+	font-family: "Archivo";
+	font-style: normal;
+	font-weight: 100 900;
+	font-stretch: 62% 125%;
+	font-display: swap;
+	src: url("/fonts/archivo/archivo-latin-wdth-normal.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: "Silkscreen";
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url("/fonts/silkscreen/silkscreen-latin-400-normal.woff2") format("woff2");
+}
+
+:root {
+	/* The palette. Paper. */
+	--paper: #f2f3f0;
+	--paper-2: #e7e9e4;
+	--ink: #16181a;
+	--ink-2: #4b5155;
+	--rule: #c8ccc5;
+	/* The palette. Board. */
+	--board: #0f1214;
+	--board-2: #161a1d;
+	--mask-trace: #1f262a;
+	--silk: #e9ebe6;
+	--silk-2: #9aa1a5;
+	--silk-3: #3a4045;
+	--pad: #aeb3b6;
+	/* The palette. Copper: live and selected things. */
+	--copper: #c06a36;
+	--copper-hot: #e08a4f;
+
+	/* The faces. Archivo for reading text and headings, Silkscreen for labels, pins, and pixel UI. */
+	--font-sans: "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+	--font-silk: "Silkscreen", ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+
+	/* The board surface: solder mask with traces under the mask, as a tile. The quiet one is for
+	   surfaces that carry text. */
+	--board-traces: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' shape-rendering='crispEdges'%3E%3Cg fill='none' stroke='%231f262a' stroke-width='3'%3E%3Cpath d='M0 40h70l30 30h60l20-20h60'/%3E%3Cpath d='M0 150h40l40-40h50v90l40 40'/%3E%3Cpath d='M120 0v30l20 20v40'/%3E%3Cpath d='M200 240v-60l-30-30h-40'/%3E%3Cpath d='M240 110h-30l-20 20v40'/%3E%3C/g%3E%3Cg fill='%23070909' stroke='%232a3035' stroke-width='3'%3E%3Ccircle cx='160' cy='70' r='5'/%3E%3Ccircle cx='130' cy='110' r='5'/%3E%3Ccircle cx='140' cy='90' r='5'/%3E%3Ccircle cx='190' cy='170' r='5'/%3E%3Ccircle cx='130' cy='150' r='5'/%3E%3C/g%3E%3C/svg%3E");
+	--board-traces-quiet: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' shape-rendering='crispEdges'%3E%3Cg fill='none' stroke='%23161b1e' stroke-width='3'%3E%3Cpath d='M0 40h70l30 30h60l20-20h60'/%3E%3Cpath d='M0 150h40l40-40h50v90l40 40'/%3E%3Cpath d='M120 0v30l20 20v40'/%3E%3Cpath d='M200 240v-60l-30-30h-40'/%3E%3Cpath d='M240 110h-30l-20 20v40'/%3E%3C/g%3E%3C/svg%3E");
+
+	/* The look tokens: the Paper value first, the Board value second. */
+	--surface: light-dark(var(--paper), var(--board));
+	--surface-2: light-dark(var(--paper-2), var(--board-2));
+	--text: light-dark(var(--ink), var(--silk));
+	--text-2: light-dark(var(--ink-2), var(--silk-2));
+	/* Strong lines: the datasheet rules under headers, outlines on the board. */
+	--line: light-dark(var(--ink), var(--silk-3));
+	/* Quiet lines: separators. */
+	--line-2: light-dark(var(--rule), var(--silk-3));
+	/* Text that marks the live or selected thing. */
+	--live-text: light-dark(var(--ink), var(--copper-hot));
+	/* Traces, pins, pads, and underlines of the live or selected thing. */
+	--live-trace: var(--copper);
+	--focus: light-dark(var(--copper), var(--copper-hot));
+
+	/* No saved Theme: follow the system. */
+	color-scheme: light dark;
+}
+
+:root[data-theme="paper"] {
+	color-scheme: light;
+}
+
+:root[data-theme="board"] {
+	color-scheme: dark;
+}
+
+/* One look at a time. CSS has no "or" between a selector and a media query, so the system case
+   (no data-theme) has its own rules. */
+:root[data-theme="board"] .only-paper,
+:root[data-theme="paper"] .only-board {
+	display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme]) .only-paper {
+		display: none;
+	}
+}
+
+@media not (prefers-color-scheme: dark) {
+	:root:not([data-theme]) .only-board {
+		display: none;
+	}
+}
+
+.board-surface {
+	background-color: var(--board);
+	background-image: var(--board-traces);
+	background-size: 240px 240px;
+}
+
+.board-surface--quiet {
+	background-image: var(--board-traces-quiet);
+}
