@@ -1,18 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { createFramebuffer, type Framebuffer } from "../engine/framebuffer";
+import { createFramebuffer, type Framebuffer, rgb } from "../engine/framebuffer";
 import type { InputSnapshot } from "../engine/input";
 import { createFixedStepLoop } from "../engine/loop";
+import { createTexture, type Texture } from "../engine/texture";
 import {
 	CEILING_COLOR,
 	createGame,
 	FLOOR_COLOR,
 	type Game,
+	levelTextureNames,
 	SCREEN_HEIGHT,
 	SCREEN_WIDTH,
 	TICKS_PER_SECOND,
 } from "./game";
 import sampleLevel from "./levels/sample.json";
-import { tiledLevel } from "./test-support/tiled-level";
+import { TEST_WALL_TEXTURE, tiledLevel } from "./test-support/tiled-level";
 
 const IDLE: InputSnapshot = { forward: 0, strafe: 0, turn: 0 };
 const FORWARD: InputSnapshot = { ...IDLE, forward: 1 };
@@ -159,5 +161,88 @@ describe("Game core", () => {
 	it("loads the real sample Level", () => {
 		const game = createGame({ level: sampleLevel });
 		expect(game.state().player).toEqual({ x: 1.5, y: 1.5, angle: 0 });
+	});
+});
+
+const RED = rgb(255, 0, 0);
+const GREEN = rgb(0, 255, 0);
+const BLUE = rgb(0, 0, 255);
+const WHITE = rgb(255, 255, 255);
+
+/** A 4x4 texture with one solid color for each texel column, left to right. */
+function columnsTexture(colors: [number, number, number, number]): Texture {
+	const rgba = new Uint8Array(4 * 4 * 4);
+	new Uint32Array(rgba.buffer).forEach((_, i, texels) => {
+		texels[i] = colors[i % 4] as number;
+	});
+	return createTexture(4, 4, rgba);
+}
+
+/** Splits a pixel into its red, green, and blue channels. */
+function channels(pixel: number): [number, number, number] {
+	return [pixel & 0xff, (pixel >>> 8) & 0xff, (pixel >>> 16) & 0xff];
+}
+
+describe("Textured walls", () => {
+	it("draws a wall column with the texture color of the spot the ray hits", () => {
+		// The player looks east at the wall face x = 7 from 3 tiles away. The view center hits the
+		// middle of the face. Looking east, the texture runs left to right along +y.
+		const game = createGame({
+			level: tiledLevel({
+				rows: ["#########", "#########", "#P.....##", "#########", "#########"],
+				playerOffset: { x: 3, y: 0.5 },
+			}),
+			textures: { [TEST_WALL_TEXTURE]: columnsTexture([RED, GREEN, BLUE, WHITE]) },
+		});
+		const frame = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+		game.render(frame);
+		const middle = SCREEN_HEIGHT / 2;
+
+		// At 3 tiles, one tile is about 118 px wide, so 20 px is about 0.17 tile.
+		const [leftRed, leftGreen, leftBlue] = channels(pixelAt(frame, SCREEN_WIDTH / 2 - 20, middle));
+		expect(leftGreen).toBeGreaterThan(0);
+		expect(leftRed + leftBlue).toBe(0);
+		const [rightRed, rightGreen, rightBlue] = channels(pixelAt(frame, SCREEN_WIDTH / 2 + 20, middle));
+		expect(rightBlue).toBeGreaterThan(0);
+		expect(rightRed + rightGreen).toBe(0);
+	});
+
+	it("gives each Tiled wall tile the texture its tileset names", () => {
+		// `#` walls are red; the wall the player faces is an `X` tile, which is green.
+		const game = createGame({
+			level: tiledLevel({
+				rows: ["#####", "#P.X#", "#####"],
+				wallTextures: { "#": "RED_WALL", X: "GREEN_WALL" },
+			}),
+			textures: {
+				RED_WALL: columnsTexture([RED, RED, RED, RED]),
+				GREEN_WALL: columnsTexture([GREEN, GREEN, GREEN, GREEN]),
+			},
+		});
+		const frame = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+		game.render(frame);
+
+		const [red, green, blue] = channels(pixelAt(frame, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2));
+		expect(green).toBeGreaterThan(0);
+		expect(red + blue).toBe(0);
+	});
+
+	it("fails with a clear error when a texture the Level uses is missing", () => {
+		const level = tiledLevel({ rows: ["###", "#P#", "###"], wallTextures: { "#": "STARTAN9" } });
+		expect(() => createGame({ level, textures: {} })).toThrow(/STARTAN9/);
+	});
+
+	it("fails with a clear error when a wall tile has no texture", () => {
+		const level = tiledLevel({ rows: ["###", "#P#", "###"] }) as { tilesets: { tiles: unknown[] }[] };
+		for (const tileset of level.tilesets) tileset.tiles = [];
+		expect(() => createGame({ level })).toThrow(/gid 1 has no "texture" property/);
+	});
+
+	it("lists the textures the real sample Level uses, and each one is a committed Freedoom PNG", () => {
+		const committed = Object.keys(import.meta.glob("/public/freedoom/textures/*.png"));
+		const names = levelTextureNames(sampleLevel);
+
+		expect(names.length).toBeGreaterThan(0);
+		for (const name of names) expect(committed).toContain(`/public/freedoom/textures/${name}.png`);
 	});
 });

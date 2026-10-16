@@ -1,9 +1,12 @@
 /**
  * Builds small Tiled JSON Levels for tests, from ASCII rows.
  * `#` is a wall tile (gid 1), `.` is empty, `P` is empty and holds the player start.
+ * Other wall characters can be added with `wallTextures`.
  * Tiled stores object positions in pixels, so this helper does too.
  */
 export const TILE_SIZE = 64;
+/** The texture name of the `#` wall tile. */
+export const TEST_WALL_TEXTURE = "TEST_WALL";
 
 export interface TiledLevelOptions {
 	rows: string[];
@@ -12,17 +15,24 @@ export interface TiledLevelOptions {
 	/** Player start offset inside the `P` cell, in tiles. Default is the cell center. */
 	playerOffset?: { x: number; y: number };
 	extraObjects?: object[];
+	/**
+	 * The texture name of each wall character. Each character becomes one wall tile, with gids
+	 * in key order starting at 1. Default: `#` has `TEST_WALL_TEXTURE`.
+	 */
+	wallTextures?: Record<string, string>;
 }
 
 export function tiledLevel(options: TiledLevelOptions): unknown {
 	const { rows, playerAngle = 0, playerOffset = { x: 0.5, y: 0.5 } } = options;
+	const wallTextures = options.wallTextures ?? { "#": TEST_WALL_TEXTURE };
+	const wallChars = Object.keys(wallTextures);
 	const height = rows.length;
 	const width = rows[0]?.length ?? 0;
 	const data: number[] = [];
 	const objects: object[] = [...(options.extraObjects ?? [])];
 	rows.forEach((row, y) => {
 		[...row].forEach((char, x) => {
-			data.push(char === "#" ? 1 : 0);
+			data.push(wallChars.indexOf(char) + 1);
 			if (char === "P") {
 				objects.push({
 					id: objects.length + 1,
@@ -74,6 +84,19 @@ export function tiledLevel(options: TiledLevelOptions): unknown {
 				objects,
 			},
 		],
-		tilesets: [{ firstgid: 1, source: "walls.tsx" }],
+		tilesets: [
+			{
+				firstgid: 1,
+				name: "walls",
+				tilewidth: TILE_SIZE,
+				tileheight: TILE_SIZE,
+				tilecount: wallChars.length,
+				columns: 0,
+				tiles: Object.values(wallTextures).map((texture, id) => ({
+					id,
+					properties: [{ name: "texture", type: "string", value: texture }],
+				})),
+			},
+		],
 	};
 }

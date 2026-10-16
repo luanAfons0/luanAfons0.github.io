@@ -2,6 +2,7 @@ import { moveCircle } from "../engine/collision";
 import { type Framebuffer, rgb } from "../engine/framebuffer";
 import type { InputSnapshot } from "../engine/input";
 import { createRenderer } from "../engine/renderer";
+import type { Texture } from "../engine/texture";
 import { type Level, loadLevel } from "./level";
 
 /** Fixed ticks per second. Every speed below is per tick. */
@@ -15,12 +16,15 @@ export const SCREEN_WIDTH = 640;
 export const SCREEN_HEIGHT = 360;
 export const CEILING_COLOR = rgb(56, 56, 64);
 export const FLOOR_COLOR = rgb(84, 72, 60);
-/** Wall color for each wall tile id in the Level (index 0 is empty). */
-const WALL_COLORS = new Uint32Array([0, rgb(150, 150, 150), rgb(140, 90, 60), rgb(70, 110, 70), rgb(70, 80, 130)]);
 
 export interface GameOptions {
 	/** Parsed Tiled JSON for the Level. */
 	level: unknown;
+	/**
+	 * Decoded textures by name. It must hold every texture the Level names (see `levelTextureNames`).
+	 * Leave it out only when the walls do not matter (as in movement tests): walls then draw magenta.
+	 */
+	textures?: Readonly<Record<string, Texture>>;
 }
 
 export interface PlayerState {
@@ -47,7 +51,7 @@ export function createGame(options: GameOptions): Game {
 	const renderer = createRenderer({
 		width: SCREEN_WIDTH,
 		height: SCREEN_HEIGHT,
-		wallColors: WALL_COLORS,
+		wallTextures: wallTexturesFor(level, options.textures),
 		ceilingColor: CEILING_COLOR,
 		floorColor: FLOOR_COLOR,
 	});
@@ -74,6 +78,22 @@ export function createGame(options: GameOptions): Game {
 			renderer.render(framebuffer, level.walls, player);
 		},
 	};
+}
+
+/** The names of the textures that a Level (parsed Tiled JSON) uses, so the caller can load them first. */
+export function levelTextureNames(level: unknown): string[] {
+	const names = loadLevel(level).wallTextures.filter((name) => name !== undefined);
+	return [...new Set(names)].sort();
+}
+
+function wallTexturesFor(level: Level, textures: GameOptions["textures"]): (Texture | undefined)[] {
+	if (!textures) return [];
+	return level.wallTextures.map((name) => {
+		if (name === undefined) return undefined;
+		const texture = textures[name];
+		if (!texture) throw new Error(`The Level uses wall texture "${name}", but no texture has that name.`);
+		return texture;
+	});
 }
 
 function clampAxis(value: number): number {

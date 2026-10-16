@@ -1,6 +1,6 @@
 import type { Framebuffer } from "./framebuffer";
-import { shade } from "./framebuffer";
 import { cellAt, type Grid } from "./grid";
+import type { Texture } from "./texture";
 
 export interface Camera {
 	x: number;
@@ -12,8 +12,11 @@ export interface Camera {
 export interface RendererOptions {
 	width: number;
 	height: number;
-	/** Wall color for each grid cell value. */
-	wallColors: Uint32Array;
+	/**
+	 * Wall texture for each grid cell value. A texture is one tile high, and its texels are square,
+	 * so a 64x128 texture repeats twice across one tile and a 256x128 texture spans two tiles.
+	 */
+	wallTextures: ReadonlyArray<Texture | undefined>;
 	ceilingColor: number;
 	floorColor: number;
 	/** Half the width of the view plane, in tiles at distance 1. 1 gives a 90 degree field of view. */
@@ -30,15 +33,15 @@ export interface Renderer {
 const MIN_SHADE = 0.15;
 /** Walls that face north or south are a bit darker, so corners are easy to see. */
 const Y_SIDE_SHADE = 0.75;
-/** Shown when a cell value has no wall color, so the mistake is easy to see. */
-const MISSING_COLOR = 0xffff00ff;
+/** Shown when a cell value has no wall texture, so the mistake is easy to see. */
+const MISSING_TEXTURE: Texture = { width: 1, height: 1, texels: new Uint32Array([0xffff00ff]) };
 
 /**
  * A raycaster: one ray per screen column, walked through the grid with DDA
  * (a digital differential analyzer: it steps from one cell edge to the next).
  */
 export function createRenderer(options: RendererOptions): Renderer {
-	const { width, height, wallColors, ceilingColor, floorColor } = options;
+	const { width, height, wallTextures, ceilingColor, floorColor } = options;
 	const planeHalfWidth = options.planeHalfWidth ?? 0.9;
 	const shadeDistance = options.shadeDistance ?? 12;
 	// Wall height on screen for a wall at distance 1, with square pixels.
@@ -92,17 +95,48 @@ export function createRenderer(options: RendererOptions): Renderer {
 				// Distance along the view direction (not along the ray), so walls do not bulge.
 				const distance = ySide ? sideY - deltaY : sideX - deltaX;
 
+				const texture = wallTextures[cell] ?? MISSING_TEXTURE;
+				const { texels, height: textureHeight } = texture;
+				// Where the ray hits along the wall face, in tiles. It grows from left to right as the
+				// viewer sees the face, so textures never show mirrored.
+				let u: number;
+				if (ySide) {
+					const hitX = camera.x + distance * rayX;
+					u = rayY > 0 ? -hitX : hitX;
+				} else {
+					const hitY = camera.y + distance * rayY;
+					u = rayX > 0 ? hitY : -hitY;
+				}
+				let textureX = Math.floor(u * textureHeight) % texture.width;
+				if (textureX < 0) textureX += texture.width;
+				const columnStart = textureX * textureHeight;
+
 				const lineHeight = projection / distance;
-				const top = Math.max(0, Math.floor((height - lineHeight) / 2));
+				const wallTop = (height - lineHeight) / 2;
+				const top = Math.max(0, Math.floor(wallTop));
 				const bottom = Math.min(height, Math.ceil((height + lineHeight) / 2));
+				const textureStep = textureHeight / lineHeight;
+				let textureY = (top + 0.5 - wallTop) * textureStep;
+
 				let light = 1 - distance / shadeDistance;
 				if (light < MIN_SHADE) light = MIN_SHADE;
 				if (ySide) light *= Y_SIDE_SHADE;
-				const color = shade(wallColors[cell] ?? MISSING_COLOR, light);
+				const level = Math.round(light * 256);
 				for (let y = top, i = top * width + column; y < bottom; y++, i += width) {
-					pixels[i] = color;
+					let row = textureY | 0;
+					if (row >= textureHeight) row = textureHeight - 1;
+					pixels[i] = shadeTexel(texels[columnStart + row] as number, level);
+					textureY += textureStep;
 				}
 			}
 		},
 	};
+}
+
+/** Multiplies the color channels by `level` / 256 and keeps the pixel opaque. Allocates nothing. */
+function shadeTexel(texel: number, level: number): number {
+	const r = ((texel & 0xff) * level) >> 8;
+	const g = (((texel >>> 8) & 0xff) * level) >> 8;
+	const b = (((texel >>> 16) & 0xff) * level) >> 8;
+	return (0xff000000 | (b << 16) | (g << 8) | r) >>> 0;
 }

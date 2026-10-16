@@ -3,11 +3,17 @@ import type { Grid } from "../engine/grid";
 /** The Level model: what the Game core needs from a Tiled map. Positions are in tiles. */
 export interface Level {
 	walls: Grid;
+	/** The texture name for each wall cell value (a Tiled gid). Unused values are empty. */
+	wallTextures: ReadonlyArray<string | undefined>;
 	playerStart: { x: number; y: number; angle: number };
 }
 
 const WALL_LAYER = "walls";
 const PLAYER_START = "player_start";
+/** The tile property that names the wall texture of a wall tile. */
+const TEXTURE_PROPERTY = "texture";
+/** Wall cells are stored as bytes. */
+const MAX_WALL_GID = 255;
 /** Tiled keeps flip and rotation flags in the top bits of a gid. */
 const GID_MASK = 0x0fffffff;
 
@@ -31,8 +37,16 @@ export function loadLevel(json: unknown): Level {
 	}
 	const cells = new Uint8Array(width * height);
 	data.forEach((gid, i) => {
-		cells[i] = asNumber(gid, `"${WALL_LAYER}" tile ${i}`) & GID_MASK;
+		const id = asNumber(gid, `"${WALL_LAYER}" tile ${i}`) & GID_MASK;
+		if (id > MAX_WALL_GID)
+			throw new Error(`"${WALL_LAYER}" tile ${i} has gid ${id}; wall gids must be ${MAX_WALL_GID} or less.`);
+		cells[i] = id;
 	});
+	const tilesets = asArray(map.tilesets, "Level tilesets").map((tileset) => asRecord(tileset, "Level tileset"));
+	const wallTextures: (string | undefined)[] = [];
+	for (const gid of new Set(cells)) {
+		if (gid !== 0) wallTextures[gid] = wallTexture(tilesets, gid);
+	}
 
 	const objects = layers
 		.filter((layer) => layer.type === "objectgroup")
@@ -47,12 +61,38 @@ export function loadLevel(json: unknown): Level {
 
 	return {
 		walls: { width, height, cells },
+		wallTextures,
 		playerStart: {
 			x: asNumber(start.x, `"${PLAYER_START}" x`) / tileWidth,
 			y: asNumber(start.y, `"${PLAYER_START}" y`) / tileHeight,
 			angle: (angleDegrees * Math.PI) / 180,
 		},
 	};
+}
+
+/** Finds the "texture" property of a wall tile in the tileset that holds its gid. */
+function wallTexture(tilesets: Record<string, unknown>[], gid: number): string {
+	let tileset: Record<string, unknown> | undefined;
+	let firstGid = 0;
+	for (const candidate of tilesets) {
+		const first = asNumber(candidate.firstgid, "Tileset firstgid");
+		if (first <= gid && first > firstGid) {
+			tileset = candidate;
+			firstGid = first;
+		}
+	}
+	if (!tileset) throw new Error(`Wall tile gid ${gid} is in no tileset.`);
+	if (typeof tileset.source === "string") {
+		throw new Error(`Tileset "${tileset.source}" is external. Embed it in the Level (Tiled: Embed Tileset).`);
+	}
+	const tile = (Array.isArray(tileset.tiles) ? tileset.tiles : []).find(
+		(t: unknown) => typeof t === "object" && t !== null && (t as { id?: unknown }).id === gid - firstGid,
+	);
+	const texture = tile ? property(tile as Record<string, unknown>, TEXTURE_PROPERTY) : undefined;
+	if (typeof texture !== "string" || texture === "") {
+		throw new Error(`Wall tile gid ${gid} has no "${TEXTURE_PROPERTY}" property.`);
+	}
+	return texture;
 }
 
 /** Tiled 1.9 wrote "class"; 1.10 and later write "type". */
