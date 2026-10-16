@@ -6,6 +6,24 @@ A Doom-inspired first-person game, written in TypeScript with Vite, that present
 
 Use pnpm. `pnpm dev` (dev server), `pnpm build` (type check, then Vite build), `pnpm typecheck`, `pnpm lint` (Biome check), `pnpm format` (Biome fix), `pnpm test` (Vitest, one run), `pnpm size` (gzipped JS budget of 100 KB; run after `pnpm build`), `pnpm bench` (render benchmark, 60 FPS target). Before you commit, `pnpm typecheck && pnpm lint && pnpm test` must pass.
 
+## Commits and pull requests
+
+Commits follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/):
+
+- Subject: `<type>(<scope>): <summary>`. English, imperative, lowercase, no period, 72 characters or less. Types: `feat`, `fix`, `refactor`, `perf`, `test`, `docs`, `build`, `ci`, `chore`, `style`. The scope is optional and names the area: `engine`, `game`, `skip-view`, `title-screen`, `audio`, `analytics`, `assets`, `ci`. Mark a breaking change with `!` after the type or scope.
+- Body (optional): why the change was made, wrapped at 72 characters.
+- Footer: one `Closes #<n>` line per issue the commit finishes.
+- The message describes only the change. It has no `Co-Authored-By` trailer and no AI attribution.
+- One logical change per commit.
+
+Pull requests:
+
+- Branch from `main` as `<type>/<short-slug>` (for example `feat/exhibit-panel`). Base is `main`.
+- Title: the Conventional Commits subject format, in English.
+- Body: in Portuguese (pt-BR). One summary line, then one `-` bullet per change, naming the exact file, function, or behavior that changed (for example "Validação do `id` do Exhibit em `content.ts`"). Then one `Closes #<n>` line per issue. Same attribution rule as commits.
+- Label `enhancement`, assignee `@me`.
+- Merge only when CI is green, with a merge commit (`gh pr merge --merge`), so each commit's `Closes #<n>` stays in the history.
+
 ## Code layout
 
 - `src/engine/`: the generic raycaster (Renderer, Collision, Loop, Input). It never imports `src/game/`; a Biome rule enforces this (ADR 0001).
