@@ -1,15 +1,13 @@
 /**
- * The Audio: Freedoom sound effects through Web Audio. There is no music.
+ * The Audio: the sound effects of the art set through Web Audio. There is no music.
  * The Game core only reports sound events; this module plays them in the browser. Manual test only.
  * The browser allows sound only after a user gesture, so `start()` must run inside the NEW GAME
  * click or key press. Nothing is created or loaded before that: the Title Screen stays light.
  */
 
-/** The sound events of the Game core. */
-export type SoundEvent = "shot" | "door-open";
+import { type ArtSet, MACHINE_ART_SET, type SoundEvent } from "../game/theme";
 
-/** The Freedoom sound of each event, a WAV in public/freedoom/sounds/. */
-const SOUND_FILES: Record<SoundEvent, string> = { shot: "DSPISTOL", "door-open": "DSDOROPN" };
+export type { SoundEvent } from "../game/theme";
 
 export interface Audio {
 	/**
@@ -24,8 +22,11 @@ export interface Audio {
 	setMuted(muted: boolean): void;
 }
 
-/** The Audio, with the sounds at `<soundsUrl>/<NAME>.wav`. */
-export function createAudio(soundsUrl: string): Audio {
+/**
+ * The Audio, with the sound of each event at `<soundsUrl>/<file>.wav`, where `sounds` names the
+ * file (default: the machine art set).
+ */
+export function createAudio(soundsUrl: string, sounds: ArtSet["sounds"] = MACHINE_ART_SET.sounds): Audio {
 	let context: AudioContext | undefined;
 	let output: GainNode | undefined;
 	let muted = false;
@@ -34,7 +35,7 @@ export function createAudio(soundsUrl: string): Audio {
 	const buffers: Partial<Record<SoundEvent, AudioBuffer>> = {};
 
 	async function load(audio: AudioContext, event: SoundEvent): Promise<void> {
-		const response = await fetch(`${soundsUrl}/${SOUND_FILES[event]}.wav`);
+		const response = await fetch(`${soundsUrl}/${sounds[event]}.wav`);
 		if (!response.ok) throw new Error(`Cannot load the "${event}" sound: HTTP ${response.status}.`);
 		buffers[event] = await audio.decodeAudioData(await response.arrayBuffer());
 	}
@@ -59,7 +60,7 @@ export function createAudio(soundsUrl: string): Audio {
 				console.error("No sound: Web Audio is not available.", error);
 				return;
 			}
-			for (const event of Object.keys(SOUND_FILES) as SoundEvent[]) {
+			for (const event of Object.keys(sounds) as SoundEvent[]) {
 				// A sound that fails to load stays silent; the game goes on.
 				load(context, event).catch((error: unknown) => console.error(error));
 			}

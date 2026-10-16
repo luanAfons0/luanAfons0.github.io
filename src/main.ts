@@ -9,7 +9,7 @@ import { loadTexture } from "./engine/texture";
 import { EXHIBITS } from "./game/content";
 import { createExhibitPanel } from "./game/exhibit-panel";
 import {
-	BUG_SPRITE_NAMES,
+	bugFrameNames,
 	createGame,
 	levelTextureNames,
 	SCREEN_HEIGHT,
@@ -20,6 +20,7 @@ import sampleLevel from "./game/levels/sample.json";
 import { createPauseMenu } from "./game/pause-menu";
 import { createResumePrompt } from "./game/resume-prompt";
 import { loadSettings, saveSettings } from "./game/settings";
+import { MACHINE_ART_SET } from "./game/theme";
 
 // The browser shell: it owns the canvas, the clock, the keyboard, the mouse, and the overlays.
 // Everything it does is manual-test only; the Game core has the tests.
@@ -27,15 +28,16 @@ import { loadSettings, saveSettings } from "./game/settings";
 // assets load then too: the import is ready when the game can start. startGame() runs the game.
 
 // Decode every wall texture, Bug sprite, and Exhibit poster once, before the first frame.
-// The wall and sprite PNGs are in public/freedoom/, the posters in public/posters/.
-const freedoom = `${import.meta.env.BASE_URL}freedoom`;
+// The wall and sprite PNGs are in the art set folder under public/, the posters in public/posters/.
+const artSet = MACHINE_ART_SET;
+const artUrl = `${import.meta.env.BASE_URL}${artSet.folder}`;
 const [textureEntries, spriteEntries, posterEntries] = await Promise.all([
 	Promise.all(
 		levelTextureNames(sampleLevel).map(
-			async (name) => [name, await loadTexture(`${freedoom}/textures/${name}.png`)] as const,
+			async (name) => [name, await loadTexture(`${artUrl}/textures/${name}.png`)] as const,
 		),
 	),
-	loadSprites(BUG_SPRITE_NAMES),
+	loadSprites(bugFrameNames(artSet)),
 	Promise.all(
 		EXHIBITS.map(async ({ id, poster }) => [id, await loadTexture(`${import.meta.env.BASE_URL}${poster}`)] as const),
 	),
@@ -64,6 +66,7 @@ export function startGame(audio?: Audio): void {
 	const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 	const game = createGame({
 		level: sampleLevel,
+		artSet,
 		content: EXHIBITS,
 		track,
 		sound: (event) => audio?.play(event),
@@ -215,14 +218,14 @@ export function startGame(audio?: Audio): void {
 
 /** Sprite PNGs have no place for the anchor, so the anchors come from sprites/offsets.json. */
 async function loadSprites(names: readonly string[]): Promise<(readonly [string, SpriteImage])[]> {
-	const response = await fetch(`${freedoom}/sprites/offsets.json`);
+	const response = await fetch(`${artUrl}/sprites/offsets.json`);
 	if (!response.ok) throw new Error(`Cannot load sprite offsets: HTTP ${response.status}.`);
 	const offsets = (await response.json()) as Record<string, { left: number; top: number } | undefined>;
 	return Promise.all(
 		names.map(async (name) => {
 			const offset = offsets[name];
 			if (!offset) throw new Error(`sprites/offsets.json has no anchor for sprite "${name}".`);
-			const texture = await loadTexture(`${freedoom}/sprites/${name}.png`);
+			const texture = await loadTexture(`${artUrl}/sprites/${name}.png`);
 			return [name, { texture, left: offset.left, top: offset.top }] as const;
 		}),
 	);
