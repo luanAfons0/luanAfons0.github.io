@@ -1,0 +1,792 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Inside the Machine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Silkscreen&display=swap" rel="stylesheet" />
+<style>
+/* ---------- Tokens ---------- */
+:root {
+	--paper: #f2f3f0;
+	--paper-2: #e7e9e4;
+	--ink: #16181a;
+	--ink-2: #4b5155;
+	--rule: #c8ccc5;
+	--board: #0f1214;
+	--board-2: #161a1d;
+	--mask-trace: #1f262a;
+	--silk: #e9ebe6;
+	--silk-2: #9aa1a5;
+	--silk-3: #3a4045;
+	--copper: #c06a36;
+	--copper-hot: #e08a4f;
+	--pad: #aeb3b6;
+	--sans: "Archivo", system-ui, sans-serif;
+	--silkfont: "Silkscreen", ui-monospace, monospace;
+	--mock-bar: #2a2d30;
+	color-scheme: light dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+	background: #1b1d1f;
+	color: var(--silk);
+	font: 16px/1.5 var(--sans);
+	min-height: 100dvh;
+}
+::selection { background: var(--copper); color: var(--paper); }
+
+/* ---------- Mock chrome (not part of the design) ---------- */
+.mock-bar {
+	position: sticky; top: 0; z-index: 10;
+	display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center;
+	padding: 10px 16px;
+	background: var(--mock-bar);
+	border-bottom: 1px solid #3a3e42;
+	font: 13px/1 system-ui, sans-serif;
+	color: #c9cdd0;
+}
+.mock-bar__group { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+.mock-bar__label { margin-right: 4px; color: #8e9499; }
+.mock-bar button {
+	padding: 6px 10px; border: 1px solid #44494d; border-radius: 4px;
+	background: #212427; color: #dfe2e4; font: inherit; cursor: pointer;
+}
+.mock-bar button[aria-pressed="true"] { background: #e8eaec; color: #16181a; border-color: #e8eaec; }
+.mock-bar button:focus-visible { outline: 2px solid var(--copper-hot); outline-offset: 2px; }
+.mock-note { margin-left: auto; color: #8e9499; }
+
+.stage-wrap { display: grid; place-items: center; padding: 24px 16px 48px; }
+.stage {
+	position: relative;
+	width: min(100%, 1280px, calc((100dvh - 120px) * 16 / 9));
+	aspect-ratio: 16 / 9;
+	overflow: hidden;
+	container-type: inline-size;
+	box-shadow: 0 18px 50px rgb(0 0 0 / 0.45);
+}
+.stage--scroll { aspect-ratio: auto; height: min(78dvh, 820px); overflow-y: auto; }
+.screen { display: none; position: absolute; inset: 0; }
+.stage--scroll .screen { position: static; min-height: 100%; }
+.screen.is-active { display: block; }
+
+/* Variant switch: elements marked for one variant only. */
+[data-variant="a"] .only-b, [data-variant="b"] .only-a { display: none !important; }
+
+/* ---------- Shared: pixel type and board ---------- */
+.silk { font-family: var(--silkfont); font-weight: 400; letter-spacing: 0; text-transform: uppercase; }
+kbd {
+	display: inline-block; min-width: 1.6em; padding: 0 5px;
+	font: 400 0.75em/1.5 var(--silkfont); text-align: center;
+	border: 1px solid currentColor; border-radius: 2px;
+}
+
+/* Board surface: solder mask with traces under the mask, drawn as an SVG tile. */
+.board-surface {
+	background-color: var(--board);
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' shape-rendering='crispEdges'%3E%3Cg fill='none' stroke='%231f262a' stroke-width='3'%3E%3Cpath d='M0 40h70l30 30h60l20-20h60'/%3E%3Cpath d='M0 150h40l40-40h50v90l40 40'/%3E%3Cpath d='M120 0v30l20 20v40'/%3E%3Cpath d='M200 240v-60l-30-30h-40'/%3E%3Cpath d='M240 110h-30l-20 20v40'/%3E%3C/g%3E%3Cg fill='%23070909' stroke='%232a3035' stroke-width='3'%3E%3Ccircle cx='160' cy='70' r='5'/%3E%3Ccircle cx='130' cy='110' r='5'/%3E%3Ccircle cx='140' cy='90' r='5'/%3E%3Ccircle cx='190' cy='170' r='5'/%3E%3Ccircle cx='130' cy='150' r='5'/%3E%3C/g%3E%3C/svg%3E");
+	background-size: 240px 240px;
+}
+
+
+/* Quiet board: the same traces at lower contrast, for surfaces that carry text. */
+.board-surface--quiet { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' shape-rendering='crispEdges'%3E%3Cg fill='none' stroke='%23161b1e' stroke-width='3'%3E%3Cpath d='M0 40h70l30 30h60l20-20h60'/%3E%3Cpath d='M0 150h40l40-40h50v90l40 40'/%3E%3Cpath d='M120 0v30l20 20v40'/%3E%3Cpath d='M200 240v-60l-30-30h-40'/%3E%3Cpath d='M240 110h-30l-20 20v40'/%3E%3C/g%3E%3C/svg%3E"); }
+
+/* ================================================================
+   TITLE SCREEN A: the datasheet cover
+   ================================================================ */
+.ds {
+	height: 100%;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	grid-template-rows: auto 1fr auto;
+	background: var(--paper);
+	color: var(--ink);
+	font-size: 1.25cqi;
+}
+.ds__head {
+	grid-column: 1 / -1;
+	display: flex; align-items: stretch; justify-content: space-between;
+	border-bottom: 3px solid var(--ink);
+	margin: 0 4.4cqi;
+	padding-top: 3.2cqi;
+}
+.ds__part {
+	padding: 0.5em 0.9em 0.35em;
+	background: var(--ink); color: var(--paper);
+	font: 400 1.25em/1 var(--silkfont);
+}
+.ds__head-right { align-self: end; padding-bottom: 0.4em; color: var(--ink-2); font-size: 0.95em; }
+.ds__main {
+	padding: 3.4cqi 2cqi 0 4.4cqi;
+	display: flex; flex-direction: column; gap: 2.4cqi;
+}
+.ds__name {
+	margin: 0;
+	font: 800 7.6cqi/0.88 var(--sans);
+	font-stretch: 72%;
+	letter-spacing: -0.02em;
+	text-wrap: balance;
+}
+.ds__desc { margin: 0; max-width: 30ch; font-size: 1.45em; line-height: 1.35; color: var(--ink); }
+.ds__features h2 {
+	margin: 0 0 0.5em; padding-bottom: 0.3em;
+	font: 700 1em/1.2 var(--sans); font-stretch: 100%;
+	border-bottom: 1px solid var(--ink);
+	max-width: 34em;
+}
+.ds__features ul { margin: 0; padding: 0 0 0 1.1em; max-width: 34em; }
+.ds__features li { margin: 0.15em 0; }
+.ds__features li::marker { content: "■  "; font-size: 0.7em; color: var(--ink); }
+.ds__fig {
+	padding: 3.4cqi 4.4cqi 0 2cqi;
+	display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.6cqi;
+}
+.ds__caption { margin: 0; font-weight: 700; font-size: 0.95em; text-align: center; }
+.ds__caption span { font-weight: 400; color: var(--ink-2); }
+.ds__foot {
+	grid-column: 1 / -1;
+	display: flex; justify-content: space-between; gap: 2em;
+	margin: 0 4.4cqi; padding: 0.7em 0 2.2cqi;
+	border-top: 1px solid var(--rule);
+	color: var(--ink-2); font-size: 0.95em;
+}
+.ds__foot kbd { color: var(--ink); }
+
+/* The pinout: an 8-pin DIP. The chip body sits in the middle column. */
+.pinout {
+	--pin-h: 2.9cqi;
+	display: grid;
+	grid-template-columns: auto 1.6cqi 12cqi 1.6cqi auto;
+	grid-auto-rows: var(--pin-h);
+	align-items: center;
+	row-gap: 0.9cqi;
+}
+.pinout__body {
+	grid-column: 3; grid-row: 1 / span 5; align-self: stretch;
+	position: relative;
+	margin: -0.9cqi 0;
+	background: var(--ink); color: var(--paper);
+	border-radius: 2px;
+	display: grid; place-items: center;
+}
+/* Pin-1 notch. */
+.pinout__body::before {
+	content: ""; position: absolute; top: -1px; left: 50%;
+	width: 2.4cqi; height: 1.2cqi; translate: -50% 0;
+	background: var(--paper); border-radius: 0 0 1.2cqi 1.2cqi;
+}
+.pinout__marking { text-align: center; font: 400 1.25em/1.3 var(--silkfont); }
+.pinout__marking small { display: block; font-size: 0.6em; color: #9aa1a5; }
+.pin { width: 100%; height: 1cqi; background: var(--pad); }
+.pin--l { grid-column: 2; border-radius: 1px 0 0 1px; }
+.pin--r { grid-column: 4; border-radius: 0 1px 1px 0; }
+.pin-label { display: flex; align-items: center; gap: 0.6em; white-space: nowrap; }
+.pin-label--l { grid-column: 1; justify-content: flex-end; padding-right: 0.8em; }
+.pin-label--r { grid-column: 5; padding-left: 0.8em; }
+.pin-num { width: 1.4em; color: var(--ink-2); font: 400 0.85em/1 var(--silkfont); text-align: center; }
+.pin-name { font: 400 1em/1 var(--silkfont); }
+.pin-key { color: var(--ink-2); font-size: 0.9em; }
+
+/* Menu pins: real buttons. Selection is a step change: pad goes copper, a copper trace runs out. */
+.pin-item {
+	position: relative;
+	display: inline-flex; align-items: center; gap: 0.6em;
+	padding: 0.45em 0.7em;
+	background: none; border: 0;
+	color: var(--ink); text-decoration: none;
+	font: 400 1.35em/1 var(--silkfont);
+	cursor: pointer;
+}
+.pin-item::after {
+	content: ""; position: absolute; right: calc(-0.8em / 1.35 - 1px); top: 50%;
+	width: 0; height: 3px; translate: 0 -50%;
+	background: var(--copper);
+}
+.pin-item.is-selected { background: var(--ink); color: var(--paper); }
+.pin-item.is-selected::after { width: calc(0.8em / 1.35 + 1px); }
+.pinout:has(.pin-item[data-pin="1"].is-selected) .pin[data-pin="1"],
+.pinout:has(.pin-item[data-pin="2"].is-selected) .pin[data-pin="2"],
+.pinout:has(.pin-item[data-pin="3"].is-selected) .pin[data-pin="3"] { background: var(--copper); }
+.pin-name--nc { color: var(--ink-2); }
+.pin-item:focus-visible { outline: 2px solid var(--copper); outline-offset: 3px; }
+.pin-item:active { translate: 0 1px; }
+
+/* Loading: a timing diagram. A clock marches while the game loads. */
+.timing { width: 100%; max-width: 30em; display: grid; gap: 0.4em; }
+.timing__row { display: grid; grid-template-columns: 4.6em 1fr; align-items: center; gap: 0.6em; }
+.timing__sig { font: 400 0.85em/1 var(--silkfont); color: var(--ink-2); text-align: right; }
+.wave { display: block; width: 100%; height: 1.6em; overflow: hidden; }
+.wave path { fill: none; stroke: var(--ink); stroke-width: 2; shape-rendering: crispEdges; }
+.wave--data path { stroke: var(--ink-2); }
+.timing__label { font-size: 0.9em; color: var(--ink-2); margin: 0.2em 0 0 5.2em; }
+
+/* Error: a datasheet note. */
+.ds-note {
+	max-width: 30em;
+	padding: 0.8em 1em;
+	border: 1px solid var(--ink);
+	background: var(--paper-2);
+	font-size: 1em; line-height: 1.45;
+}
+.ds-note strong { font-weight: 700; }
+
+/* ================================================================
+   TITLE SCREEN B: the board
+   ================================================================ */
+.tb {
+	height: 100%;
+	display: grid; grid-template-columns: 1.15fr 1fr;
+	align-items: center;
+	color: var(--silk);
+	font-size: 1.25cqi;
+	position: relative;
+}
+.tb__left { padding: 0 2cqi 0 6cqi; display: grid; gap: 1.8cqi; }
+.tb__ref { font: 400 1em/1 var(--silkfont); color: var(--silk-2); }
+.tb__name { margin: 0; font: 400 6.2cqi/1 var(--silkfont); letter-spacing: 0; }
+.tb__desc { margin: 0; max-width: 30ch; font-size: 1.4em; line-height: 1.4; color: var(--silk-2); }
+.tb__outline {
+	position: absolute; left: 3.6cqi; top: 50%; translate: 0 -50%;
+	width: 52cqi; height: 30cqi;
+	border: 2px solid var(--silk-3);
+	pointer-events: none;
+}
+.tb__outline::before { content: "U1"; position: absolute; top: -1.6em; left: 0; font: 400 0.9em/1 var(--silkfont); color: var(--silk-2); }
+.tb__right { padding: 0 6cqi 0 2cqi; display: grid; gap: 2.4cqi; justify-items: start; }
+.pads { display: grid; gap: 1.4cqi; margin: 0; padding: 0; list-style: none; }
+.pad-item {
+	display: inline-flex; align-items: center; gap: 1.2em;
+	padding: 0; background: none; border: 0;
+	color: var(--silk); text-decoration: none;
+	font: 400 2.4em/1 var(--silkfont);
+	cursor: pointer;
+}
+.pad-item__pad {
+	position: relative;
+	width: 1.1em; height: 0.8em;
+	background: var(--pad);
+	border-radius: 1px;
+}
+/* The trace from the pad toward the chip outline on the left. */
+.pad-item__pad::before {
+	content: ""; position: absolute; right: 100%; top: 50%;
+	width: 3.2em; height: 3px; translate: 0 -50%;
+	background: var(--mask-trace);
+}
+.pad-item.is-selected .pad-item__pad, .pad-item.is-selected .pad-item__pad::before { background: var(--copper); }
+.pad-item.is-selected { color: var(--copper-hot); }
+.pad-item:focus-visible { outline: 2px solid var(--copper-hot); outline-offset: 6px; }
+.pad-item:active { translate: 0 1px; }
+.pad-item--small { font-size: 1.6em; }
+.tb__hint { margin: 0; color: var(--silk-2); font-size: 0.95em; line-height: 1.8; }
+.tb__hint kbd { color: var(--silk); }
+
+/* Loading B: a row of LEDs lighting in steps. */
+.leds { display: flex; gap: 0.7em; align-items: center; }
+.leds__label { font: 400 0.9em/1 var(--silkfont); color: var(--silk-2); margin-right: 0.4em; }
+.led { width: 0.9em; height: 0.9em; border-radius: 1px; background: var(--silk-3); }
+.board-note {
+	max-width: 30em; padding: 0.8em 1em;
+	border: 2px solid var(--silk-2);
+	color: var(--silk); line-height: 1.45;
+}
+.board-note strong { font-family: var(--silkfont); font-weight: 400; color: var(--copper-hot); }
+
+/* ================================================================
+   GAME FRAME + OVERLAYS
+   ================================================================ */
+.game { position: absolute; inset: 0; background: #070909; }
+.game canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+.game__placeholder { position: absolute; inset: 0; display: grid; place-items: center; color: var(--silk-2); }
+.dim { position: absolute; inset: 0; background: rgb(7 9 9 / 0.62); display: grid; place-items: center; padding: 2cqi; }
+
+/* Pause Menu: a board panel. Toggles are DIP switches. */
+.pm {
+	width: min(36cqi, 100%);
+	padding: 2.2cqi 2.4cqi;
+	color: var(--silk);
+	font-size: 1.25cqi;
+	border: 2px solid var(--silk-3);
+	box-shadow: 0 14px 40px rgb(0 0 0 / 0.5);
+	display: grid; gap: 1.1em;
+}
+.pm__title { margin: 0; font: 400 2em/1 var(--silkfont); }
+.pm__title small { display: block; margin-top: 0.4em; font-size: 0.42em; color: var(--silk-2); }
+.pm__item {
+	display: flex; justify-content: space-between; align-items: center;
+	padding: 0.7em 0.9em;
+	background: none; border: 1px solid var(--silk-3);
+	color: var(--silk); text-decoration: none;
+	font: 400 1.1em/1 var(--silkfont); cursor: pointer;
+}
+.pm__item::after { content: ""; width: 0.6em; height: 0.6em; background: var(--silk-3); }
+.pm__item:hover, .pm__item:focus-visible { border-color: var(--silk); outline: none; }
+.pm__item:hover::after, .pm__item:focus-visible::after { background: var(--copper); }
+.pm__item:active { translate: 0 1px; }
+.pm__row { display: flex; justify-content: space-between; align-items: center; gap: 1em; }
+.pm__hint { margin: -0.5em 0 0; font-size: 0.9em; color: var(--silk-2); }
+.pm__sep { border: 0; border-top: 1px dashed var(--silk-3); margin: 0.2em 0; }
+
+/* Range: a copper slider on a silkscreen track. */
+.pm input[type="range"] { -webkit-appearance: none; appearance: none; width: 11em; height: 1.4em; background: none; }
+.pm input[type="range"]::-webkit-slider-runnable-track { height: 2px; background: var(--silk-3); }
+.pm input[type="range"]::-moz-range-track { height: 2px; background: var(--silk-3); }
+.pm input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 0.8em; height: 1.2em; margin-top: calc(-0.6em + 1px); background: var(--copper); border: 0; border-radius: 1px; }
+.pm input[type="range"]::-moz-range-thumb { width: 0.8em; height: 1.2em; background: var(--copper); border: 0; border-radius: 1px; }
+.pm input[type="range"]:active::-webkit-slider-thumb { background: var(--copper-hot); }
+.pm input[type="range"]:active::-moz-range-thumb { background: var(--copper-hot); }
+.pm input[type="range"]:focus-visible { outline: 2px solid var(--copper-hot); outline-offset: 2px; }
+.pm output { min-width: 2.4em; text-align: right; font: 400 1em/1 var(--silkfont); }
+
+/* DIP switch: a checkbox drawn as one switch of a DIP block. */
+.dip { -webkit-appearance: none; appearance: none; margin: 0; position: relative; width: 1.5em; height: 2.4em; background: var(--board-2); border: 1px solid var(--silk-2); cursor: pointer; }
+.dip::before { content: ""; position: absolute; left: 2px; right: 2px; bottom: 2px; height: calc(50% - 3px); background: var(--silk-2); }
+.dip:checked::before { top: 2px; bottom: auto; background: var(--copper); }
+.dip:focus-visible { outline: 2px solid var(--copper-hot); outline-offset: 2px; }
+.dip--h { width: 2.6em; height: 1.4em; }
+.dip--h::before { top: 2px; bottom: 2px; left: 2px; right: auto; width: calc(50% - 3px); height: auto; }
+.dip--h:checked::before { top: 2px; bottom: 2px; left: auto; right: 2px; background: var(--copper); }
+.dip-wrap { display: flex; align-items: center; gap: 0.6em; font: 400 0.8em/1 var(--silkfont); color: var(--silk-2); }
+
+/* Exhibit Panel A: a datasheet page pulled over the game. */
+.ep-a {
+	width: min(64cqi, 100%); max-height: 100%; overflow-y: auto;
+	background: var(--paper); color: var(--ink);
+	font-size: 1.25cqi;
+	box-shadow: 0 18px 50px rgb(0 0 0 / 0.55);
+}
+.ep-a__head { display: flex; align-items: stretch; justify-content: space-between; margin: 0 2.4cqi; padding-top: 1.8cqi; border-bottom: 3px solid var(--ink); }
+.ep-a__ref { padding: 0.45em 0.8em 0.3em; background: var(--ink); color: var(--paper); font: 400 1.1em/1 var(--silkfont); }
+.ep-a__kind { align-self: end; padding-bottom: 0.35em; color: var(--ink-2); }
+.ep-a__body { padding: 1.6cqi 2.4cqi 2cqi; display: grid; gap: 0.9em; }
+.ep-a__title { margin: 0; font: 800 2.6em/1 var(--sans); font-stretch: 78%; letter-spacing: -0.01em; }
+.ep-a__summary { margin: 0; font-size: 1.25em; line-height: 1.4; max-width: 46ch; }
+.ep-a__section { margin: 0.4em 0 0; padding-bottom: 0.25em; font: 700 1em/1.2 var(--sans); border-bottom: 1px solid var(--ink); }
+.ep-a__details { margin: 0; max-width: 62ch; line-height: 1.55; }
+.ep-a__links { display: flex; gap: 1.2em; flex-wrap: wrap; margin: 0; padding: 0; list-style: none; }
+.ep-a__links a { color: var(--ink); font-weight: 600; text-decoration: underline; text-decoration-color: var(--copper); text-decoration-thickness: 2px; text-underline-offset: 0.25em; }
+.ep-a__links a:hover, .ep-a__links a:focus-visible { background: var(--ink); color: var(--paper); outline: none; text-decoration: none; }
+.ep-a__foot { display: flex; justify-content: space-between; align-items: center; padding: 0.7em 2.4cqi 1.4cqi; color: var(--ink-2); font-size: 0.9em; }
+.btn-ink { padding: 0.55em 0.9em; background: var(--ink); color: var(--paper); border: 0; font: 400 1em/1 var(--silkfont); cursor: pointer; }
+.btn-ink:hover, .btn-ink:focus-visible { outline: 2px solid var(--copper); outline-offset: 2px; }
+.btn-ink:active { translate: 0 1px; }
+.sample-tag { display: inline-block; padding: 0.15em 0.45em; border: 1px dashed currentColor; font: 400 0.75em/1.2 var(--silkfont); color: var(--ink-2); vertical-align: middle; }
+
+/* Exhibit Panel B: a board panel. */
+.ep-b {
+	width: min(60cqi, 100%); max-height: 100%; overflow-y: auto;
+	color: var(--silk);
+	border: 2px solid var(--silk-3);
+	font-size: 1.25cqi;
+	box-shadow: 0 14px 40px rgb(0 0 0 / 0.5);
+	padding: 2cqi 2.4cqi; display: grid; gap: 0.9em;
+}
+.ep-b__ref { display: flex; gap: 1em; align-items: center; font: 400 1em/1 var(--silkfont); color: var(--silk-2); }
+.ep-b__ref b { padding: 0.35em 0.6em; border: 2px solid var(--copper); color: var(--copper-hot); font-weight: 400; }
+.ep-b__title { margin: 0; font: 400 2.2em/1.1 var(--silkfont); }
+.ep-b__summary { margin: 0; font-size: 1.2em; line-height: 1.45; max-width: 46ch; }
+.ep-b__details { margin: 0; max-width: 62ch; line-height: 1.55; color: var(--silk-2); }
+.ep-b__links { display: flex; gap: 1.2em; margin: 0; padding: 0; list-style: none; }
+.ep-b__links a { color: var(--copper-hot); text-underline-offset: 0.25em; }
+.ep-b__links a:hover, .ep-b__links a:focus-visible { color: var(--silk); outline: none; }
+.btn-board { justify-self: end; padding: 0.55em 0.9em; background: none; border: 1px solid var(--silk-2); color: var(--silk); font: 400 1em/1 var(--silkfont); cursor: pointer; }
+.btn-board:hover, .btn-board:focus-visible { border-color: var(--copper-hot); color: var(--copper-hot); outline: none; }
+.btn-board:active, .resume:active span { translate: 0 1px; }
+.sample-tag--b { color: var(--silk-2); }
+
+/* Resume prompt. */
+.resume { position: absolute; inset: 0; width: 100%; border: 0; background: rgb(7 9 9 / 0.5); color: var(--silk); cursor: pointer; display: grid; place-items: center; }
+.resume span { padding: 0.8em 1.2em; border: 2px solid var(--silk); font: 400 clamp(14px, 2cqi, 26px)/1 var(--silkfont); }
+.resume:focus-visible span { border-color: var(--copper-hot); }
+
+/* ================================================================
+   SKIP VIEW A (paper) and B (board)
+   ================================================================ */
+.sv { min-height: 100%; font-size: 16px; }
+.sv-a { background: var(--paper); color: var(--ink); }
+.sv-b { color: var(--silk); }
+.sv__inner { max-width: 50rem; margin: 0 auto; padding: 0 16px 64px; }
+.sv__back { display: inline-block; margin-top: 20px; font: 400 13px/1 var(--silkfont); color: inherit; text-decoration: none; padding: 6px 0; }
+.sv__back:hover, .sv__back:focus-visible { text-decoration: underline; text-decoration-color: var(--copper); text-decoration-thickness: 2px; outline: none; }
+.sv-a .sv__head { margin-top: 28px; display: flex; justify-content: space-between; align-items: stretch; border-bottom: 3px solid var(--ink); }
+.sv-a .sv__part { padding: 8px 12px 6px; background: var(--ink); color: var(--paper); font: 400 16px/1 var(--silkfont); }
+.sv-a .sv__head-right { align-self: end; padding-bottom: 6px; color: var(--ink-2); font-size: 14px; }
+.sv h1 { margin: 28px 0 8px; font: 800 clamp(44px, 9vw, 76px)/0.9 var(--sans); font-stretch: 72%; letter-spacing: -0.02em; }
+.sv-b h1 { font: 400 clamp(32px, 6vw, 56px)/1 var(--silkfont); letter-spacing: 0; }
+.sv__lede { margin: 0 0 28px; font-size: 19px; max-width: 46ch; }
+.sv-b .sv__lede { color: var(--silk-2); }
+.sv__toc h2, .sv-room h2 { font: 700 15px/1.2 var(--sans); margin: 0 0 8px; padding-bottom: 4px; border-bottom: 1px solid currentColor; }
+.sv-b .sv__toc h2, .sv-b .sv-room h2 { font: 400 15px/1.2 var(--silkfont); border-color: var(--silk-3); }
+.sv__toc ol { margin: 0 0 40px; padding: 0; list-style: none; display: grid; gap: 2px; }
+.sv__toc a { display: flex; gap: 8px; color: inherit; text-decoration: none; padding: 4px 0; }
+.sv__toc a::after { content: ""; flex: 1; order: 1; border-bottom: 1px dotted currentColor; margin-bottom: 6px; opacity: 0.5; }
+.sv__toc a span:last-child { order: 2; font-family: var(--silkfont); font-size: 13px; }
+.sv__toc a:hover, .sv__toc a:focus-visible { outline: none; text-decoration: underline; text-decoration-color: var(--copper); text-decoration-thickness: 2px; }
+.sv-room { margin-top: 40px; }
+.sv-room h2 { font-size: 22px; }
+.sv-ex { display: grid; grid-template-columns: 72px 1fr; gap: 20px; padding: 20px 0; border-bottom: 1px solid var(--rule); }
+.sv-b .sv-ex { border-color: var(--silk-3); }
+.sv-ex:last-child { border-bottom: 0; }
+.sv-ex__ref { align-self: start; padding: 8px 0 6px; text-align: center; background: var(--ink); color: var(--paper); font: 400 18px/1 var(--silkfont); }
+.sv-b .sv-ex__ref { background: none; border: 2px solid var(--silk-2); color: var(--silk); }
+.sv-ex__kind { margin: 0; font-size: 14px; color: var(--ink-2); }
+.sv-b .sv-ex__kind { color: var(--silk-2); }
+.sv-ex h3 { margin: 2px 0 6px; font: 700 24px/1.15 var(--sans); font-stretch: 85%; }
+.sv-b .sv-ex h3 { font: 400 20px/1.2 var(--silkfont); }
+.sv-ex p { margin: 0 0 8px; max-width: 65ch; }
+.sv-ex__summary { font-size: 17px; }
+.sv-ex ul { display: flex; gap: 16px; margin: 4px 0 0; padding: 0; list-style: none; }
+.sv-a .sv-ex a { color: var(--ink); font-weight: 600; text-decoration-color: var(--copper); text-decoration-thickness: 2px; text-underline-offset: 0.25em; }
+.sv-b .sv-ex a { color: var(--copper-hot); text-underline-offset: 0.25em; }
+.sv-ex a:focus-visible { outline: 2px solid var(--copper); outline-offset: 2px; }
+@media (max-width: 560px) {
+	.sv-ex { grid-template-columns: 1fr; gap: 10px; }
+	.sv-ex__ref { width: 64px; }
+}
+
+/* The dive: NEW GAME opens the board from the chip or pad outward. */
+.dive { position: absolute; inset: 0; z-index: 5; pointer-events: none; background: var(--board); clip-path: inset(var(--t) var(--r) var(--b) var(--l)); }
+.dive.is-open { clip-path: inset(0 0 0 0); transition: clip-path 420ms cubic-bezier(0.77, 0, 0.175, 1); }
+
+/* ---------- Motion (off under reduced motion) ---------- */
+@media (prefers-reduced-motion: no-preference) {
+	.wave--clk { animation: march 0.5s steps(2) infinite; }
+	.led { animation: led 0.84s steps(1) infinite; }
+	.led:nth-child(3) { animation-delay: 0.12s; } .led:nth-child(4) { animation-delay: 0.24s; }
+	.led:nth-child(5) { animation-delay: 0.36s; } .led:nth-child(6) { animation-delay: 0.48s; }
+	.led:nth-child(7) { animation-delay: 0.6s; } .led:nth-child(8) { animation-delay: 0.72s; }
+	.screen.is-active .pm, .screen.is-active .ep-a, .screen.is-active .ep-b { animation: rise 140ms cubic-bezier(0.23, 1, 0.32, 1) both; }
+}
+@keyframes march { to { transform: translateX(-40px); } }
+@keyframes led { 0%, 60% { background: var(--copper); } 61%, 100% { background: var(--silk-3); } }
+@keyframes rise { from { opacity: 0; translate: 0 8px; } }
+</style>
+</head>
+<body data-variant="a">
+
+<!-- Mock chrome: switches variant, screen, and Title Screen state. Not part of the design. -->
+<div class="mock-bar" role="toolbar" aria-label="Mock controls">
+	<div class="mock-bar__group" data-group="variant">
+		<span class="mock-bar__label">Theme</span>
+		<button type="button" data-set-variant="a" aria-pressed="true">Paper</button>
+		<button type="button" data-set-variant="b" aria-pressed="false">Board</button>
+	</div>
+	<div class="mock-bar__group" data-group="screen">
+		<span class="mock-bar__label">Screen</span>
+		<button type="button" data-set-screen="title" aria-pressed="true">Title Screen</button>
+		<button type="button" data-set-screen="game" aria-pressed="false">Game</button>
+		<button type="button" data-set-screen="pause" aria-pressed="false">Pause Menu</button>
+		<button type="button" data-set-screen="exhibit" aria-pressed="false">Exhibit Panel</button>
+		<button type="button" data-set-screen="resume" aria-pressed="false">Resume</button>
+		<button type="button" data-set-screen="skip" aria-pressed="false">Skip View</button>
+	</div>
+	<div class="mock-bar__group" data-group="state">
+		<span class="mock-bar__label">Title state</span>
+		<button type="button" data-set-state="idle" aria-pressed="true">Idle</button>
+		<button type="button" data-set-state="loading" aria-pressed="false">Loading</button>
+		<button type="button" data-set-state="error" aria-pressed="false">Error</button>
+	</div>
+	<span class="mock-note">Sample Exhibits. Game and Pause Menu are the same in both themes. Default theme follows the system light or dark setting; the Skip View follows it with no switch. Phones get the Skip View; other screens show scaled down.</span>
+</div>
+
+<div class="stage-wrap">
+<div class="stage" id="stage">
+	<div class="dive" hidden></div>
+
+	<!-- ============ TITLE SCREEN ============ -->
+	<section class="screen is-active" data-screen="title" aria-label="Title Screen">
+
+		<!-- A: datasheet cover -->
+		<div class="ds only-a">
+			<header class="ds__head">
+				<span class="ds__part">LA-1</span>
+				<span class="ds__head-right">Portfolio, playable</span>
+			</header>
+			<div class="ds__main">
+				<h1 class="ds__name">Luan Afonso</h1>
+				<p class="ds__desc">Software engineer. This portfolio is a small first-person game that runs in your browser.</p>
+				<section class="ds__features" aria-labelledby="feat-a">
+					<h2 id="feat-a">Features</h2>
+					<ul>
+						<li>3 Rooms, 4 Exhibits, 7 Bugs to fix</li>
+						<li>A raycasting engine I wrote from scratch in TypeScript</li>
+						<li>Skip View: every project, job, and skill on one page</li>
+					</ul>
+				</section>
+			</div>
+			<figure class="ds__fig">
+				<nav aria-label="Title Screen">
+					<div class="pinout">
+						<!-- Pins 1 to 3: the menu -->
+						<span class="pin-label pin-label--l" style="grid-row:1"><button class="pin-item is-selected" type="button" data-pin="1" data-menu-item="new-game">New Game</button><span class="pin-num">1</span></span>
+						<span class="pin pin--l" data-pin="1" style="grid-row:1"></span>
+						<span class="pin-label pin-label--l" style="grid-row:2"><a class="pin-item" href="#skip" data-pin="2" data-menu-item="skip">Skip</a><span class="pin-num">2</span></span>
+						<span class="pin pin--l" data-pin="2" style="grid-row:2"></span>
+						<span class="pin-label pin-label--l" style="grid-row:3"><button class="pin-item" type="button" data-pin="3" data-menu-item="theme" data-theme-toggle>Theme: <span data-theme-name>Paper</span></button><span class="pin-num">3</span></span>
+						<span class="pin pin--l" data-pin="3" style="grid-row:3"></span>
+						<!-- Pins 4 to 10: the controls -->
+						<span class="pin-label pin-label--l" style="grid-row:4"><span class="pin-key"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><span class="pin-name">Move</span><span class="pin-num">4</span></span>
+						<span class="pin pin--l" style="grid-row:4"></span>
+						<span class="pin-label pin-label--l" style="grid-row:5"><span class="pin-key">Mouse</span><span class="pin-name">Look</span><span class="pin-num">5</span></span>
+						<span class="pin pin--l" style="grid-row:5"></span>
+						<div class="pinout__body" aria-hidden="true"><div class="pinout__marking">LA-1<small>LUAN AFONSO</small></div></div>
+						<span class="pin pin--r" style="grid-row:1"></span>
+						<span class="pin-label pin-label--r" style="grid-row:1"><span class="pin-num">10</span><span class="pin-name">Use</span><span class="pin-key"><kbd>E</kbd></span></span>
+						<span class="pin pin--r" style="grid-row:2"></span>
+						<span class="pin-label pin-label--r" style="grid-row:2"><span class="pin-num">9</span><span class="pin-name">Fix Bug</span><span class="pin-key">Click</span></span>
+						<span class="pin pin--r" style="grid-row:3"></span>
+						<span class="pin-label pin-label--r" style="grid-row:3"><span class="pin-num">8</span><span class="pin-name">Pause</span><span class="pin-key"><kbd>Esc</kbd></span></span>
+						<span class="pin pin--r" style="grid-row:4"></span>
+						<span class="pin-label pin-label--r" style="grid-row:4"><span class="pin-num">7</span><span class="pin-name">Mute</span><span class="pin-key"><kbd>M</kbd></span></span>
+						<span class="pin pin--r" style="grid-row:5"></span>
+						<span class="pin-label pin-label--r" style="grid-row:5"><span class="pin-num">6</span><span class="pin-name pin-name--nc">NC</span><span class="pin-key">No connection</span></span>
+					</div>
+				</nav>
+				<figcaption class="ds__caption">Figure 1. Pin configuration <span>(pins 1 to 3 are the menu)</span></figcaption>
+
+				<!-- Loading state -->
+				<div class="timing" data-state-show="loading" role="progressbar" aria-label="Loading the game" hidden>
+					<div class="timing__row"><span class="timing__sig">CLK</span><svg class="wave" viewBox="0 0 400 20" preserveAspectRatio="none" aria-hidden="true"><g class="wave--clk"><path d="M0 18H20V2H40V18H60V2H80V18H100V2H120V18H140V2H160V18H180V2H200V18H220V2H240V18H260V2H280V18H300V2H320V18H340V2H360V18H380V2H400V18H420V2H440V18H460V2H480V18H500V2H520V18"/></g></svg></div>
+					<div class="timing__row"><span class="timing__sig">GAME</span><svg class="wave wave--data" viewBox="0 0 400 20" preserveAspectRatio="none" aria-hidden="true"><path d="M0 18H120L128 2H400"/></svg></div>
+					<p class="timing__label">Loading the game.</p>
+				</div>
+				<!-- Error state -->
+				<p class="ds-note" data-state-show="error" role="alert" hidden><strong>Note 1.</strong> The game could not load. Check your connection, then choose NEW GAME to reload the page. Or choose SKIP.</p>
+			</figure>
+			<footer class="ds__foot">
+				<span><kbd>&uarr;</kbd> <kbd>&darr;</kbd> to choose, <kbd>Enter</kbd> to select</span>
+				<span>Skip to read every project, job, and skill without playing.</span>
+			</footer>
+		</div>
+
+		<!-- B: the board -->
+		<div class="tb board-surface only-b">
+			<div class="tb__outline" aria-hidden="true"></div>
+			<div class="tb__left">
+				<span class="tb__ref" aria-hidden="true">LA-1</span>
+				<h1 class="tb__name">Luan Afonso</h1>
+				<p class="tb__desc">Software engineer. This portfolio is a small first-person game that runs in your browser.</p>
+			</div>
+			<div class="tb__right">
+				<nav aria-label="Title Screen">
+					<ul class="pads">
+						<li><button class="pad-item is-selected" type="button" data-menu-item="new-game"><span class="pad-item__pad" aria-hidden="true"></span>New Game</button></li>
+						<li><a class="pad-item" href="#skip" data-menu-item="skip"><span class="pad-item__pad" aria-hidden="true"></span>Skip</a></li>
+						<li><button class="pad-item pad-item--small" type="button" data-menu-item="theme" data-theme-toggle><span class="pad-item__pad" aria-hidden="true"></span>Theme: <span data-theme-name>Board</span></button></li>
+					</ul>
+				</nav>
+				<div class="leds" data-state-show="loading" role="progressbar" aria-label="Loading the game" hidden>
+					<span class="leds__label">Loading</span>
+					<span class="led"></span><span class="led"></span><span class="led"></span><span class="led"></span><span class="led"></span><span class="led"></span><span class="led"></span>
+				</div>
+				<p class="board-note" data-state-show="error" role="alert" hidden><strong>Fault.</strong> The game could not load. Check your connection, then choose NEW GAME to reload the page. Or choose SKIP.</p>
+				<p class="tb__hint"><kbd>&uarr;</kbd> <kbd>&darr;</kbd> to choose, <kbd>Enter</kbd> to select<br />Skip to read every project, job, and skill without playing.</p>
+			</div>
+		</div>
+	</section>
+
+	<!-- ============ GAME ============ -->
+	<section class="screen" data-screen="game" aria-label="Game">
+		<div class="game"><canvas width="640" height="360" data-game-canvas aria-label="Game view"></canvas></div>
+	</section>
+
+	<!-- ============ PAUSE MENU ============ -->
+	<section class="screen" data-screen="pause" aria-label="Pause Menu">
+		<div class="game"><canvas width="640" height="360" data-game-canvas aria-hidden="true"></canvas></div>
+		<div class="dim">
+			<div class="pm board-surface board-surface--quiet" role="dialog" aria-modal="true" aria-labelledby="pm-title">
+				<h2 class="pm__title" id="pm-title">Paused</h2>
+				<button class="pm__item" type="button">Resume</button>
+				<hr class="pm__sep" />
+				<label class="pm__row"><span>Mouse sensitivity</span><span class="pm__row"><input type="range" min="0.2" max="3" step="0.1" value="1.2" oninput="this.nextElementSibling.value=(+this.value).toFixed(1)" /><output>1.2</output></span></label>
+				<label class="pm__row"><span>Invert mouse</span><span class="dip-wrap"><input class="dip" type="checkbox" />On</span></label>
+				<label class="pm__row"><span>Sound <kbd>M</kbd></span><span class="dip-wrap"><input class="dip" type="checkbox" checked />On</span></label>
+				<label class="pm__row"><span>Theme</span><span class="dip-wrap">Paper<input class="dip dip--h" type="checkbox" data-theme-switch />Board</span></label>
+				<hr class="pm__sep" />
+				<a class="pm__item" href="#skip">Skip View</a>
+				<p class="pm__hint">Read the portfolio without playing.</p>
+			</div>
+		</div>
+	</section>
+
+	<!-- ============ EXHIBIT PANEL ============ -->
+	<section class="screen" data-screen="exhibit" aria-label="Exhibit Panel">
+		<div class="game"><canvas width="640" height="360" data-game-canvas aria-hidden="true"></canvas></div>
+		<div class="dim">
+			<!-- A: datasheet page -->
+			<article class="ep-a only-a" role="dialog" aria-labelledby="ep-a-title">
+				<header class="ep-a__head"><span class="ep-a__ref">U1</span><span class="ep-a__kind">Project</span></header>
+				<div class="ep-a__body">
+					<h2 class="ep-a__title" id="ep-a-title">This portfolio</h2>
+					<p class="ep-a__summary">A Doom-inspired first-person game in the browser that presents my work.</p>
+					<h3 class="ep-a__section">Description</h3>
+					<p class="ep-a__details">A raycasting renderer written from scratch in TypeScript. It draws textured walls, posters, and a status bar into a 640x360 framebuffer at 60 FPS.</p>
+					<p class="ep-a__details">The Level is drawn in the Tiled map editor. All Exhibit content comes from one typed source, and the tests fail when the Level and the content do not match.</p>
+					<h3 class="ep-a__section">Links</h3>
+					<ul class="ep-a__links"><li><a href="https://github.com/luanAfons0/portfolio">Source code</a></li></ul>
+				</div>
+				<footer class="ep-a__foot"><span class="sample-tag">Sample content</span><button class="btn-ink" type="button">Close <kbd>Esc</kbd></button></footer>
+			</article>
+			<!-- B: board panel -->
+			<article class="ep-b board-surface board-surface--quiet only-b" role="dialog" aria-labelledby="ep-b-title">
+				<div class="ep-b__ref"><b>U1</b><span>Project</span><span class="sample-tag sample-tag--b">Sample</span></div>
+				<h2 class="ep-b__title" id="ep-b-title">This portfolio</h2>
+				<p class="ep-b__summary">A Doom-inspired first-person game in the browser that presents my work.</p>
+				<p class="ep-b__details">A raycasting renderer written from scratch in TypeScript. It draws textured walls, posters, and a status bar into a 640x360 framebuffer at 60 FPS.</p>
+				<p class="ep-b__details">The Level is drawn in the Tiled map editor. All Exhibit content comes from one typed source, and the tests fail when the Level and the content do not match.</p>
+				<ul class="ep-b__links"><li><a href="https://github.com/luanAfons0/portfolio">Source code</a></li></ul>
+				<button class="btn-board" type="button">Close <kbd>Esc</kbd></button>
+			</article>
+		</div>
+	</section>
+
+	<!-- ============ RESUME PROMPT ============ -->
+	<section class="screen" data-screen="resume" aria-label="Resume prompt">
+		<div class="game"><canvas width="640" height="360" data-game-canvas aria-hidden="true"></canvas></div>
+		<button class="resume" type="button"><span>Click to resume</span></button>
+	</section>
+
+	<!-- ============ SKIP VIEW ============ -->
+	<section class="screen" data-screen="skip" aria-label="Skip View">
+		<!-- A: the full datasheet -->
+		<div class="sv sv-a only-a">
+			<div class="sv__inner">
+				<a class="sv__back" href="#title">&larr; Back to the Title Screen</a>
+				<header class="sv__head"><span class="sv__part">LA-1</span><span class="sv__head-right">Portfolio, readable</span></header>
+				<h1>Luan Afonso</h1>
+				<p class="sv__lede">My portfolio: every Exhibit from the game, Room by Room. <span class="sample-tag">Sample content</span></p>
+				<nav class="sv__toc" aria-labelledby="toc-a"><h2 id="toc-a">Contents</h2>
+					<ol><li><a href="#a-lobby"><span>Lobby</span><span>U1, J1</span></a></li><li><a href="#a-workshop"><span>Workshop</span><span>R1</span></a></li><li><a href="#a-archive"><span>Archive</span><span>Q1</span></a></li></ol>
+				</nav>
+				<section class="sv-room" id="a-lobby" aria-labelledby="a-lobby-h"><h2 id="a-lobby-h">Lobby</h2>
+					<article class="sv-ex"><span class="sv-ex__ref">U1</span><div><p class="sv-ex__kind">Project</p><h3>This portfolio</h3><p class="sv-ex__summary">A Doom-inspired first-person game in the browser that presents my work.</p><p>A raycasting renderer written from scratch in TypeScript. It draws textured walls, posters, and a status bar into a 640x360 framebuffer at 60 FPS.</p><ul><li><a href="https://github.com/luanAfons0/portfolio">Source code</a></li></ul></div></article>
+					<article class="sv-ex"><span class="sv-ex__ref">J1</span><div><p class="sv-ex__kind">Contact</p><h3>Contact</h3><p class="sv-ex__summary">Want to talk? Find me on GitHub.</p><p>I read every message.</p><ul><li><a href="https://github.com/luanAfons0">GitHub</a></li></ul></div></article>
+				</section>
+				<section class="sv-room" id="a-workshop" aria-labelledby="a-workshop-h"><h2 id="a-workshop-h">Workshop</h2>
+					<article class="sv-ex"><span class="sv-ex__ref">R1</span><div><p class="sv-ex__kind">Skill</p><h3>TypeScript</h3><p class="sv-ex__summary">Strict TypeScript for browsers and Node.</p><p>Typed domain models, test-first development, and small dependency-free modules.</p><ul><li><a href="https://www.typescriptlang.org/">TypeScript</a></li></ul></div></article>
+				</section>
+				<section class="sv-room" id="a-archive" aria-labelledby="a-archive-h"><h2 id="a-archive-h">Archive</h2>
+					<article class="sv-ex"><span class="sv-ex__ref">Q1</span><div><p class="sv-ex__kind">Job</p><h3>Software Engineer at Sample Company</h3><p class="sv-ex__summary">Sample job. The real work history comes later.</p><p>Built and ran web services for a sample product.</p></div></article>
+				</section>
+			</div>
+		</div>
+		<!-- B: the board page -->
+		<div class="sv sv-b board-surface board-surface--quiet only-b">
+			<div class="sv__inner">
+				<a class="sv__back" href="#title">&larr; Back to the Title Screen</a>
+				<h1>Luan Afonso</h1>
+				<p class="sv__lede">My portfolio: every Exhibit from the game, Room by Room. <span class="sample-tag sample-tag--b">Sample</span></p>
+				<nav class="sv__toc" aria-labelledby="toc-b"><h2 id="toc-b">Rooms</h2>
+					<ol><li><a href="#b-lobby"><span>Lobby</span><span>U1, J1</span></a></li><li><a href="#b-workshop"><span>Workshop</span><span>R1</span></a></li><li><a href="#b-archive"><span>Archive</span><span>Q1</span></a></li></ol>
+				</nav>
+				<section class="sv-room" id="b-lobby" aria-labelledby="b-lobby-h"><h2 id="b-lobby-h">Lobby</h2>
+					<article class="sv-ex"><span class="sv-ex__ref">U1</span><div><p class="sv-ex__kind">Project</p><h3>This portfolio</h3><p class="sv-ex__summary">A Doom-inspired first-person game in the browser that presents my work.</p><p>A raycasting renderer written from scratch in TypeScript. It draws textured walls, posters, and a status bar into a 640x360 framebuffer at 60 FPS.</p><ul><li><a href="https://github.com/luanAfons0/portfolio">Source code</a></li></ul></div></article>
+					<article class="sv-ex"><span class="sv-ex__ref">J1</span><div><p class="sv-ex__kind">Contact</p><h3>Contact</h3><p class="sv-ex__summary">Want to talk? Find me on GitHub.</p><p>I read every message.</p><ul><li><a href="https://github.com/luanAfons0">GitHub</a></li></ul></div></article>
+				</section>
+				<section class="sv-room" id="b-workshop" aria-labelledby="b-workshop-h"><h2 id="b-workshop-h">Workshop</h2>
+					<article class="sv-ex"><span class="sv-ex__ref">R1</span><div><p class="sv-ex__kind">Skill</p><h3>TypeScript</h3><p class="sv-ex__summary">Strict TypeScript for browsers and Node.</p><p>Typed domain models, test-first development, and small dependency-free modules.</p><ul><li><a href="https://www.typescriptlang.org/">TypeScript</a></li></ul></div></article>
+				</section>
+				<section class="sv-room" id="b-archive" aria-labelledby="b-archive-h"><h2 id="b-archive-h">Archive</h2>
+					<article class="sv-ex"><span class="sv-ex__ref">Q1</span><div><p class="sv-ex__kind">Job</p><h3>Software Engineer at Sample Company</h3><p class="sv-ex__summary">Sample job. The real work history comes later.</p><p>Built and ran web services for a sample product.</p></div></article>
+				</section>
+			</div>
+		</div>
+	</section>
+
+</div>
+</div>
+
+<script>
+/*GAME_FRAME_JS*/
+</script>
+<script>
+(() => {
+	const body = document.body;
+	const stage = document.getElementById("stage");
+	const press = (group, value, attr) => {
+		for (const b of document.querySelectorAll(`[data-group="${group}"] button`)) b.setAttribute("aria-pressed", String(b.getAttribute(attr) === value));
+	};
+
+	// Game frame: render once per canvas; animate only the visible Game screen.
+	let stopAnim = null;
+	const paintGame = (screen) => {
+		if (stopAnim) { stopAnim(); stopAnim = null; }
+		if (typeof window.renderGameFrame !== "function") return;
+		for (const c of screen.querySelectorAll("[data-game-canvas]")) {
+			const stop = window.renderGameFrame(c, { animate: screen.dataset.screen === "game" });
+			if (typeof stop === "function") stopAnim = stop;
+		}
+	};
+
+	const setTheme = (v) => {
+		body.dataset.variant = v;
+		press("variant", v, "data-set-variant");
+		for (const n of document.querySelectorAll("[data-theme-name]")) n.textContent = v === "a" ? "Paper" : "Board";
+		for (const c of document.querySelectorAll("[data-theme-switch]")) c.checked = v === "b";
+		// Keep the Theme item selected and focused in the look that just appeared.
+		const item = document.querySelector(`.${v === "a" ? "ds" : "tb"} [data-menu-item="theme"]`);
+		if (item && stage.querySelector('[data-screen="title"]').classList.contains("is-active") && document.activeElement?.matches("[data-theme-toggle]")) { item.focus(); }
+	};
+	document.addEventListener("change", (e) => { if (e.target.matches("[data-theme-switch]")) setTheme(e.target.checked ? "b" : "a"); });
+	const setScreen = (name) => {
+		for (const s of stage.querySelectorAll(".screen")) s.classList.toggle("is-active", s.dataset.screen === name);
+		stage.classList.toggle("stage--scroll", name === "skip");
+		stage.scrollTop = 0;
+		press("screen", name, "data-set-screen");
+		paintGame(stage.querySelector(`.screen[data-screen="${name}"]`));
+	};
+	const setState = (state) => {
+		for (const el of document.querySelectorAll("[data-state-show]")) el.hidden = el.dataset.stateShow !== state;
+		press("state", state, "data-set-state");
+	};
+
+	document.addEventListener("click", (e) => {
+		const t = e.target.closest("[data-set-variant],[data-set-screen],[data-set-state]");
+		if (t?.dataset.setVariant) setTheme(t.dataset.setVariant);
+		if (e.target.closest("[data-theme-toggle]")) setTheme(body.dataset.variant === "a" ? "b" : "a");
+		if (t?.dataset.setScreen) setScreen(t.dataset.setScreen);
+		if (t?.dataset.setState) setState(t.dataset.setState);
+		const link = e.target.closest('a[href="#skip"],a[href="#title"]');
+		if (link) { e.preventDefault(); setScreen(link.getAttribute("href").slice(1)); }
+	});
+
+	// Title Screen menu: arrows move the selection; hover and focus select, like the real one.
+	for (const nav of document.querySelectorAll('[data-screen="title"] nav')) {
+		const items = [...nav.querySelectorAll("[data-menu-item]")];
+		const select = (item) => { for (const i of items) i.classList.toggle("is-selected", i === item); };
+		for (const item of items) { item.addEventListener("mouseenter", () => select(item)); item.addEventListener("focus", () => select(item)); }
+		nav.addEventListener("keydown", (e) => {
+			if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+			e.preventDefault();
+			const i = items.findIndex((x) => x.classList.contains("is-selected"));
+			const next = items[(i + (e.key === "ArrowDown" ? 1 : items.length - 1)) % items.length];
+			select(next); next.focus();
+		});
+	}
+	// NEW GAME: dive into the part, then show the Game. Instant under reduced motion.
+	const dive = stage.querySelector(".dive");
+	const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+	document.addEventListener("click", (e) => {
+		const item = e.target.closest('[data-screen="title"] [data-menu-item="new-game"]');
+		if (!item) return;
+		const from = body.dataset.variant === "a" ? stage.querySelector(".pinout__body") : item.querySelector(".pad-item__pad");
+		if (reduce.matches || !from) return setScreen("game");
+		const st = stage.getBoundingClientRect(), r = from.getBoundingClientRect();
+		dive.style.setProperty("--t", `${r.top - st.top}px`); dive.style.setProperty("--l", `${r.left - st.left}px`);
+		dive.style.setProperty("--r", `${st.right - r.right}px`); dive.style.setProperty("--b", `${st.bottom - r.bottom}px`);
+		dive.classList.remove("is-open"); dive.hidden = false;
+		requestAnimationFrame(() => requestAnimationFrame(() => dive.classList.add("is-open")));
+		dive.addEventListener("transitionend", () => { setScreen("game"); dive.hidden = true; dive.classList.remove("is-open"); }, { once: true });
+	});
+	setTheme(matchMedia("(prefers-color-scheme: dark)").matches ? "b" : "a");
+	setState("idle");
+})();
+</script>
+</body>
+</html>
