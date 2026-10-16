@@ -12,9 +12,10 @@ export interface GeneratedFile {
 
 /**
  * A PNG file of a pixmap: 8-bit RGBA, one IDAT chunk, filter 0 on each row, and a `Software`
- * text chunk that names the generator. Transparent pixels get alpha 0.
+ * text chunk that names the generator. Transparent pixels get alpha 0. `texts` adds more text
+ * chunks (keyword and Latin-1 text), such as a `Title`.
  */
-export function pngFile(path: string, pixmap: Pixmap): GeneratedFile {
+export function pngFile(path: string, pixmap: Pixmap, texts: Readonly<Record<string, string>> = {}): GeneratedFile {
 	const { width, height, pixels } = pixmap;
 	const stride = width * 4 + 1;
 	const raw = Buffer.alloc(stride * height);
@@ -37,6 +38,7 @@ export function pngFile(path: string, pixmap: Pixmap): GeneratedFile {
 		Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
 		chunk("IHDR", header),
 		chunk("tEXt", Buffer.from(`Software\0${GENERATOR}`, "latin1")),
+		...Object.entries(texts).map(([keyword, value]) => chunk("tEXt", Buffer.from(`${keyword}\0${value}`, "latin1"))),
 		chunk("IDAT", deflateSync(raw, { level: 9 })),
 		chunk("IEND", Buffer.alloc(0)),
 	]);

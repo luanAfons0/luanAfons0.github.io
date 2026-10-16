@@ -77,7 +77,7 @@ describe("The real Level and the real Content (the build content check)", () => 
 	});
 
 	it("give every Exhibit a poster that is a committed PNG", () => {
-		const committed = Object.keys(import.meta.glob("/public/posters/*.png"));
+		const committed = Object.keys(import.meta.glob("/public/machine/posters/*.png"));
 		for (const { id, poster } of EXHIBITS) expect(committed, id).toContain(`/public/${poster}`);
 	});
 });
