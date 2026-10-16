@@ -88,8 +88,6 @@ describe("Skip View builder (Seam 2)", () => {
 		});
 		const article = parse(buildSkipView({ content: [orca], level, base: BASE })).querySelector("main section article");
 		expect(article?.querySelector("h3")?.textContent).toBe("Title of orca");
-		// A root path to the public poster: Vite adds the base, as it does for every asset URL in a page.
-		expect(article?.querySelector("img")?.getAttribute("src")).toBe("/posters/orca.png");
 		expect(article?.textContent).toContain("Job");
 		expect([...(article?.querySelectorAll("p") ?? [])].map((p) => p.textContent)).toEqual(
 			expect.arrayContaining(["Summary of orca", "First paragraph.", "Second paragraph."]),
@@ -121,12 +119,43 @@ describe("Skip View builder (Seam 2)", () => {
 		expect(html).not.toMatch(/<script/i);
 	});
 
+	it("has a page title with no em dash", () => {
+		const level = loadLevel(
+			tiledLevel({ rows: ROWS, extraObjects: [WEST, tiledExhibit("orca", { x: 4, y: 1 }, "west")] }),
+		);
+		const doc = parse(buildSkipView({ content: [exhibit("orca")], level, base: BASE }));
+		expect(doc.title).toBe("Luan Afonso, portfolio (Skip View)");
+		expect(buildSkipView({ content: [exhibit("orca")], level, base: BASE })).not.toContain("\u2014");
+	});
+
+	it("follows the system light or dark setting: Paper for light, Board for dark", () => {
+		const level = loadLevel(
+			tiledLevel({ rows: ROWS, extraObjects: [WEST, tiledExhibit("orca", { x: 4, y: 1 }, "west")] }),
+		);
+		const doc = parse(buildSkipView({ content: [exhibit("orca")], level, base: BASE }));
+		expect(doc.querySelector('meta[name="color-scheme"]')?.getAttribute("content")).toBe("light dark");
+		// No saved Theme here: the page has no script to set one.
+		expect(doc.documentElement.hasAttribute("data-theme")).toBe(false);
+	});
+
+	it("opens with the datasheet header: part number LA-1, then the name and the lede", () => {
+		const level = loadLevel(
+			tiledLevel({ rows: ROWS, extraObjects: [WEST, tiledExhibit("orca", { x: 4, y: 1 }, "west")] }),
+		);
+		const doc = parse(buildSkipView({ content: [exhibit("orca")], level, base: BASE }));
+		expect(doc.querySelector(".skip-datasheet .skip-part-number")?.textContent).toBe("LA-1");
+		expect(doc.querySelector("h1")?.textContent).toBe("Luan Afonso");
+		expect(doc.querySelector(".skip-lede")?.textContent).toBe(
+			"My portfolio: every Exhibit from the game, Room by Room.",
+		);
+	});
+
 	it("links the site icon, so the browser does not ask for a missing favicon.ico", () => {
 		const level = loadLevel(
 			tiledLevel({ rows: ROWS, extraObjects: [WEST, tiledExhibit("orca", { x: 4, y: 1 }, "west")] }),
 		);
 		const doc = parse(buildSkipView({ content: [exhibit("orca")], level, base: BASE }));
-		// Vite adds the base path, as it does for the posters.
+		// A root path: Vite adds the base path, as it does for every asset URL in a page.
 		expect(doc.querySelector('link[rel="icon"]')?.getAttribute("href")).toBe("/favicon.svg");
 	});
 
@@ -239,14 +268,14 @@ describe("Skip View builder (Seam 2)", () => {
 			const items = [...doc.querySelectorAll("nav[aria-label='Contents'] li")].map((li) => {
 				const href = li.querySelector("a")?.getAttribute("href") ?? "";
 				return [
-					li.querySelector("a")?.textContent,
+					li.querySelector("a .skip-contents-room")?.textContent,
 					doc.querySelector(href)?.tagName,
-					li.querySelector(".skip-contents-parts")?.textContent,
+					li.querySelector("a .skip-contents-parts")?.textContent,
 				];
 			});
 			expect(items).toEqual([
-				["West Wing", "H2", "U1 U2"],
-				["East Wing", "H2", "J1 Q1"],
+				["West Wing", "H2", "U1, U2"],
+				["East Wing", "H2", "J1, Q1"],
 			]);
 		});
 	});
