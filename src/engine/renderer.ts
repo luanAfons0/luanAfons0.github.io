@@ -7,6 +7,8 @@ export interface Camera {
 	y: number;
 	/** Radians. 0 faces +x, PI/2 faces +y (down the grid). */
 	angle: number;
+	/** Moves the horizon down by this many screen pixels (negative moves it up). Default 0. */
+	horizonOffset?: number;
 }
 
 export interface RendererOptions {
@@ -54,17 +56,17 @@ export function createRenderer(options: RendererOptions): Renderer {
 	const shadeDistance = options.shadeDistance ?? 12;
 	// Wall height on screen for a wall at distance 1, with square pixels.
 	const projection = width / 2 / planeHalfWidth;
-	const horizon = viewHeight / 2;
 	const lightAt = (distance: number) => Math.max(MIN_SHADE, 1 - distance / shadeDistance);
 
 	// The floor and ceiling are flat, so each row has one distance and one color. The eye is
-	// half a tile above the floor, so a row `d` pixels from the horizon shows the floor (or
-	// ceiling) at distance projection / 2 / d. Computed once here, so frames allocate nothing.
-	const backgroundRows = new Uint32Array(viewHeight);
-	for (let y = 0; y < viewHeight; y++) {
-		const fromHorizon = Math.abs(y + 0.5 - horizon);
-		const color = y < horizon ? ceilingColor : floorColor;
-		backgroundRows[y] = shadeTexel(color, Math.round(lightAt(projection / 2 / fromHorizon) * 256));
+	// half a tile above the floor, so the row k rows away from the horizon shows the floor (or
+	// ceiling) at distance projection / 2 / (k + 0.5). Computed once here, so frames allocate nothing.
+	const ceilingRows = new Uint32Array(viewHeight);
+	const floorRows = new Uint32Array(viewHeight);
+	for (let k = 0; k < viewHeight; k++) {
+		const level = Math.round(lightAt(projection / 2 / (k + 0.5)) * 256);
+		ceilingRows[k] = shadeTexel(ceilingColor, level);
+		floorRows[k] = shadeTexel(floorColor, level);
 	}
 
 	return {
@@ -75,8 +77,10 @@ export function createRenderer(options: RendererOptions): Renderer {
 				);
 			}
 			const pixels = framebuffer.pixels;
+			const horizon = Math.min(viewHeight, Math.max(0, (viewHeight >> 1) + Math.round(camera.horizonOffset ?? 0)));
 			for (let y = 0; y < viewHeight; y++) {
-				pixels.fill(backgroundRows[y] as number, y * width, (y + 1) * width);
+				const color = y < horizon ? ceilingRows[horizon - 1 - y] : floorRows[y - horizon];
+				pixels.fill(color as number, y * width, (y + 1) * width);
 			}
 
 			const dirX = Math.cos(camera.angle);

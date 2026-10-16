@@ -1,14 +1,16 @@
 /**
- * The input for one fixed tick. Every axis is in [-1, 1].
- * forward: +1 moves forward. strafe: +1 moves right. turn: +1 turns right.
+ * The input for one fixed tick.
+ * forward, strafe, and turn are key axes in [-1, 1]: +1 moves forward, moves right, turns right.
+ * look is the mouse movement to the right since the last tick, in screen pixels (not clamped).
  */
 export interface InputSnapshot {
 	forward: number;
 	strafe: number;
 	turn: number;
+	look: number;
 }
 
-type Axis = keyof InputSnapshot;
+type Axis = "forward" | "strafe" | "turn";
 
 /** Which axis each key drives, and in which direction. Keys are `KeyboardEvent.code` values. */
 const KEY_BINDINGS: Record<string, [Axis, number]> = {
@@ -34,7 +36,7 @@ export function createKeyboardInput(target: Window): KeyboardInput {
 	const down = new Set<string>();
 
 	const onKeyDown = (event: KeyboardEvent) => {
-		if (!(event.code in KEY_BINDINGS)) return;
+		if (!(event.code in KEY_BINDINGS) || isFormControl(event.target)) return;
 		event.preventDefault(); // Arrow keys would scroll the page.
 		down.add(event.code);
 	};
@@ -50,7 +52,7 @@ export function createKeyboardInput(target: Window): KeyboardInput {
 
 	return {
 		snapshot() {
-			const input: InputSnapshot = { forward: 0, strafe: 0, turn: 0 };
+			const input: InputSnapshot = { forward: 0, strafe: 0, turn: 0, look: 0 };
 			for (const code of down) {
 				const binding = KEY_BINDINGS[code];
 				if (binding) input[binding[0]] += binding[1];
@@ -63,4 +65,9 @@ export function createKeyboardInput(target: Window): KeyboardInput {
 			target.removeEventListener("blur", onBlur);
 		},
 	};
+}
+
+/** Keys typed into a form control (for example a slider in an overlay) are for that control, not the game. */
+function isFormControl(target: EventTarget | null): boolean {
+	return target instanceof Element && target.closest("input, select, textarea") !== null;
 }
