@@ -1,10 +1,12 @@
-import { type Exhibit, KIND_LABELS } from "./content";
+import { EXHIBITS, type Exhibit, KIND_LABELS, partLabel } from "./content";
 
 export interface ExhibitPanelOptions {
 	/** The element the overlay goes into. */
 	parent: HTMLElement;
 	/** Runs when the player clicks Close. (The browser shell handles Esc.) */
 	onClose(): void;
+	/** The Content, for the Part labels. Defaults to the real Content. */
+	content?: readonly Exhibit[];
 }
 
 export interface ExhibitPanel {
@@ -16,6 +18,7 @@ export interface ExhibitPanel {
 
 /** The Exhibit Panel: an HTML overlay above the canvas with the full details of one Exhibit, as real text. */
 export function createExhibitPanel(options: ExhibitPanelOptions): ExhibitPanel {
+	const content = options.content ?? EXHIBITS;
 	const root = element("div", "exhibit-panel");
 	root.hidden = true;
 	root.setAttribute("role", "dialog");
@@ -23,18 +26,18 @@ export function createExhibitPanel(options: ExhibitPanelOptions): ExhibitPanel {
 	root.setAttribute("aria-labelledby", "exhibit-panel-title");
 	const panel = element("article", "exhibit-panel__panel");
 	panel.tabIndex = -1;
-	const content = element("div", "exhibit-panel__content");
+	const body = element("div", "exhibit-panel__content");
 	const close = element("button", "exhibit-panel__close");
 	close.type = "button";
 	close.textContent = "Close (Esc)";
 	close.addEventListener("click", () => options.onClose());
-	panel.append(content, close);
+	panel.append(body, close);
 	root.append(panel);
 	options.parent.append(root);
 
 	return {
 		open(exhibit) {
-			content.replaceChildren(...exhibitContent(exhibit));
+			body.replaceChildren(...exhibitContent(exhibit, content));
 			root.hidden = false;
 			panel.scrollTop = 0;
 			panel.focus();
@@ -46,11 +49,12 @@ export function createExhibitPanel(options: ExhibitPanelOptions): ExhibitPanel {
 	};
 }
 
-function exhibitContent(exhibit: Exhibit): HTMLElement[] {
+function exhibitContent(exhibit: Exhibit, content: readonly Exhibit[]): HTMLElement[] {
 	const poster = element("img", "exhibit-panel__poster");
 	poster.src = `${import.meta.env.BASE_URL}${exhibit.poster}`;
 	poster.alt = "";
-	const kind = element("p", "exhibit-panel__kind", KIND_LABELS[exhibit.kind]);
+	const kind = element("p", "exhibit-panel__kind");
+	kind.append(element("span", "exhibit-panel__part", partLabel(content, exhibit)), ` ${KIND_LABELS[exhibit.kind]}`);
 	const title = element("h2", "exhibit-panel__title", exhibit.title);
 	title.id = "exhibit-panel-title";
 	const header = element("header", "exhibit-panel__header");

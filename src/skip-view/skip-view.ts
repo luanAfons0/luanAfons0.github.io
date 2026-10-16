@@ -1,4 +1,4 @@
-import { checkContent, type Exhibit, KIND_LABELS } from "../game/content";
+import { checkContent, type Exhibit, KIND_LABELS, partLabel } from "../game/content";
 import { FACE_OFFSETS, type Level, type Room, roomAt } from "../game/level";
 
 export interface SkipViewInput {
@@ -47,14 +47,14 @@ ${stylesheet ? `<link rel="stylesheet" href="${escapeHtml(stylesheet)}">` : ""}
 <a class="skip-back" href="${escapeHtml(base)}"><span aria-hidden="true">&#9664;</span> Back to the Title Screen</a>
 <h1>Luan Afonso</h1>
 <p class="skip-lede">My portfolio: every Exhibit from the game, Room by Room.</p>
-<nav class="skip-rooms" aria-label="Rooms">
+<nav class="skip-rooms" aria-label="Contents">
 <ul>
-${rooms.map(({ room, anchor }) => `<li><a href="#${anchor}">${escapeHtml(room.name)}</a></li>`).join("\n")}
+${rooms.map(({ room, exhibits, anchor }) => `<li><a href="#${anchor}">${escapeHtml(room.name)}</a> <span class="skip-contents-parts">${exhibits.map((e) => partLabel(content, e)).join(" ")}</span></li>`).join("\n")}
 </ul>
 </nav>
 </header>
 <main>
-${rooms.map(({ room, exhibits, anchor }) => roomSection(room, exhibits, anchor)).join("\n")}
+${rooms.map(({ room, exhibits, anchor }) => roomSection(room, exhibits, anchor, content)).join("\n")}
 </main>
 </body>
 </html>
@@ -70,16 +70,16 @@ function roomOf(exhibit: Exhibit, level: SkipViewInput["level"]): Room {
 	return room;
 }
 
-function roomSection(room: Room, exhibits: readonly Exhibit[], anchor: string): string {
+function roomSection(room: Room, exhibits: readonly Exhibit[], anchor: string, content: readonly Exhibit[]): string {
 	return `<section class="skip-room" aria-labelledby="${anchor}">
 <h2 id="${anchor}">${escapeHtml(room.name)}</h2>
 <ul class="skip-exhibits">
-${exhibits.map((exhibit) => `<li>${exhibitArticle(exhibit)}</li>`).join("\n")}
+${exhibits.map((exhibit) => `<li>${exhibitArticle(exhibit, content)}</li>`).join("\n")}
 </ul>
 </section>`;
 }
 
-function exhibitArticle(exhibit: Exhibit): string {
+function exhibitArticle(exhibit: Exhibit, content: readonly Exhibit[]): string {
 	const links =
 		exhibit.links.length === 0
 			? ""
@@ -89,7 +89,7 @@ ${exhibit.links.map(({ label, url }) => `<li><a href="${escapeHtml(url)}">${esca
 	return `<article class="skip-exhibit" id="exhibit-${escapeHtml(exhibit.id)}">
 <img class="skip-poster" src="${escapeHtml(`/${exhibit.poster}`)}" alt="" loading="lazy">
 <div class="skip-body">
-<p class="skip-kind">${escapeHtml(KIND_LABELS[exhibit.kind])}</p>
+<p class="skip-kind"><span class="skip-part">${partLabel(content, exhibit)}</span> ${escapeHtml(KIND_LABELS[exhibit.kind])}</p>
 <h3>${escapeHtml(exhibit.title)}</h3>
 <p class="skip-summary">${escapeHtml(exhibit.summary)}</p>
 ${exhibit.details.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("\n")}
