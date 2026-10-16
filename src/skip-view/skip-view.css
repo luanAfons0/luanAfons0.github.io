@@ -92,6 +92,13 @@ a:focus-visible {
 	letter-spacing: 0.06em;
 }
 
+/* A phone cannot play (ADR 0002): the Title Screen sends it back here, so it gets no link to it. */
+@media (pointer: coarse) and (not (any-pointer: fine)) {
+	.skip-back {
+		display: none;
+	}
+}
+
 .skip-rooms ul {
 	display: flex;
 	flex-wrap: wrap;

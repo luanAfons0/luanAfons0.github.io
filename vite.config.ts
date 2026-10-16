@@ -4,7 +4,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
 	base: "/portfolio/",
 	// Two pages: the Title Screen (it loads the game) and the Skip View (no script at all).
-	input: { main: "index.html", skip: "skip/index.html" },
+	input: { title: "index.html", skip: "skip/index.html" },
 	plugins: [skipView()],
 	build: {
 		target: "es2022",

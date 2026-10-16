@@ -119,6 +119,15 @@ describe("Skip View builder (Seam 2)", () => {
 		expect(html).not.toMatch(/<script/i);
 	});
 
+	it("links the site icon, so the browser does not ask for a missing favicon.ico", () => {
+		const level = loadLevel(
+			tiledLevel({ rows: ROWS, extraObjects: [WEST, tiledExhibit("orca", { x: 4, y: 1 }, "west")] }),
+		);
+		const doc = parse(buildSkipView({ content: [exhibit("orca")], level, base: BASE }));
+		// Vite adds the base path, as it does for the posters.
+		expect(doc.querySelector('link[rel="icon"]')?.getAttribute("href")).toBe("/favicon.svg");
+	});
+
 	it("shows Content text as text, not as markup", () => {
 		const level = loadLevel(
 			tiledLevel({
