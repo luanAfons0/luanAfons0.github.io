@@ -2,7 +2,10 @@ import { moveCircle } from "../engine/collision";
 import { type Framebuffer, rgb } from "../engine/framebuffer";
 import type { InputSnapshot } from "../engine/input";
 import { createRenderer } from "../engine/renderer";
-import { type Level, loadLevel } from "./level";
+import { assertHudCanDraw, createHud, type HudView } from "./hud";
+import { type Level, loadLevel, roomAt } from "./level";
+
+export { HUD_VALUE_COLOR, STATUS_BAR_HEIGHT } from "./hud";
 
 /** Fixed ticks per second. Every speed below is per tick. */
 export const TICKS_PER_SECOND = 60;
@@ -31,19 +34,26 @@ export interface PlayerState {
 
 export interface GameState {
 	player: PlayerState;
+	/**
+	 * The name of the Room the player is in. Between Room rectangles (in a doorway,
+	 * for example) it keeps the last Room. It is null before the player enters any Room.
+	 */
+	room: string | null;
 }
 
 export interface Game {
 	/** Advances the game by one fixed tick. */
 	step(input: InputSnapshot): void;
 	state(): GameState;
-	/** Draws the current view into a caller-provided 640x360 framebuffer. */
+	/** Draws the current view and the HUD into a caller-provided 640x360 framebuffer. */
 	render(framebuffer: Framebuffer): void;
 }
 
 export function createGame(options: GameOptions): Game {
 	const level: Level = loadLevel(options.level);
 	const player: PlayerState = { ...level.playerStart };
+	for (const { name } of level.rooms) assertHudCanDraw(name, `Room "${name}"`);
+	let room = roomAt(level.rooms, player.x, player.y)?.name ?? null;
 	const renderer = createRenderer({
 		width: SCREEN_WIDTH,
 		height: SCREEN_HEIGHT,
@@ -51,6 +61,9 @@ export function createGame(options: GameOptions): Game {
 		ceilingColor: CEILING_COLOR,
 		floorColor: FLOOR_COLOR,
 	});
+	const hud = createHud(SCREEN_WIDTH, SCREEN_HEIGHT);
+	// Reused every frame, so rendering allocates nothing.
+	const hudView: HudView = { room: null };
 
 	return {
 		step(input) {
@@ -68,10 +81,13 @@ export function createGame(options: GameOptions): Game {
 				dy /= length;
 			}
 			moveCircle(level.walls, player, dx * MOVE_SPEED, dy * MOVE_SPEED, PLAYER_RADIUS);
+			room = roomAt(level.rooms, player.x, player.y)?.name ?? room;
 		},
-		state: () => ({ player: { ...player } }),
+		state: () => ({ player: { ...player }, room }),
 		render(framebuffer) {
 			renderer.render(framebuffer, level.walls, player);
+			hudView.room = room;
+			hud.draw(framebuffer, hudView);
 		},
 	};
 }

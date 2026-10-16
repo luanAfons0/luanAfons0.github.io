@@ -7,12 +7,14 @@ import {
 	createGame,
 	FLOOR_COLOR,
 	type Game,
+	HUD_VALUE_COLOR,
 	SCREEN_HEIGHT,
 	SCREEN_WIDTH,
+	STATUS_BAR_HEIGHT,
 	TICKS_PER_SECOND,
 } from "./game";
 import sampleLevel from "./levels/sample.json";
-import { tiledLevel } from "./test-support/tiled-level";
+import { tiledLevel, tiledRoom } from "./test-support/tiled-level";
 
 const IDLE: InputSnapshot = { forward: 0, strafe: 0, turn: 0 };
 const FORWARD: InputSnapshot = { ...IDLE, forward: 1 };
@@ -132,7 +134,7 @@ describe("Game core", () => {
 		expect(frame.width).toBe(640);
 		expect(frame.height).toBe(360);
 		expect(pixelAt(frame, center, 0)).toBe(CEILING_COLOR);
-		expect(pixelAt(frame, center, SCREEN_HEIGHT - 1)).toBe(FLOOR_COLOR);
+		expect(pixelAt(frame, center, SCREEN_HEIGHT - STATUS_BAR_HEIGHT - 1)).toBe(FLOOR_COLOR);
 		const wall = pixelAt(frame, center, SCREEN_HEIGHT / 2);
 		expect(wall).not.toBe(CEILING_COLOR);
 		expect(wall).not.toBe(FLOOR_COLOR);
@@ -159,5 +161,151 @@ describe("Game core", () => {
 	it("loads the real sample Level", () => {
 		const game = createGame({ level: sampleLevel });
 		expect(game.state().player).toEqual({ x: 1.5, y: 1.5, angle: 0 });
+		expect(game.state().room).toBe("Lobby");
+	});
+});
+
+describe("Rooms", () => {
+	it("puts the player in the Room whose rectangle holds the player start", () => {
+		const game = createGame({
+			level: tiledLevel({
+				rows: ["#######", "#.....#", "#.P...#", "#######"],
+				extraObjects: [
+					tiledRoom("Lobby", { x: 1, y: 1, width: 3, height: 2 }),
+					tiledRoom("Workshop", { x: 4, y: 1, width: 2, height: 2 }),
+				],
+			}),
+		});
+
+		expect(game.state().room).toBe("Lobby");
+	});
+
+	it("changes the current Room when the player walks from one Room rectangle into another", () => {
+		// Lobby is x 1..4, Workshop is x 4..6. The player starts at x 2.5 and walks east.
+		const game = createGame({
+			level: tiledLevel({
+				rows: ["#######", "#.....#", "#.P...#", "#######"],
+				playerAngle: 0,
+				extraObjects: [
+					tiledRoom("Lobby", { x: 1, y: 1, width: 3, height: 2 }),
+					tiledRoom("Workshop", { x: 4, y: 1, width: 2, height: 2 }),
+				],
+			}),
+		});
+
+		// 3 tiles/s: after 20 ticks the player is at x 3.5, still in the Lobby.
+		stepTicks(game, FORWARD, 20);
+		expect(game.state().room).toBe("Lobby");
+		// After 20 more ticks it is at x 4.5, in the Workshop.
+		stepTicks(game, FORWARD, 20);
+		expect(game.state().room).toBe("Workshop");
+	});
+
+	it("keeps the last Room while the player is between Room rectangles", () => {
+		// The Lobby ends at x 3 and the Workshop starts at x 4: x 3..4 is a doorway in no Room.
+		const game = createGame({
+			level: tiledLevel({
+				rows: ["#######", "#.....#", "#.P...#", "#######"],
+				playerAngle: 0,
+				extraObjects: [
+					tiledRoom("Lobby", { x: 1, y: 1, width: 2, height: 2 }),
+					tiledRoom("Workshop", { x: 4, y: 1, width: 2, height: 2 }),
+				],
+			}),
+		});
+
+		stepTicks(game, FORWARD, 20); // x 3.5
+		expect(game.state().room).toBe("Lobby");
+	});
+
+	it("has no current Room before the player enters one", () => {
+		const game = createGame({ level: tiledLevel({ rows: ["#####", "#P..#", "#####"] }) });
+		expect(game.state().room).toBeNull();
+	});
+
+	it.each([
+		["has no name", tiledRoom("", { x: 1, y: 1, width: 1, height: 1 }), /Room object \d+ has no name/],
+		[
+			"is a point, not a rectangle",
+			{ ...tiledRoom("Lobby", { x: 1, y: 1, width: 0, height: 0 }), point: true },
+			/Room "Lobby" must be a rectangle/,
+		],
+		[
+			"is rotated",
+			{ ...tiledRoom("Lobby", { x: 1, y: 1, width: 1, height: 1 }), rotation: 45 },
+			/Room "Lobby" must not be rotated/,
+		],
+	])("fails with a clear error when a Room object %s", (_, room, error) => {
+		const level = tiledLevel({ rows: ["#####", "#P..#", "#####"], extraObjects: [room] });
+		expect(() => createGame({ level })).toThrow(error);
+	});
+
+	it("fails with a clear error when two Rooms have the same name", () => {
+		const level = tiledLevel({
+			rows: ["#####", "#P..#", "#####"],
+			extraObjects: [
+				tiledRoom("Lobby", { x: 1, y: 1, width: 1, height: 1 }),
+				tiledRoom("Lobby", { x: 2, y: 1, width: 1, height: 1 }),
+			],
+		});
+		expect(() => createGame({ level })).toThrow(/Two Rooms are named "Lobby"/);
+	});
+});
+
+describe("HUD", () => {
+	const rows = ["#######", "#.....#", "#.P...#", "#######"];
+
+	function renderAt(rooms: object[], ticksForward = 0): Framebuffer {
+		const game = createGame({ level: tiledLevel({ rows, playerAngle: 0, extraObjects: rooms }) });
+		stepTicks(game, FORWARD, ticksForward);
+		const framebuffer = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+		game.render(framebuffer);
+		return framebuffer;
+	}
+
+	/** The indexes of status bar pixels that have the HUD value color. */
+	function valuePixels(frame: Framebuffer): number[] {
+		const found: number[] = [];
+		for (let i = (SCREEN_HEIGHT - STATUS_BAR_HEIGHT) * SCREEN_WIDTH; i < frame.pixels.length; i++) {
+			if (frame.pixels[i] === HUD_VALUE_COLOR) found.push(i);
+		}
+		return found;
+	}
+
+	const lobby = tiledRoom("Lobby", { x: 1, y: 1, width: 3, height: 2 });
+	const workshop = tiledRoom("Workshop", { x: 4, y: 1, width: 2, height: 2 });
+
+	it("draws a status bar across the bottom of the frame, below the 3D view", () => {
+		const frame = renderAt([lobby]);
+		const center = SCREEN_WIDTH / 2;
+
+		expect(STATUS_BAR_HEIGHT).toBeGreaterThan(0);
+		expect(STATUS_BAR_HEIGHT).toBeLessThan(SCREEN_HEIGHT / 4);
+		for (const y of [SCREEN_HEIGHT - STATUS_BAR_HEIGHT, SCREEN_HEIGHT - 1]) {
+			for (const x of [0, center, SCREEN_WIDTH - 1]) {
+				const pixel = pixelAt(frame, x, y);
+				expect(pixel).not.toBe(FLOOR_COLOR);
+				expect(pixel >>> 24).toBe(0xff);
+			}
+		}
+		expect(pixelAt(frame, center, SCREEN_HEIGHT - STATUS_BAR_HEIGHT - 1)).toBe(FLOOR_COLOR);
+	});
+
+	it("writes the current Room name in the status bar", () => {
+		const inNoRoom = valuePixels(renderAt([]));
+		const inLobby = valuePixels(renderAt([lobby, workshop]));
+		const inWorkshop = valuePixels(renderAt([lobby, workshop], 40));
+
+		expect(inNoRoom).toEqual([]);
+		expect(inLobby.length).toBeGreaterThan(0);
+		expect(inWorkshop.length).toBeGreaterThan(0);
+		// "Workshop" has more letters than "Lobby", and the two names are drawn differently.
+		expect(inWorkshop.length).toBeGreaterThan(inLobby.length);
+		expect(inWorkshop).not.toEqual(inLobby);
+	});
+
+	it("fails with a clear error when a Room name has a character the HUD cannot draw", () => {
+		const level = tiledLevel({ rows, extraObjects: [tiledRoom("Café", { x: 1, y: 1, width: 1, height: 1 })] });
+		expect(() => createGame({ level })).toThrow(/Room "Café" has a character the HUD cannot draw: "é"/);
 	});
 });

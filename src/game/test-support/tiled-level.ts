@@ -77,3 +77,20 @@ export function tiledLevel(options: TiledLevelOptions): unknown {
 		tilesets: [{ firstgid: 1, source: "walls.tsx" }],
 	};
 }
+
+let nextRoomId = 1000;
+
+/** A Tiled rectangle object for a Room. Position and size are in tiles. */
+export function tiledRoom(name: string, rect: { x: number; y: number; width: number; height: number }): object {
+	return {
+		id: nextRoomId++,
+		name,
+		type: "room",
+		x: rect.x * TILE_SIZE,
+		y: rect.y * TILE_SIZE,
+		width: rect.width * TILE_SIZE,
+		height: rect.height * TILE_SIZE,
+		rotation: 0,
+		visible: true,
+	};
+}

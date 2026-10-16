@@ -4,10 +4,21 @@ import type { Grid } from "../engine/grid";
 export interface Level {
 	walls: Grid;
 	playerStart: { x: number; y: number; angle: number };
+	rooms: Room[];
+}
+
+/** One named area of the Level: a Tiled rectangle object. Positions are in tiles. */
+export interface Room {
+	name: string;
+	x: number;
+	y: number;
+	width: number;
+	height: number;
 }
 
 const WALL_LAYER = "walls";
 const PLAYER_START = "player_start";
+const ROOM = "room";
 /** Tiled keeps flip and rotation flags in the top bits of a gid. */
 const GID_MASK = 0x0fffffff;
 
@@ -52,7 +63,41 @@ export function loadLevel(json: unknown): Level {
 			y: asNumber(start.y, `"${PLAYER_START}" y`) / tileHeight,
 			angle: (angleDegrees * Math.PI) / 180,
 		},
+		rooms: loadRooms(
+			objects.filter((object) => objectType(object) === ROOM),
+			tileWidth,
+			tileHeight,
+		),
 	};
+}
+
+/** Rooms are named rectangle objects (type "room"). The object name is the Room name. */
+function loadRooms(objects: Record<string, unknown>[], tileWidth: number, tileHeight: number): Room[] {
+	const rooms: Room[] = [];
+	for (const object of objects) {
+		const name = typeof object.name === "string" ? object.name.trim() : "";
+		if (name === "") throw new Error(`Room object ${String(object.id)} has no name.`);
+		if (rooms.some((room) => room.name === name)) throw new Error(`Two Rooms are named "${name}".`);
+		const width = asNumber(object.width, `Room "${name}" width`);
+		const height = asNumber(object.height, `Room "${name}" height`);
+		if (object.point || object.ellipse || object.polygon || object.polyline || width <= 0 || height <= 0) {
+			throw new Error(`Room "${name}" must be a rectangle with a width and a height.`);
+		}
+		if ((object.rotation ?? 0) !== 0) throw new Error(`Room "${name}" must not be rotated.`);
+		rooms.push({
+			name,
+			x: asNumber(object.x, `Room "${name}" x`) / tileWidth,
+			y: asNumber(object.y, `Room "${name}" y`) / tileHeight,
+			width: width / tileWidth,
+			height: height / tileHeight,
+		});
+	}
+	return rooms;
+}
+
+/** Returns the first Room whose rectangle holds the point, or undefined. */
+export function roomAt(rooms: readonly Room[], x: number, y: number): Room | undefined {
+	return rooms.find((room) => x >= room.x && x < room.x + room.width && y >= room.y && y < room.y + room.height);
 }
 
 /** Tiled 1.9 wrote "class"; 1.10 and later write "type". */
