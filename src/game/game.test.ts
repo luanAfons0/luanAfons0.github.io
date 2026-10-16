@@ -14,7 +14,7 @@ import {
 import sampleLevel from "./levels/sample.json";
 import { tiledLevel } from "./test-support/tiled-level";
 
-const IDLE: InputSnapshot = { forward: 0, strafe: 0, turn: 0 };
+const IDLE: InputSnapshot = { forward: 0, strafe: 0, turn: 0, look: 0 };
 const FORWARD: InputSnapshot = { ...IDLE, forward: 1 };
 
 function stepTicks(game: Game, input: InputSnapshot, ticks: number): void {
@@ -101,7 +101,7 @@ describe("Game core", () => {
 
 	it("gives the same position for the same input no matter how ticks are grouped into frames", () => {
 		const rows = ["########", "#......#", "#.P....#", "#......#", "#......#", "########"];
-		const curve: InputSnapshot = { forward: 1, strafe: 0.5, turn: 0.4 };
+		const curve: InputSnapshot = { forward: 1, strafe: 0.5, turn: 0.4, look: 0 };
 		const frameGroupings = {
 			"60 Hz": Array(60).fill(1000 / 60),
 			"144 Hz": Array(144).fill(1000 / 144),
@@ -154,6 +154,116 @@ describe("Game core", () => {
 	it("fails with a clear error when the framebuffer is not 640x360", () => {
 		const game = createGame({ level: tiledLevel({ rows: ["###", "#P#", "###"] }) });
 		expect(() => game.render(createFramebuffer(320, 200))).toThrow(/640x360/);
+	});
+
+	it("does not move or turn the player while paused, and moves again after resume", () => {
+		const game = createGame({ level: tiledLevel({ rows: ["#######", "#P....#", "#######"] }) });
+		const start = game.state().player;
+
+		game.pause();
+		stepTicks(game, { forward: 1, strafe: 1, turn: 1, look: 50 }, 60);
+
+		expect(game.state().paused).toBe(true);
+		expect(game.state().player).toEqual(start);
+
+		game.resume();
+		stepTicks(game, FORWARD, 10);
+
+		expect(game.state().paused).toBe(false);
+		expect(game.state().player.x).toBeGreaterThan(start.x);
+	});
+
+	describe("mouse look", () => {
+		const rows = ["#####", "#.P.#", "#####"];
+		const LOOK_RIGHT: InputSnapshot = { ...IDLE, look: 100 };
+
+		function turnAfterLook(settings?: Parameters<typeof createGame>[0]["settings"]): number {
+			const game = createGame({ level: tiledLevel({ rows }), settings });
+			const start = game.state().player.angle;
+			game.step(LOOK_RIGHT);
+			return game.state().player.angle - start;
+		}
+
+		it("turns the player right when the mouse moves right", () => {
+			expect(turnAfterLook()).toBeGreaterThan(0);
+		});
+
+		it("turns twice as far at sensitivity 2 as at sensitivity 1", () => {
+			const normal = turnAfterLook({ mouseSensitivity: 1 });
+			const doubled = turnAfterLook({ mouseSensitivity: 2 });
+			expect(doubled).toBeCloseTo(2 * normal, 10);
+		});
+
+		it("turns the other way, by the same amount, when the mouse is inverted", () => {
+			const normal = turnAfterLook({ invertMouse: false });
+			const inverted = turnAfterLook({ invertMouse: true });
+			expect(inverted).toBeCloseTo(-normal, 10);
+			expect(inverted).toBeLessThan(0);
+		});
+
+		it("uses new settings from the next tick on", () => {
+			const game = createGame({ level: tiledLevel({ rows }) });
+			game.step(LOOK_RIGHT);
+			const normal = game.state().player.angle;
+
+			game.updateSettings({ mouseSensitivity: 0.5, invertMouse: true });
+			game.step(LOOK_RIGHT);
+
+			expect(game.state().player.angle - normal).toBeCloseTo(-normal / 2, 10);
+		});
+
+		it("does not change how the arrow keys turn", () => {
+			const turnWithKeys = (settings: Parameters<typeof createGame>[0]["settings"]) => {
+				const game = createGame({ level: tiledLevel({ rows }), settings });
+				game.step({ ...IDLE, turn: 1 });
+				return game.state().player.angle;
+			};
+			expect(turnWithKeys({ mouseSensitivity: 3, invertMouse: true })).toBeCloseTo(turnWithKeys({}), 10);
+		});
+	});
+
+	describe("head bob", () => {
+		// The player faces a wall 3.5 tiles away and strafes along it, so the wall keeps
+		// the same size. Only head bob can move the wall's top edge on the screen.
+		const rows = ["#######", "#P...##", "#....##", "#....##", "#....##", "#....##", "#######"];
+		const STRAFE_RIGHT: InputSnapshot = { ...IDLE, strafe: 1 };
+
+		/** The screen row of the wall's top edge in the center column, once per tick. */
+		function wallTopRows(game: Game, input: InputSnapshot, ticks: number): Set<number> {
+			const framebuffer = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+			const rowsSeen = new Set<number>();
+			for (let i = 0; i < ticks; i++) {
+				game.step(input);
+				game.render(framebuffer);
+				let y = 0;
+				while (pixelAt(framebuffer, SCREEN_WIDTH / 2, y) === CEILING_COLOR) y++;
+				rowsSeen.add(y);
+			}
+			return rowsSeen;
+		}
+
+		it("moves the view up and down while the player walks", () => {
+			const game = createGame({ level: tiledLevel({ rows }) });
+			expect(wallTopRows(game, STRAFE_RIGHT, 30).size).toBeGreaterThan(2);
+		});
+
+		it("keeps the view still while the player stands still", () => {
+			const game = createGame({ level: tiledLevel({ rows }) });
+			expect(wallTopRows(game, IDLE, 30).size).toBe(1);
+		});
+
+		it("keeps the view still while walking when reduced motion is on", () => {
+			const game = createGame({ level: tiledLevel({ rows }), settings: { reducedMotion: true } });
+			expect(wallTopRows(game, STRAFE_RIGHT, 30).size).toBe(1);
+		});
+
+		it("stops the bob at once when reduced motion turns on during a walk", () => {
+			const game = createGame({ level: tiledLevel({ rows }) });
+			wallTopRows(game, STRAFE_RIGHT, 7);
+			game.updateSettings({ reducedMotion: true });
+			const still = createGame({ level: tiledLevel({ rows }), settings: { reducedMotion: true } });
+			expect(wallTopRows(game, STRAFE_RIGHT, 10)).toEqual(wallTopRows(still, IDLE, 1));
+		});
 	});
 
 	it("loads the real sample Level", () => {

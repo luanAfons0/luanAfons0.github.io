@@ -7,6 +7,8 @@ export interface Camera {
 	y: number;
 	/** Radians. 0 faces +x, PI/2 faces +y (down the grid). */
 	angle: number;
+	/** Moves the horizon down by this many screen pixels (negative moves it up). Default 0. */
+	horizonOffset?: number;
 }
 
 export interface RendererOptions {
@@ -43,7 +45,6 @@ export function createRenderer(options: RendererOptions): Renderer {
 	const shadeDistance = options.shadeDistance ?? 12;
 	// Wall height on screen for a wall at distance 1, with square pixels.
 	const projection = width / 2 / planeHalfWidth;
-	const half = width * (height >> 1);
 
 	return {
 		render(framebuffer, grid, camera) {
@@ -53,8 +54,9 @@ export function createRenderer(options: RendererOptions): Renderer {
 				);
 			}
 			const pixels = framebuffer.pixels;
-			pixels.fill(ceilingColor, 0, half);
-			pixels.fill(floorColor, half);
+			const horizon = Math.min(height, Math.max(0, (height >> 1) + Math.round(camera.horizonOffset ?? 0)));
+			pixels.fill(ceilingColor, 0, width * horizon);
+			pixels.fill(floorColor, width * horizon);
 
 			const dirX = Math.cos(camera.angle);
 			const dirY = Math.sin(camera.angle);
@@ -93,8 +95,8 @@ export function createRenderer(options: RendererOptions): Renderer {
 				const distance = ySide ? sideY - deltaY : sideX - deltaX;
 
 				const lineHeight = projection / distance;
-				const top = Math.max(0, Math.floor((height - lineHeight) / 2));
-				const bottom = Math.min(height, Math.ceil((height + lineHeight) / 2));
+				const top = Math.max(0, Math.floor(horizon - lineHeight / 2));
+				const bottom = Math.min(height, Math.ceil(horizon + lineHeight / 2));
 				let light = 1 - distance / shadeDistance;
 				if (light < MIN_SHADE) light = MIN_SHADE;
 				if (ySide) light *= Y_SIDE_SHADE;
