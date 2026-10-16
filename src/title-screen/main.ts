@@ -10,6 +10,6 @@ createTitleScreen({
 	onNewGame() {
 		// The NEW GAME user gesture (a click or Enter), before the game code is ready.
 		// Start the Audio here (#9): the browser allows sound only after a gesture.
-		// Send the `new-game` analytics event here (#13).
+		// The `new-game` analytics event is sent by createTitleScreen.
 	},
 });

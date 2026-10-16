@@ -1,3 +1,4 @@
+import { track } from "./analytics/analytics";
 import { createFramebuffer } from "./engine/framebuffer";
 import { createKeyboardInput, type InputSnapshot } from "./engine/input";
 import { createFixedStepLoop } from "./engine/loop";
@@ -53,6 +54,7 @@ export function startGame(): void {
 	const game = createGame({
 		level: sampleLevel,
 		content: EXHIBITS,
+		track,
 		textures: Object.fromEntries(textureEntries),
 		sprites: Object.fromEntries(spriteEntries),
 		posters: Object.fromEntries(posterEntries),

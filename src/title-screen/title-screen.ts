@@ -1,3 +1,5 @@
+import { type AnalyticsEvent, track as sendEvent } from "../analytics/analytics";
+
 export interface TitleScreenOptions<Game> {
 	/** The document (or part of it) that holds the Title Screen markup from index.html. */
 	root: ParentNode;
@@ -13,6 +15,8 @@ export interface TitleScreenOptions<Game> {
 	 * play sound. It runs once, before the game code is ready.
 	 */
 	onNewGame?(): void;
+	/** Sends an analytics event (`new-game`, `skip`). By default it is the GoatCounter `track`. */
+	track?(event: AnalyticsEvent): void;
 	/** Opens a page: the Skip View. By default it is `location.assign`. */
 	navigate?(url: string): void;
 	/**
@@ -32,6 +36,7 @@ const MOVES: Record<string, number> = { ArrowUp: -1, ArrowDown: 1 };
 
 /** The Title Screen: NEW GAME or SKIP. It loads the game code only when the visitor points at or focuses NEW GAME. */
 export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): TitleScreen {
+	const track = options.track ?? sendEvent;
 	const navigate = options.navigate ?? ((url: string) => location.assign(url));
 	const reload = options.reload ?? (() => location.reload());
 	const newGame = query<HTMLElement>(options.root, '[data-menu-item="new-game"]');
@@ -68,6 +73,7 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 		if (starting) return;
 		starting = true;
 		if (loadFailed) return reload();
+		track("new-game");
 		options.onNewGame?.();
 		const pending = preload();
 		if (loaded) return start(loaded.game);
@@ -93,8 +99,10 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 	};
 
 	const choose = () => {
-		if (items[selected] === skip) navigate(skip.href);
-		else startNewGame();
+		if (items[selected] === skip) {
+			track("skip");
+			navigate(skip.href);
+		} else startNewGame();
 	};
 
 	const onKeyDown = (event: KeyboardEvent) => {
@@ -122,6 +130,9 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 	newGame.addEventListener("pointerenter", preloadQuietly);
 	newGame.addEventListener("focus", preloadQuietly);
 	newGame.addEventListener("click", startNewGame);
+	// A click on the SKIP link follows the link by itself; the Enter key goes through choose().
+	const onSkipClick = () => track("skip");
+	skip.addEventListener("click", onSkipClick);
 	document.addEventListener("keydown", onKeyDown);
 
 	function dispose(): void {
@@ -129,6 +140,7 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 		newGame.removeEventListener("pointerenter", preloadQuietly);
 		newGame.removeEventListener("focus", preloadQuietly);
 		newGame.removeEventListener("click", startNewGame);
+		skip.removeEventListener("click", onSkipClick);
 		document.removeEventListener("keydown", onKeyDown);
 	}
 

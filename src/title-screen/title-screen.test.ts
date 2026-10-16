@@ -234,3 +234,31 @@ describe("NEW GAME", () => {
 		expect(reload).not.toHaveBeenCalled();
 	});
 });
+
+describe("Title Screen analytics", () => {
+	it("sends new-game on NEW GAME", () => {
+		const track = vi.fn();
+		setUp({ track });
+		newGame().click();
+		expect(track).toHaveBeenCalledExactlyOnceWith("new-game");
+	});
+
+	it("sends skip when the visitor chooses SKIP with Enter", () => {
+		const track = vi.fn();
+		const { navigate } = setUp({ track });
+		document.dispatchEvent(new KeyboardEvent("keydown", { code: "ArrowDown" }));
+		document.dispatchEvent(new KeyboardEvent("keydown", { code: "Enter" }));
+		expect(track).toHaveBeenCalledExactlyOnceWith("skip");
+		expect(navigate).toHaveBeenCalled();
+	});
+});
+
+describe("Title Screen analytics on a SKIP click", () => {
+	it("sends skip when the visitor clicks SKIP", () => {
+		const track = vi.fn();
+		setUp({ track });
+		skip().addEventListener("click", (event) => event.preventDefault());
+		skip().click();
+		expect(track).toHaveBeenCalledExactlyOnceWith("skip");
+	});
+});

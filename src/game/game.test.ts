@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { drawText } from "../engine/font";
 import { createFramebuffer, type Framebuffer, rgb } from "../engine/framebuffer";
 import type { InputSnapshot } from "../engine/input";
@@ -701,6 +701,25 @@ describe("Bugs", () => {
 		expect(game.state().bugsFixed).toBe(2);
 		expect(game.state().bugs.every((bug) => bug.fixed)).toBe(true);
 		expect(game.state().goalComplete).toBe(true);
+	});
+
+	it("sends all-bugs-fixed once, when the goal becomes complete", () => {
+		const track = vi.fn();
+		const game = createGame({
+			level: bugLevel([
+				{ x: 6.5, y: 1.5 },
+				{ x: 1.5, y: 3.5 },
+			]),
+			track,
+		});
+
+		game.step(SHOOT);
+		expect(track).not.toHaveBeenCalled();
+		stepTicks(game, { ...IDLE, turn: 1 }, TICKS_PER_SECOND / 2);
+		game.step(SHOOT);
+		stepTicks(game, SHOOT, 3 * TICKS_PER_SECOND);
+
+		expect(track).toHaveBeenCalledExactlyOnceWith("all-bugs-fixed");
 	});
 
 	it("has no goal to complete in a Level with no Bugs", () => {
