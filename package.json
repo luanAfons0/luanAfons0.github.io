@@ -1,0 +1,30 @@
+{
+	"name": "portfolio",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "pnpm typecheck && vite build",
+		"preview": "vite preview",
+		"typecheck": "tsc --noEmit && tsc --noEmit -p scripts",
+		"lint": "biome check .",
+		"format": "biome check --write .",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"size": "node scripts/check-size.mjs dist",
+		"bench": "vitest bench --run --reporter=verbose"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.15",
+		"@types/node": "^24.19.2",
+		"happy-dom": "20.14.5",
+		"typescript": "^7.0.2",
+		"vite": "^8.3.4",
+		"vitest": "^5.0.5"
+	},
+	"packageManager": "pnpm@10.28.1",
+	"engines": {
+		"node": ">=24"
+	}
+}
