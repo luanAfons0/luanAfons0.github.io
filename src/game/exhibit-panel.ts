@@ -1,11 +1,4 @@
-import type { Exhibit, ExhibitKind } from "./content";
-
-const KIND_LABELS: Record<ExhibitKind, string> = {
-	project: "Project",
-	job: "Job",
-	skill: "Skill",
-	contact: "Contact",
-};
+import { type Exhibit, KIND_LABELS } from "./content";
 
 export interface ExhibitPanelOptions {
 	/** The element the overlay goes into. */

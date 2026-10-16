@@ -40,7 +40,7 @@ const ROOM = "room";
 const EXHIBIT = "exhibit";
 const FACINGS: Record<string, Face> = { north: Face.North, east: Face.East, south: Face.South, west: Face.West };
 /** The cell in front of each face, as an offset from the wall cell. */
-const FACE_OFFSETS: Record<Face, [number, number]> = {
+export const FACE_OFFSETS: Record<Face, [number, number]> = {
 	[Face.North]: [0, -1],
 	[Face.East]: [1, 0],
 	[Face.South]: [0, 1],

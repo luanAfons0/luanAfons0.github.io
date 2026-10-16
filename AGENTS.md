@@ -10,8 +10,9 @@ Use pnpm. `pnpm dev` (dev server), `pnpm build` (type check, then Vite build), `
 
 - `src/engine/`: the generic raycaster (Renderer, Collision, Loop, Input). It never imports `src/game/`; a Biome rule enforces this (ADR 0001).
 - `src/game/`: the portfolio. `game.ts` is the Game core (test Seam 1): no DOM, no canvas, no timers.
+- `src/skip-view/`: the Skip View builder (test Seam 2, `buildSkipView`). It runs at build time only: the `skip-view` plugin in `vite.config.ts` turns `skip/index.html` into the Skip View, from the Content and the Level. The built page has no script: never add one to it.
 - `src/main.ts`: the browser shell (canvas, `requestAnimationFrame`, keyboard). Manual test only.
-- Tests sit next to the code as `*.test.ts` and go through a seam: `createGame` for Seam 1. Build test Levels with `src/game/test-support/tiled-level.ts`.
+- Tests sit next to the code as `*.test.ts` and go through a seam: `createGame` for Seam 1, `buildSkipView` for Seam 2. Build test Levels with `src/game/test-support/tiled-level.ts`.
 - Tiled Levels are in `src/game/levels/`. Biome does not format them, so Tiled can write them.
 - Tiled wall tiles name their texture with a `texture` tile property, in a tileset embedded in the Level.
 - `src/game/content.ts` is the Content: the one typed list of Exhibits. Tiled places each Exhibit as a point object of type `exhibit` inside a wall cell, with an `id` property and a `facing` property (`north`, `east`, `south`, or `west`: the side of the wall the poster is on). Creating the Game core fails when the Level and the Content do not match, so `pnpm test` catches it. Poster PNGs are in `public/posters/`.
