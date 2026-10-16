@@ -1,4 +1,5 @@
 import { cellAt, type Grid } from "../engine/grid";
+import { Face } from "../engine/raycast";
 
 /** The Level model: what the Game core needs from a Tiled map. Positions are in tiles. */
 export interface Level {
@@ -7,8 +8,19 @@ export interface Level {
 	wallTextures: ReadonlyArray<string | undefined>;
 	playerStart: { x: number; y: number; angle: number };
 	rooms: Room[];
+	exhibits: ExhibitPlacement[];
 	/** Where each Bug starts, and the Room it walks in. */
 	bugSpawns: BugSpawn[];
+}
+
+/** Where an Exhibit hangs: one face of one wall cell. Tiled stores only the Exhibit `id`, not its content. */
+export interface ExhibitPlacement {
+	id: string;
+	/** The wall cell, in tiles. */
+	x: number;
+	y: number;
+	/** The side of the wall the poster is on. */
+	face: Face;
 }
 
 /** A Bug spawn: a Tiled point object (type "bug") inside a Room. Positions are in tiles. */
@@ -35,6 +47,15 @@ const TEXTURE_PROPERTY = "texture";
 const MAX_WALL_GID = 255;
 const ROOM = "room";
 const BUG = "bug";
+const EXHIBIT = "exhibit";
+const FACINGS: Record<string, Face> = { north: Face.North, east: Face.East, south: Face.South, west: Face.West };
+/** The cell in front of each face, as an offset from the wall cell. */
+const FACE_OFFSETS: Record<Face, [number, number]> = {
+	[Face.North]: [0, -1],
+	[Face.East]: [1, 0],
+	[Face.South]: [0, 1],
+	[Face.West]: [-1, 0],
+};
 /** Tiled keeps flip and rotation flags in the top bits of a gid. */
 const GID_MASK = 0x0fffffff;
 
@@ -79,7 +100,6 @@ export function loadLevel(json: unknown): Level {
 	}
 	const start = starts[0] as Record<string, unknown>;
 	const angleDegrees = asNumber(property(start, "angle") ?? 0, `"${PLAYER_START}" angle`);
-
 	const walls: Grid = { width, height, cells };
 	const rooms = loadRooms(
 		objects.filter((object) => objectType(object) === ROOM),
@@ -99,6 +119,12 @@ export function loadLevel(json: unknown): Level {
 			objects.filter((object) => objectType(object) === BUG),
 			walls,
 			rooms,
+			tileWidth,
+			tileHeight,
+		),
+		exhibits: loadExhibits(
+			objects.filter((object) => objectType(object) === EXHIBIT),
+			walls,
 			tileWidth,
 			tileHeight,
 		),
@@ -171,6 +197,46 @@ function loadBugSpawns(
 		if (!room) throw new Error(`${what} is in no Room. Put each Bug inside a Room rectangle.`);
 		return { x, y, room };
 	});
+}
+
+/**
+ * Exhibits are point objects (type "exhibit") inside a wall cell. The `id` property names the
+ * Exhibit in the Content, and the `facing` property (north, east, south, or west) names the side
+ * of the wall the poster is on. The cell on that side must be empty, so the player can see it.
+ */
+function loadExhibits(
+	objects: Record<string, unknown>[],
+	walls: Grid,
+	tileWidth: number,
+	tileHeight: number,
+): ExhibitPlacement[] {
+	const exhibits: ExhibitPlacement[] = [];
+	for (const object of objects) {
+		const id = property(object, "id");
+		if (typeof id !== "string" || id.trim() === "") {
+			throw new Error(`Exhibit object ${String(object.id)} has no "id" property.`);
+		}
+		const facing = property(object, "facing");
+		const face = typeof facing === "string" ? FACINGS[facing] : undefined;
+		if (face === undefined) {
+			throw new Error(`Exhibit "${id}" needs a "facing" property: north, east, south, or west.`);
+		}
+		const x = Math.floor(asNumber(object.x, `Exhibit "${id}" x`) / tileWidth);
+		const y = Math.floor(asNumber(object.y, `Exhibit "${id}" y`) / tileHeight);
+		if (cellAt(walls, x, y) === 0 || x >= walls.width || y >= walls.height || x < 0 || y < 0) {
+			throw new Error(`Exhibit "${id}" must be on a wall cell, but cell (${x}, ${y}) is not a wall in the Level.`);
+		}
+		const [dx, dy] = FACE_OFFSETS[face];
+		if (cellAt(walls, x + dx, y + dy) !== 0) {
+			throw new Error(`Exhibit "${id}" faces ${facing}, but the cell on that side of (${x}, ${y}) is not empty.`);
+		}
+		if (exhibits.some((other) => other.id === id)) throw new Error(`Exhibit "${id}" is placed twice in the Level.`);
+		if (exhibits.some((other) => other.x === x && other.y === y && other.face === face)) {
+			throw new Error(`Exhibit "${id}" hangs on the same wall face as another Exhibit.`);
+		}
+		exhibits.push({ id, x, y, face });
+	}
+	return exhibits;
 }
 
 /** Returns the first Room whose rectangle holds the point, or undefined. */

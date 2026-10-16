@@ -1,5 +1,6 @@
 import type { Framebuffer } from "./framebuffer";
 import { cellAt, type Grid } from "./grid";
+import { Face, faceKey } from "./raycast";
 import type { Texture } from "./texture";
 
 export interface Camera {
@@ -37,6 +38,11 @@ export interface RendererOptions {
 	 * so a 64x128 texture repeats twice across one tile and a 256x128 texture spans two tiles.
 	 */
 	wallTextures: ReadonlyArray<Texture | undefined>;
+	/**
+	 * Textures for single wall faces, by `faceKey`. They replace the wall texture on that face
+	 * and span exactly one tile across, whatever their size (for posters, for example).
+	 */
+	faceTextures?: ReadonlyMap<number, Texture>;
 	/** Flat colors, shaded by distance like the walls. */
 	ceilingColor: number;
 	floorColor: number;
@@ -82,7 +88,7 @@ const NO_SPRITES: ReadonlyArray<Sprite> = [];
  * (a digital differential analyzer: it steps from one cell edge to the next).
  */
 export function createRenderer(options: RendererOptions): Renderer {
-	const { width, height, wallTextures, ceilingColor, floorColor } = options;
+	const { width, height, wallTextures, faceTextures, ceilingColor, floorColor } = options;
 	const viewHeight = options.viewHeight ?? height;
 	if (viewHeight < 1 || viewHeight > height) throw new Error(`viewHeight must be 1 to ${height}, got ${viewHeight}.`);
 	const planeHalfWidth = options.planeHalfWidth ?? 0.9;
@@ -159,7 +165,12 @@ export function createRenderer(options: RendererOptions): Renderer {
 				const distance = ySide ? sideY - deltaY : sideX - deltaX;
 				depthBuffer[column] = distance;
 
-				const texture = wallTextures[cell] ?? MISSING_TEXTURE;
+				let faceTexture: Texture | undefined;
+				if (faceTextures && mapX >= 0 && mapY >= 0 && mapX < grid.width && mapY < grid.height) {
+					const face = ySide ? (stepY > 0 ? Face.North : Face.South) : stepX > 0 ? Face.West : Face.East;
+					faceTexture = faceTextures.get(faceKey(grid, mapX, mapY, face));
+				}
+				const texture = faceTexture ?? wallTextures[cell] ?? MISSING_TEXTURE;
 				const { texels, height: textureHeight } = texture;
 				// Where the ray hits along the wall face, in tiles. It grows from left to right as the
 				// viewer sees the face, so textures never show mirrored.
@@ -171,7 +182,9 @@ export function createRenderer(options: RendererOptions): Renderer {
 					const hitY = camera.y + distance * rayY;
 					u = rayX > 0 ? hitY : -hitY;
 				}
-				let textureX = Math.floor(u * textureHeight) % texture.width;
+				let textureX = faceTexture
+					? Math.floor((u - Math.floor(u)) * texture.width)
+					: Math.floor(u * textureHeight) % texture.width;
 				if (textureX < 0) textureX += texture.width;
 				const columnStart = textureX * textureHeight;
 

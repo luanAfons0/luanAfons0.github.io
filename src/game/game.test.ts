@@ -4,6 +4,7 @@ import { createFramebuffer, type Framebuffer, rgb } from "../engine/framebuffer"
 import type { InputSnapshot } from "../engine/input";
 import { createFixedStepLoop } from "../engine/loop";
 import { createTexture, type Texture } from "../engine/texture";
+import { EXHIBITS } from "./content";
 import {
 	BUG_SPRITE_NAMES,
 	CROSSHAIR_COLOR,
@@ -319,13 +320,13 @@ describe("Game core", () => {
 	});
 
 	it("loads the real sample Level", () => {
-		const game = createGame({ level: sampleLevel });
+		const game = createGame({ level: sampleLevel, content: EXHIBITS });
 		expect(game.state().player).toEqual({ x: 1.5, y: 1.5, angle: 0 });
 		expect(game.state().room).toBe("Lobby");
 	});
 
 	it("spreads several Bugs over every Room of the real sample Level", () => {
-		const { bugs, bugsTotal } = createGame({ level: sampleLevel }).state();
+		const { bugs, bugsTotal } = createGame({ level: sampleLevel, content: EXHIBITS }).state();
 		expect(bugsTotal).toBeGreaterThanOrEqual(5);
 		expect(new Set(bugs.map((bug) => bug.room))).toEqual(new Set(["Lobby", "Workshop", "Archive"]));
 	});

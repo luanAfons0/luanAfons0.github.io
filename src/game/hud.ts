@@ -1,4 +1,4 @@
-import { drawText, GLYPH_HEIGHT, undrawableChar } from "../engine/font";
+import { drawText, GLYPH_HEIGHT, textWidth, undrawableChar } from "../engine/font";
 import { type Framebuffer, rgb } from "../engine/framebuffer";
 
 /** What the HUD shows. The Game core fills it from its state each frame. */
@@ -7,6 +7,8 @@ export interface HudView {
 	room: string | null;
 	/** Bugs fixed out of the total, like "3/7", or null when the Level has no Bugs. */
 	bugsFixed: string | null;
+	/** A short hint centered above the status bar (for example "Press E"), or null for none. */
+	hint: string | null;
 }
 
 /** One boxed section of the status bar: a small label above a big value. */
@@ -31,6 +33,12 @@ const SECTIONS: readonly StatusBarSection[] = [
 export const STATUS_BAR_HEIGHT = 40;
 /** The color of the values in the status bar (the big text). */
 export const HUD_VALUE_COLOR = rgb(220, 40, 32);
+/** The color of the hint above the status bar. */
+export const HUD_HINT_COLOR = rgb(255, 216, 72);
+const HINT_SHADOW_COLOR = rgb(0, 0, 0);
+const HINT_SCALE = 2;
+/** Space between the hint and the top of the status bar, in pixels. */
+const HINT_GAP = 16;
 
 /** The crosshair in the middle of the 3D view, where shots go. */
 export const CROSSHAIR_COLOR = rgb(240, 232, 160);
@@ -92,6 +100,12 @@ export function createHud(screenWidth: number, screenHeight: number): Hud {
 						box.width - 2 * PADDING,
 					);
 				}
+			}
+			if (view.hint !== null) {
+				const x = Math.round((screenWidth - textWidth(view.hint, HINT_SCALE)) / 2);
+				const y = top - HINT_GAP - GLYPH_HEIGHT * HINT_SCALE;
+				drawText(framebuffer, view.hint, x + 1, y + 1, HINT_SHADOW_COLOR, HINT_SCALE);
+				drawText(framebuffer, view.hint, x, y, HUD_HINT_COLOR, HINT_SCALE);
 			}
 		},
 	};

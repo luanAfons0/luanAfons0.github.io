@@ -130,7 +130,8 @@ export function createBugs(spawns: readonly BugSpawn[], images: Readonly<Record<
 			const dirX = Math.cos(angle);
 			const dirY = Math.sin(angle);
 			let nearest: Bug | undefined;
-			let nearestDistance = castRay(walls, x, y, dirX, dirY);
+			// Cells outside the grid are solid, so the ray always hits a wall.
+			let nearestDistance = castRay(walls, x, y, angle, Number.POSITIVE_INFINITY)?.distance ?? Number.POSITIVE_INFINITY;
 			for (const bug of bugs) {
 				if (bug.fixed) continue;
 				const dx = bug.x - x;
