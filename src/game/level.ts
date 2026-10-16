@@ -1,4 +1,4 @@
-import type { Grid } from "../engine/grid";
+import { cellAt, type Grid } from "../engine/grid";
 
 /** The Level model: what the Game core needs from a Tiled map. Positions are in tiles. */
 export interface Level {
@@ -7,6 +7,15 @@ export interface Level {
 	wallTextures: ReadonlyArray<string | undefined>;
 	playerStart: { x: number; y: number; angle: number };
 	rooms: Room[];
+	/** Where each Bug starts, and the Room it walks in. */
+	bugSpawns: BugSpawn[];
+}
+
+/** A Bug spawn: a Tiled point object (type "bug") inside a Room. Positions are in tiles. */
+export interface BugSpawn {
+	x: number;
+	y: number;
+	room: Room;
 }
 
 /** One named area of the Level: a Tiled rectangle object. Positions are in tiles. */
@@ -25,6 +34,7 @@ const TEXTURE_PROPERTY = "texture";
 /** Wall cells are stored as bytes. */
 const MAX_WALL_GID = 255;
 const ROOM = "room";
+const BUG = "bug";
 /** Tiled keeps flip and rotation flags in the top bits of a gid. */
 const GID_MASK = 0x0fffffff;
 
@@ -70,16 +80,25 @@ export function loadLevel(json: unknown): Level {
 	const start = starts[0] as Record<string, unknown>;
 	const angleDegrees = asNumber(property(start, "angle") ?? 0, `"${PLAYER_START}" angle`);
 
+	const walls: Grid = { width, height, cells };
+	const rooms = loadRooms(
+		objects.filter((object) => objectType(object) === ROOM),
+		tileWidth,
+		tileHeight,
+	);
 	return {
-		walls: { width, height, cells },
+		walls,
 		wallTextures,
 		playerStart: {
 			x: asNumber(start.x, `"${PLAYER_START}" x`) / tileWidth,
 			y: asNumber(start.y, `"${PLAYER_START}" y`) / tileHeight,
 			angle: (angleDegrees * Math.PI) / 180,
 		},
-		rooms: loadRooms(
-			objects.filter((object) => objectType(object) === ROOM),
+		rooms,
+		bugSpawns: loadBugSpawns(
+			objects.filter((object) => objectType(object) === BUG),
+			walls,
+			rooms,
 			tileWidth,
 			tileHeight,
 		),
@@ -133,6 +152,25 @@ function loadRooms(objects: Record<string, unknown>[], tileWidth: number, tileHe
 		});
 	}
 	return rooms;
+}
+
+/** Bugs are point objects (type "bug"). Each one must be on an empty cell inside a Room. */
+function loadBugSpawns(
+	objects: Record<string, unknown>[],
+	walls: Grid,
+	rooms: readonly Room[],
+	tileWidth: number,
+	tileHeight: number,
+): BugSpawn[] {
+	return objects.map((object) => {
+		const what = `Bug object ${String(object.id)}`;
+		const x = asNumber(object.x, `${what} x`) / tileWidth;
+		const y = asNumber(object.y, `${what} y`) / tileHeight;
+		if (cellAt(walls, Math.floor(x), Math.floor(y)) !== 0) throw new Error(`${what} is inside a wall.`);
+		const room = roomAt(rooms, x, y);
+		if (!room) throw new Error(`${what} is in no Room. Put each Bug inside a Room rectangle.`);
+		return { x, y, room };
+	});
 }
 
 /** Returns the first Room whose rectangle holds the point, or undefined. */

@@ -5,6 +5,8 @@ import { type Framebuffer, rgb } from "../engine/framebuffer";
 export interface HudView {
 	/** The current Room name, or null before the player enters a Room. */
 	room: string | null;
+	/** Bugs fixed out of the total, like "3/7", or null when the Level has no Bugs. */
+	bugsFixed: string | null;
 }
 
 /** One boxed section of the status bar: a small label above a big value. */
@@ -18,14 +20,24 @@ interface StatusBarSection {
 
 /**
  * The status bar sections, left to right. To show something new
- * (for example the Bugs fixed), add a field to `HudView` and a section here.
+ * (for example a new counter), add a field to `HudView` and a section here.
  */
-const SECTIONS: readonly StatusBarSection[] = [{ label: "ROOM", value: (view) => view.room }];
+const SECTIONS: readonly StatusBarSection[] = [
+	{ label: "ROOM", value: (view) => view.room },
+	{ label: "BUGS FIXED", width: 120, value: (view) => view.bugsFixed },
+];
 
 /** The status bar is this many pixels high, across the bottom of the frame. */
 export const STATUS_BAR_HEIGHT = 40;
 /** The color of the values in the status bar (the big text). */
 export const HUD_VALUE_COLOR = rgb(220, 40, 32);
+
+/** The crosshair in the middle of the 3D view, where shots go. */
+export const CROSSHAIR_COLOR = rgb(240, 232, 160);
+/** Each crosshair arm runs from this many pixels away from the center... */
+const CROSSHAIR_GAP = 2;
+/** ...to this many. */
+const CROSSHAIR_REACH = 5;
 
 const BAR_COLOR = rgb(92, 88, 80);
 const BAR_EDGE_COLOR = rgb(150, 144, 132);
@@ -46,16 +58,23 @@ interface SectionBox {
 }
 
 export interface Hud {
-	/** Draws the status bar over the bottom of the frame. It allocates no memory. */
+	/** Draws the crosshair and the status bar over the frame. It allocates no memory. */
 	draw(framebuffer: Framebuffer, view: HudView): void;
 }
 
 export function createHud(screenWidth: number, screenHeight: number): Hud {
 	const top = screenHeight - STATUS_BAR_HEIGHT;
 	const boxes = layOut(screenWidth, top);
+	const centerX = screenWidth >> 1;
+	const centerY = top >> 1;
 
 	return {
 		draw(framebuffer, view) {
+			const arm = CROSSHAIR_REACH - CROSSHAIR_GAP + 1;
+			fillRect(framebuffer, centerX - CROSSHAIR_REACH, centerY, arm, 1, CROSSHAIR_COLOR);
+			fillRect(framebuffer, centerX + CROSSHAIR_GAP, centerY, arm, 1, CROSSHAIR_COLOR);
+			fillRect(framebuffer, centerX, centerY - CROSSHAIR_REACH, 1, arm, CROSSHAIR_COLOR);
+			fillRect(framebuffer, centerX, centerY + CROSSHAIR_GAP, 1, arm, CROSSHAIR_COLOR);
 			fillRect(framebuffer, 0, top, screenWidth, STATUS_BAR_HEIGHT, BAR_COLOR);
 			fillRect(framebuffer, 0, top, screenWidth, 1, BAR_EDGE_COLOR);
 			for (const box of boxes) {

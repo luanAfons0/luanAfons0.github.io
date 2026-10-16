@@ -2,12 +2,14 @@
  * The input for one fixed tick.
  * forward, strafe, and turn are key axes in [-1, 1]: +1 moves forward, moves right, turns right.
  * look is the mouse movement to the right since the last tick, in screen pixels (not clamped).
+ * shoot is true in the one tick after the player pressed the fire button.
  */
 export interface InputSnapshot {
 	forward: number;
 	strafe: number;
 	turn: number;
 	look: number;
+	shoot?: boolean;
 }
 
 type Axis = "forward" | "strafe" | "turn";

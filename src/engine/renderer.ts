@@ -11,6 +11,24 @@ export interface Camera {
 	horizonOffset?: number;
 }
 
+/** A sprite picture with its anchor, like a Doom sprite lump. Texels with alpha 0 are see-through. */
+export interface SpriteImage {
+	texture: Texture;
+	/** The anchor is this many texels right of the left edge... */
+	left: number;
+	/** ...and this many texels below the top edge. */
+	top: number;
+}
+
+/** A billboard: a flat picture that always faces the camera. Positions are in tiles. */
+export interface Sprite {
+	x: number;
+	y: number;
+	/** The height of the anchor above the floor, in tiles. The floor is at 0 and the ceiling at 1. */
+	z: number;
+	image: SpriteImage;
+}
+
 export interface RendererOptions {
 	width: number;
 	height: number;
@@ -31,11 +49,23 @@ export interface RendererOptions {
 	planeHalfWidth?: number;
 	/** Walls at this distance (in tiles) or farther get the darkest shade. */
 	shadeDistance?: number;
+	/** The size of one sprite texel, in tiles. Default 1/128, the size of a wall texel. */
+	spriteTexelSize?: number;
 }
 
 export interface Renderer {
-	/** Draws one frame. It allocates no memory. */
-	render(framebuffer: Framebuffer, grid: Grid, camera: Camera): void;
+	/**
+	 * Draws one frame: the walls, then the first `spriteCount` sprites (default: all), far to near.
+	 * Walls in front of a sprite hide it. It allocates no memory, except once when a frame has
+	 * more sprites than any frame before.
+	 */
+	render(
+		framebuffer: Framebuffer,
+		grid: Grid,
+		camera: Camera,
+		sprites?: ReadonlyArray<Sprite>,
+		spriteCount?: number,
+	): void;
 }
 
 const MIN_SHADE = 0.15;
@@ -43,6 +73,9 @@ const MIN_SHADE = 0.15;
 const Y_SIDE_SHADE = 0.75;
 /** Shown when a cell value has no wall texture, so the mistake is easy to see. */
 const MISSING_TEXTURE: Texture = { width: 1, height: 1, texels: new Uint32Array([0xffff00ff]) };
+/** Sprites nearer than this (in tiles) are not drawn: they would fill the view. */
+const NEAR_PLANE = 0.1;
+const NO_SPRITES: ReadonlyArray<Sprite> = [];
 
 /**
  * A raycaster: one ray per screen column, walked through the grid with DDA
@@ -54,6 +87,7 @@ export function createRenderer(options: RendererOptions): Renderer {
 	if (viewHeight < 1 || viewHeight > height) throw new Error(`viewHeight must be 1 to ${height}, got ${viewHeight}.`);
 	const planeHalfWidth = options.planeHalfWidth ?? 0.9;
 	const shadeDistance = options.shadeDistance ?? 12;
+	const spriteTexelSize = options.spriteTexelSize ?? 1 / 128;
 	// Wall height on screen for a wall at distance 1, with square pixels.
 	const projection = width / 2 / planeHalfWidth;
 	const lightAt = (distance: number) => Math.max(MIN_SHADE, 1 - distance / shadeDistance);
@@ -68,9 +102,14 @@ export function createRenderer(options: RendererOptions): Renderer {
 		ceilingRows[k] = shadeTexel(ceilingColor, level);
 		floorRows[k] = shadeTexel(floorColor, level);
 	}
+	// The wall distance of each column, so sprites behind a wall are hidden.
+	const depthBuffer = new Float64Array(width);
+	// The sprites of one frame, sorted far to near. They grow only when a frame has more sprites than before.
+	let spriteOrder = new Int32Array(16);
+	let spriteDepths = new Float64Array(16);
 
 	return {
-		render(framebuffer, grid, camera) {
+		render(framebuffer, grid, camera, sprites = NO_SPRITES, spriteCount = sprites.length) {
 			if (framebuffer.width !== width || framebuffer.height !== height) {
 				throw new Error(
 					`Renderer draws ${width}x${height}, but the framebuffer is ${framebuffer.width}x${framebuffer.height}.`,
@@ -118,6 +157,7 @@ export function createRenderer(options: RendererOptions): Renderer {
 				}
 				// Distance along the view direction (not along the ray), so walls do not bulge.
 				const distance = ySide ? sideY - deltaY : sideX - deltaX;
+				depthBuffer[column] = distance;
 
 				const texture = wallTextures[cell] ?? MISSING_TEXTURE;
 				const { texels, height: textureHeight } = texture;
@@ -150,6 +190,56 @@ export function createRenderer(options: RendererOptions): Renderer {
 					if (row >= textureHeight) row = textureHeight - 1;
 					pixels[i] = shadeTexel(texels[columnStart + row] as number, level);
 					textureY += textureStep;
+				}
+			}
+
+			// Sprites: sort far to near, so nearer sprites cover farther ones.
+			if (spriteCount > spriteOrder.length) {
+				spriteOrder = new Int32Array(spriteCount);
+				spriteDepths = new Float64Array(spriteCount);
+			}
+			let visible = 0;
+			for (let i = 0; i < spriteCount; i++) {
+				const sprite = sprites[i] as Sprite;
+				// Depth along the view direction, like the wall distance.
+				const depth = (sprite.x - camera.x) * dirX + (sprite.y - camera.y) * dirY;
+				if (depth < NEAR_PLANE) continue;
+				// Insertion sort: shift nearer sprites right, then put this one in the gap.
+				let slot = visible++;
+				while (slot > 0 && (spriteDepths[slot - 1] as number) < depth) {
+					spriteDepths[slot] = spriteDepths[slot - 1] as number;
+					spriteOrder[slot] = spriteOrder[slot - 1] as number;
+					slot--;
+				}
+				spriteDepths[slot] = depth;
+				spriteOrder[slot] = i;
+			}
+			for (let k = 0; k < visible; k++) {
+				const sprite = sprites[spriteOrder[k] as number] as Sprite;
+				const depth = spriteDepths[k] as number;
+				const { texture, left, top } = sprite.image;
+				const { texels, width: textureWidth, height: textureHeight } = texture;
+				// Screen pixels per sprite texel at this depth.
+				const texelPixels = (projection / depth) * spriteTexelSize;
+				// Where the sprite is across the view: -1 at the left edge, 1 at the right edge.
+				const across =
+					((sprite.x - camera.x) * planeX + (sprite.y - camera.y) * planeY) / (planeHalfWidth * planeHalfWidth) / depth;
+				const screenLeft = ((across + 1) * width) / 2 - left * texelPixels;
+				const screenTop = horizon + ((0.5 - sprite.z) * projection) / depth - top * texelPixels;
+				const firstColumn = Math.max(0, Math.ceil(screenLeft - 0.5));
+				const endColumn = Math.min(width, Math.ceil(screenLeft + textureWidth * texelPixels - 0.5));
+				const firstRow = Math.max(0, Math.ceil(screenTop - 0.5));
+				const endRow = Math.min(viewHeight, Math.ceil(screenTop + textureHeight * texelPixels - 0.5));
+				const level = Math.round(lightAt(depth) * 256);
+				for (let column = firstColumn; column < endColumn; column++) {
+					if (depth >= (depthBuffer[column] as number)) continue;
+					const textureX = Math.min(textureWidth - 1, ((column + 0.5 - screenLeft) / texelPixels) | 0);
+					const columnStart = textureX * textureHeight;
+					for (let y = firstRow, i = firstRow * width + column; y < endRow; y++, i += width) {
+						const row = Math.min(textureHeight - 1, ((y + 0.5 - screenTop) / texelPixels) | 0);
+						const texel = texels[columnStart + row] as number;
+						if (texel >>> 24 !== 0) pixels[i] = shadeTexel(texel, level);
+					}
 				}
 			}
 		},

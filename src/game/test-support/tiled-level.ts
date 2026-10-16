@@ -117,3 +117,21 @@ export function tiledRoom(name: string, rect: { x: number; y: number; width: num
 		visible: true,
 	};
 }
+
+let nextBugId = 2000;
+
+/** A Tiled point object for a Bug spawn. The position is in tiles. */
+export function tiledBug(position: { x: number; y: number }): object {
+	return {
+		id: nextBugId++,
+		name: "",
+		type: "bug",
+		x: position.x * TILE_SIZE,
+		y: position.y * TILE_SIZE,
+		width: 0,
+		height: 0,
+		rotation: 0,
+		point: true,
+		visible: true,
+	};
+}
