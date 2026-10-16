@@ -1,0 +1,285 @@
+/*
+ * The Exhibit Panel in two looks (src/theme.css chooses one; index.html loads it):
+ * - Paper: a datasheet page. The Part label block and the kind sit on a header rule, then the title,
+ *   the summary, and the "Description" and "Links" sections.
+ * - Board: a board panel. An outlined copper Part label, the title in silkscreen. The section
+ *   headings stay for screen readers only.
+ * One markup serves both. Colors pick their look with light-dark() (Paper value first); the sizes
+ * and the layout that differ come from the --ep-* tokens below.
+ */
+
+/* The overlay, with the Paper layout tokens. */
+.exhibit-panel {
+	position: fixed;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	padding: 16px;
+	background: rgb(7 9 9 / 0.62);
+	color: var(--text);
+	/* The mock sizes the panel to the 16:9 game picture: 1.25% of its width. */
+	font: clamp(14px, min(1.25vw, 2.2222vh), 22px) / 1.5 var(--font-sans);
+
+	--ep-width: 51em;
+	--ep-texture: none;
+	--ep-shadow: 0 18px 50px rgb(0 0 0 / 0.55);
+	--ep-panel-padding: 0;
+	--ep-panel-gap: 0;
+	--ep-head-margin: 0 1.92em;
+	--ep-head-padding: 1.44em 0 0;
+	--ep-head-justify: space-between;
+	--ep-head-align: stretch;
+	--ep-head-rule: 3px;
+	--ep-part-padding: 0.45em 0.8em 0.3em;
+	--ep-part-size: 1.1em;
+	--ep-kind-font: 400 1em / 1.2 var(--font-sans);
+	--ep-kind-align: end;
+	--ep-kind-padding: 0 0 0.35em;
+	--ep-body-padding: 1.28em 1.92em 1.6em;
+	--ep-title-font: 800 2.6em / 1 var(--font-sans);
+	--ep-title-stretch: 78%;
+	--ep-title-spacing: -0.01em;
+	--ep-summary-size: 1.25em;
+	--ep-link-weight: 600;
+	--ep-link-hover-decoration: none;
+	--ep-foot-padding: 0.7em 1.92em 1.12em;
+}
+
+/* The Board layout. Keep the two blocks below the same: the first is the saved Theme, the second the
+   system setting when no Theme is saved. */
+:root[data-theme="board"] .exhibit-panel {
+	--ep-width: 48em;
+	--ep-texture: var(--board-traces-quiet);
+	--ep-shadow: 0 14px 40px rgb(0 0 0 / 0.5);
+	--ep-panel-padding: 1.6em 1.92em;
+	--ep-panel-gap: 0.9em;
+	--ep-head-margin: 0;
+	--ep-head-padding: 0;
+	--ep-head-justify: flex-start;
+	--ep-head-align: center;
+	--ep-head-rule: 0;
+	--ep-part-padding: 0.35em 0.6em;
+	--ep-part-size: 1em;
+	--ep-kind-font: 400 1em / 1 var(--font-silk);
+	--ep-kind-align: center;
+	--ep-kind-padding: 0;
+	--ep-body-padding: 0;
+	--ep-title-font: 400 2.2em / 1.1 var(--font-silk);
+	--ep-title-stretch: normal;
+	--ep-title-spacing: 0;
+	--ep-summary-size: 1.2em;
+	--ep-link-weight: 400;
+	--ep-link-hover-decoration: underline;
+	--ep-foot-padding: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme]) .exhibit-panel {
+		--ep-width: 48em;
+		--ep-texture: var(--board-traces-quiet);
+		--ep-shadow: 0 14px 40px rgb(0 0 0 / 0.5);
+		--ep-panel-padding: 1.6em 1.92em;
+		--ep-panel-gap: 0.9em;
+		--ep-head-margin: 0;
+		--ep-head-padding: 0;
+		--ep-head-justify: flex-start;
+		--ep-head-align: center;
+		--ep-head-rule: 0;
+		--ep-part-padding: 0.35em 0.6em;
+		--ep-part-size: 1em;
+		--ep-kind-font: 400 1em / 1 var(--font-silk);
+		--ep-kind-align: center;
+		--ep-kind-padding: 0;
+		--ep-body-padding: 0;
+		--ep-title-font: 400 2.2em / 1.1 var(--font-silk);
+		--ep-title-stretch: normal;
+		--ep-title-spacing: 0;
+		--ep-summary-size: 1.2em;
+		--ep-link-weight: 400;
+		--ep-link-hover-decoration: underline;
+		--ep-foot-padding: 0;
+	}
+}
+
+.exhibit-panel[hidden] {
+	display: none;
+}
+
+.exhibit-panel__panel {
+	display: grid;
+	gap: var(--ep-panel-gap);
+	box-sizing: border-box;
+	width: min(var(--ep-width), 100%);
+	max-height: calc(100dvh - 32px);
+	overflow-y: auto;
+	padding: var(--ep-panel-padding);
+	background-color: var(--surface);
+	background-image: var(--ep-texture);
+	background-size: 240px 240px;
+	border: 2px solid light-dark(transparent, var(--silk-3));
+	box-shadow: var(--ep-shadow);
+	outline: none;
+}
+
+/* Rise in 140 ms with a strong ease-out. Closing hides the overlay at once. */
+@media (prefers-reduced-motion: no-preference) {
+	.exhibit-panel__panel {
+		animation: exhibit-panel-rise 140ms cubic-bezier(0.23, 1, 0.32, 1);
+	}
+}
+
+@keyframes exhibit-panel-rise {
+	from {
+		opacity: 0;
+		translate: 0 12px;
+	}
+}
+
+.exhibit-panel__content {
+	display: grid;
+	gap: var(--ep-panel-gap);
+}
+
+.exhibit-panel__header {
+	display: flex;
+	align-items: var(--ep-head-align);
+	justify-content: var(--ep-head-justify);
+	gap: 1em;
+	margin: var(--ep-head-margin);
+	padding: var(--ep-head-padding);
+	border-bottom: var(--ep-head-rule) solid var(--line);
+}
+
+/* Paper: ink block with paper text. Board: copper outline with copper text. */
+.exhibit-panel__part {
+	padding: var(--ep-part-padding);
+	background: light-dark(var(--ink), transparent);
+	border: 2px solid light-dark(var(--ink), var(--copper));
+	color: light-dark(var(--paper), var(--copper-hot));
+	font: 400 var(--ep-part-size) / 1 var(--font-silk);
+}
+
+.exhibit-panel__kind {
+	align-self: var(--ep-kind-align);
+	padding: var(--ep-kind-padding);
+	color: var(--text-2);
+	font: var(--ep-kind-font);
+}
+
+.exhibit-panel__body {
+	display: grid;
+	gap: 0.9em;
+	padding: var(--ep-body-padding);
+}
+
+.exhibit-panel__title {
+	margin: 0;
+	font: var(--ep-title-font);
+	font-stretch: var(--ep-title-stretch);
+	letter-spacing: var(--ep-title-spacing);
+}
+
+.exhibit-panel__summary {
+	margin: 0;
+	max-width: 46ch;
+	font-size: var(--ep-summary-size);
+	line-height: 1.4;
+}
+
+.exhibit-panel__section {
+	margin: 0.4em 0 0;
+	padding-bottom: 0.25em;
+	border-bottom: 1px solid var(--line);
+	font: 700 1em / 1.2 var(--font-sans);
+}
+
+/* Board has no section headings on screen; they stay for screen readers. Keep the two rules the same. */
+:root[data-theme="board"] .exhibit-panel__section {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme]) .exhibit-panel__section {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+}
+
+.exhibit-panel__details {
+	margin: 0;
+	max-width: 62ch;
+	color: light-dark(var(--ink), var(--silk-2));
+	line-height: 1.55;
+}
+
+.exhibit-panel__links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1.2em;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+/* Paper: ink text with a copper underline (copper is never text on paper). Board: copper text. */
+.exhibit-panel__link {
+	color: var(--live-text);
+	font-weight: var(--ep-link-weight);
+	text-decoration: underline;
+	text-decoration-color: var(--live-trace);
+	text-decoration-thickness: 2px;
+	text-underline-offset: 0.25em;
+}
+
+.exhibit-panel__link:hover,
+.exhibit-panel__link:focus-visible {
+	background: light-dark(var(--ink), transparent);
+	color: light-dark(var(--paper), var(--silk));
+	text-decoration-line: var(--ep-link-hover-decoration);
+}
+
+.exhibit-panel__link:focus-visible {
+	outline: 2px solid var(--focus);
+	outline-offset: 2px;
+}
+
+.exhibit-panel__foot {
+	display: flex;
+	justify-content: flex-end;
+	padding: var(--ep-foot-padding);
+}
+
+/* Paper: an ink button. Board: a silkscreen outline that turns copper. */
+.exhibit-panel__close {
+	padding: 0.55em 0.9em;
+	background: light-dark(var(--ink), transparent);
+	border: 1px solid light-dark(var(--ink), var(--silk-2));
+	color: light-dark(var(--paper), var(--silk));
+	font: 400 1em / 1 var(--font-silk);
+	cursor: pointer;
+}
+
+.exhibit-panel__close:hover,
+.exhibit-panel__close:focus-visible {
+	border-color: light-dark(var(--ink), var(--copper-hot));
+	color: light-dark(var(--paper), var(--copper-hot));
+	outline: 2px solid light-dark(var(--copper), transparent);
+	outline-offset: 2px;
+}
+
+.exhibit-panel__close:focus-visible {
+	outline-color: var(--focus);
+}
+
+.exhibit-panel__close:active {
+	translate: 0 1px;
+}
