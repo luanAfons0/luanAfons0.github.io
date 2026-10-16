@@ -1,11 +1,12 @@
 import { type Plugin, runnerImport } from "vite";
 import { defineConfig } from "vitest/config";
+import { goatCounterScriptTag } from "./src/analytics/analytics";
 
 export default defineConfig({
 	base: "/portfolio/",
 	// Two pages: the Title Screen (it loads the game) and the Skip View (no script at all).
-	input: { main: "index.html", skip: "skip/index.html" },
-	plugins: [skipView()],
+	input: { title: "index.html", skip: "skip/index.html" },
+	plugins: [skipView(), goatCounter()],
 	build: {
 		target: "es2022",
 	},
@@ -35,6 +36,21 @@ function skipView(): Plugin {
 				});
 				return module.skipViewPage(base);
 			},
+		},
+	};
+}
+
+/**
+ * Puts the GoatCounter script tag in the head of both pages. Build only: the dev server and the
+ * tests never load it, so local work is not counted.
+ */
+function goatCounter(): Plugin {
+	return {
+		name: "goatcounter",
+		apply: "build",
+		transformIndexHtml: {
+			order: "post",
+			handler: (html) => html.replace("</head>", `${goatCounterScriptTag()}</head>`),
 		},
 	};
 }

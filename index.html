@@ -3,11 +3,54 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<!--
+			The phone redirect (ADR 0002). It is a classic inline script, so it runs before the first paint.
+			A phone (touch is the main pointer and there is no mouse) goes to the Skip View. A tablet with a
+			mouse or a trackpad has a fine pointer too, so it stays. replace() keeps the Title Screen out of
+			the history, and the Skip View has no script, so the redirect cannot loop. The page is hidden,
+			so the Title Screen does not paint while the browser goes to the Skip View.
+		-->
+		<script>
+			if (matchMedia("(pointer: coarse)").matches && !matchMedia("(any-pointer: fine)").matches) {
+				document.documentElement.hidden = true;
+				location.replace("%BASE_URL%skip/");
+			}
+		</script>
 		<title>Luan Afonso — Portfolio</title>
+		<meta name="description" content="Luan Afonso's portfolio as a Doom-inspired game. Or skip it and read every project, job, and skill." />
+		<meta name="color-scheme" content="dark" />
+		<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+		<link rel="stylesheet" href="/src/title-screen/title-screen.css" />
 		<link rel="stylesheet" href="/src/style.css" />
 	</head>
 	<body>
-		<canvas id="screen" width="640" height="360" tabindex="-1" aria-label="Game view. Click to capture the mouse. Press Esc to pause."></canvas>
-		<script type="module" src="/src/main.ts"></script>
+		<!-- The Title Screen: plain HTML and CSS. The game code loads only when the visitor points at or focuses NEW GAME. -->
+		<main class="title-screen" data-title-screen>
+			<h1 class="title-screen__logo">
+				<span class="title-screen__name">Luan Afonso</span>
+				<span class="title-screen__tagline">Portfolio</span>
+			</h1>
+			<nav class="title-screen__menu" aria-label="Title Screen">
+				<ul>
+					<li>
+						<button class="title-screen__item is-selected" type="button" data-menu-item="new-game">New Game</button>
+					</li>
+					<li>
+						<a class="title-screen__item" href="%BASE_URL%skip/" data-menu-item="skip">Skip</a>
+					</li>
+				</ul>
+			</nav>
+			<div class="title-screen__loading" data-loading-bar role="progressbar" aria-label="Loading the game" hidden>
+				<span class="title-screen__loading-label" aria-hidden="true">Loading</span>
+				<span class="title-screen__loading-track"><span class="title-screen__loading-fill"></span></span>
+			</div>
+			<p class="title-screen__error" data-load-error role="alert" hidden></p>
+			<p class="title-screen__hint">
+				<kbd>&uarr;</kbd> <kbd>&darr;</kbd> to choose &middot; <kbd>Enter</kbd> to select<br />
+				Skip to read every project, job, and skill without playing.
+			</p>
+		</main>
+		<canvas id="screen" width="640" height="360" tabindex="-1" hidden aria-label="Game view. Click to capture the mouse. Press Esc to pause."></canvas>
+		<script type="module" src="/src/title-screen/main.ts"></script>
 	</body>
 </html>

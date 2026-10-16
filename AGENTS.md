@@ -10,8 +10,9 @@ Use pnpm. `pnpm dev` (dev server), `pnpm build` (type check, then Vite build), `
 
 - `src/engine/`: the generic raycaster (Renderer, Collision, Loop, Input). It never imports `src/game/`; a Biome rule enforces this (ADR 0001).
 - `src/game/`: the portfolio. `game.ts` is the Game core (test Seam 1): no DOM, no canvas, no timers.
-- `src/skip-view/`: the Skip View builder (test Seam 2, `buildSkipView`). It runs at build time only: the `skip-view` plugin in `vite.config.ts` turns `skip/index.html` into the Skip View, from the Content and the Level. The built page has no script: never add one to it.
-- `src/main.ts`: the browser shell (canvas, `requestAnimationFrame`, keyboard). Manual test only.
+- `src/skip-view/`: the Skip View builder (test Seam 2, `buildSkipView`). It runs at build time only: the `skip-view` plugin in `vite.config.ts` turns `skip/index.html` into the Skip View, from the Content and the Level. The built page has no game code and no script of ours. Only the `goatcounter` plugin in `vite.config.ts` adds the GoatCounter tag to both pages, in the production build only.
+- `index.html` is the Title Screen: plain HTML and CSS, plus an inline head script that sends phones to the Skip View before the first paint (ADR 0002). Its entry, `src/title-screen/main.ts`, has no game code: `createTitleScreen` (`src/title-screen/title-screen.ts`, tested with happy-dom on the real `index.html` markup) loads the game with a dynamic `import()` on hover or focus of NEW GAME. Its `onNewGame` hook is the NEW GAME user gesture: start the Audio there. `createTitleScreen` sends the `new-game` and `skip` analytics events itself.
+- `src/main.ts`: the browser shell (canvas, `requestAnimationFrame`, keyboard), loaded lazily; `startGame()` runs it. Manual test only. Never import it statically from the Title Screen.
 - Tests sit next to the code as `*.test.ts` and go through a seam: `createGame` for Seam 1, `buildSkipView` for Seam 2. Build test Levels with `src/game/test-support/tiled-level.ts`.
 - Tiled Levels are in `src/game/levels/`. Biome does not format them, so Tiled can write them.
 - Tiled wall tiles name their texture with a `texture` tile property, in a tileset embedded in the Level.
@@ -32,3 +33,7 @@ The five default labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready
 ### Domain docs
 
 Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+## Analytics
+
+`src/analytics/analytics.ts` holds the GoatCounter site code (`GOATCOUNTER_SITE`), the script tag, and `track(event)`. `track` uses optional chaining and a `try`, so a blocked script never throws. Events: `new-game` and `skip` (Title Screen), `exhibit/<id>` and `all-bugs-fixed` (Game core, through the `track` option of `createGame`; `all-bugs-fixed` goes once per visit).

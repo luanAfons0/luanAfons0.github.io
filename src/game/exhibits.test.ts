@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createFramebuffer, rgb } from "../engine/framebuffer";
 import type { InputSnapshot } from "../engine/input";
 import { createTexture, type Texture } from "../engine/texture";
@@ -252,5 +252,25 @@ describe("Exhibit posters", () => {
 				posters: {},
 			}),
 		).toThrow(/Exhibit "orca" has no poster image/);
+	});
+});
+
+describe("Exhibit analytics", () => {
+	it("sends exhibit/<id> each time the player opens an Exhibit", () => {
+		const track = vi.fn();
+		const game = createGame({
+			level: tiledLevel({
+				rows: ["#######", "#P....#", "#######"],
+				playerOffset: { x: 4, y: 0.5 },
+				extraObjects: [tiledExhibit("orca", { x: 6, y: 1 }, "west")],
+			}),
+			content: [exhibit("orca")],
+			track,
+		});
+
+		game.step(IDLE);
+		expect(track).not.toHaveBeenCalled();
+		game.step(USE);
+		expect(track).toHaveBeenCalledExactlyOnceWith("exhibit/orca");
 	});
 });

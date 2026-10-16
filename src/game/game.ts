@@ -1,3 +1,4 @@
+import type { AnalyticsEvent } from "../analytics/analytics";
 import { moveCircle } from "../engine/collision";
 import { type Framebuffer, rgb } from "../engine/framebuffer";
 import { cellAt } from "../engine/grid";
@@ -83,6 +84,12 @@ export interface GameOptions {
 	 * Leave it out only when the look of the Bugs does not matter: Bugs then draw as magenta blocks.
 	 */
 	sprites?: Readonly<Record<string, SpriteImage>>;
+	/**
+	 * Sends an analytics event: `exhibit/<id>` when the player opens an Exhibit, and `all-bugs-fixed`
+	 * once, when the goal becomes complete. The Game core only calls it; the browser shell passes the
+	 * GoatCounter `track`. Default: none.
+	 */
+	track?: (event: AnalyticsEvent) => void;
 	/** Settings that are not given use DEFAULT_GAME_SETTINGS. */
 	settings?: Partial<GameSettings>;
 }
@@ -164,6 +171,7 @@ export function createGame(options: GameOptions): Game {
 	};
 	let exhibitInFocus = findExhibitInFocus();
 	let openExhibit: string | null = null;
+	let goalSent = false;
 	const wallTextures = texturesFor(level.wallTextures, options.textures);
 	const renderer = createRenderer({
 		width: SCREEN_WIDTH,
@@ -230,10 +238,15 @@ export function createGame(options: GameOptions): Game {
 			if (input.shoot) shakeTicks = SHAKE_TICKS;
 			if (input.shoot && bugs.shoot(level.walls, player.x, player.y, player.angle)) {
 				hudView.bugsFixed = bugsFixedText();
+				if (!goalSent && bugs.total > 0 && bugs.fixedCount() === bugs.total) {
+					goalSent = true;
+					options.track?.("all-bugs-fixed");
+				}
 			}
 			exhibitInFocus = findExhibitInFocus();
 			if (input.use && exhibitInFocus !== null) {
 				openExhibit = exhibitInFocus;
+				options.track?.(`exhibit/${openExhibit}`);
 				paused = true;
 			} else if (input.use) {
 				useDoorAhead();

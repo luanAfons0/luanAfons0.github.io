@@ -36,6 +36,7 @@ export function buildSkipView({ content, level, base, stylesheet }: SkipViewInpu
 <title>Luan Afonso — Portfolio (Skip View)</title>
 <meta name="description" content="Luan Afonso's portfolio: projects, jobs, skills, and contact info.">
 <meta name="color-scheme" content="dark">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 ${stylesheet ? `<link rel="stylesheet" href="${escapeHtml(stylesheet)}">` : ""}
 </head>
 <body>
