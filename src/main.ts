@@ -99,6 +99,7 @@ export function startGame(audio?: Audio): void {
 		parent: document.body,
 		settings,
 		onResume: resume,
+		track,
 		onSettingsChange(changed) {
 			Object.assign(settings, changed);
 			game.updateSettings({ mouseSensitivity: changed.mouseSensitivity, invertMouse: changed.invertMouse });
