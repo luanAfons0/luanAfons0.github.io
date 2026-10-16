@@ -20,7 +20,7 @@ Pull requests:
 
 - Branch from `main` as `<type>/<short-slug>` (for example `feat/exhibit-panel`). Base is `main`.
 - Title: the Conventional Commits subject format, in English.
-- Body: in Portuguese (pt-BR). One summary line, then one `-` bullet per change, naming the exact file, function, or behavior that changed (for example "Validação do `id` do Exhibit em `content.ts`"). Then one `Closes #<n>` line per issue. Same attribution rule as commits.
+- Body: in English. One summary line, then one `-` bullet per change, naming the exact file, function, or behavior that changed (for example "Exhibit `id` validation in `content.ts`"). Then one `Closes #<n>` line per issue. Same attribution rule as commits.
 - Label `enhancement`, assignee `@me`.
 - Merge only when CI is green, with a merge commit (`gh pr merge --merge`), so each commit's `Closes #<n>` stays in the history.
 
