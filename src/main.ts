@@ -1,7 +1,8 @@
 import { createFramebuffer } from "./engine/framebuffer";
 import { createKeyboardInput } from "./engine/input";
 import { createFixedStepLoop } from "./engine/loop";
-import { createGame, SCREEN_HEIGHT, SCREEN_WIDTH, TICKS_PER_SECOND } from "./game/game";
+import { loadTexture } from "./engine/texture";
+import { createGame, levelTextureNames, SCREEN_HEIGHT, SCREEN_WIDTH, TICKS_PER_SECOND } from "./game/game";
 import sampleLevel from "./game/levels/sample.json";
 
 // The browser shell: it owns the canvas, the clock, and the keyboard.
@@ -13,7 +14,13 @@ if (!canvas || !context) throw new Error("The page has no #screen canvas with a 
 canvas.width = SCREEN_WIDTH;
 canvas.height = SCREEN_HEIGHT;
 
-const game = createGame({ level: sampleLevel });
+// Decode every wall texture once, before the first frame. The PNGs are in public/freedoom/.
+const textureEntries = await Promise.all(
+	levelTextureNames(sampleLevel).map(
+		async (name) => [name, await loadTexture(`${import.meta.env.BASE_URL}freedoom/textures/${name}.png`)] as const,
+	),
+);
+const game = createGame({ level: sampleLevel, textures: Object.fromEntries(textureEntries) });
 const input = createKeyboardInput(window);
 const loop = createFixedStepLoop({ ticksPerSecond: TICKS_PER_SECOND });
 const framebuffer = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);

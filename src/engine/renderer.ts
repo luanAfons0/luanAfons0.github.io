@@ -17,8 +17,14 @@ export interface RendererOptions {
 	 * so a 64x128 texture repeats twice across one tile and a 256x128 texture spans two tiles.
 	 */
 	wallTextures: ReadonlyArray<Texture | undefined>;
+	/** Flat colors, shaded by distance like the walls. */
 	ceilingColor: number;
 	floorColor: number;
+	/**
+	 * Rows of the 3D view, from the top. The horizon is in the middle of them. Rows below it are
+	 * left alone (for a status bar, for example). Default: the full height.
+	 */
+	viewHeight?: number;
 	/** Half the width of the view plane, in tiles at distance 1. 1 gives a 90 degree field of view. */
 	planeHalfWidth?: number;
 	/** Walls at this distance (in tiles) or farther get the darkest shade. */
@@ -42,11 +48,24 @@ const MISSING_TEXTURE: Texture = { width: 1, height: 1, texels: new Uint32Array(
  */
 export function createRenderer(options: RendererOptions): Renderer {
 	const { width, height, wallTextures, ceilingColor, floorColor } = options;
+	const viewHeight = options.viewHeight ?? height;
+	if (viewHeight < 1 || viewHeight > height) throw new Error(`viewHeight must be 1 to ${height}, got ${viewHeight}.`);
 	const planeHalfWidth = options.planeHalfWidth ?? 0.9;
 	const shadeDistance = options.shadeDistance ?? 12;
 	// Wall height on screen for a wall at distance 1, with square pixels.
 	const projection = width / 2 / planeHalfWidth;
-	const half = width * (height >> 1);
+	const horizon = viewHeight / 2;
+	const lightAt = (distance: number) => Math.max(MIN_SHADE, 1 - distance / shadeDistance);
+
+	// The floor and ceiling are flat, so each row has one distance and one color. The eye is
+	// half a tile above the floor, so a row `d` pixels from the horizon shows the floor (or
+	// ceiling) at distance projection / 2 / d. Computed once here, so frames allocate nothing.
+	const backgroundRows = new Uint32Array(viewHeight);
+	for (let y = 0; y < viewHeight; y++) {
+		const fromHorizon = Math.abs(y + 0.5 - horizon);
+		const color = y < horizon ? ceilingColor : floorColor;
+		backgroundRows[y] = shadeTexel(color, Math.round(lightAt(projection / 2 / fromHorizon) * 256));
+	}
 
 	return {
 		render(framebuffer, grid, camera) {
@@ -56,8 +75,9 @@ export function createRenderer(options: RendererOptions): Renderer {
 				);
 			}
 			const pixels = framebuffer.pixels;
-			pixels.fill(ceilingColor, 0, half);
-			pixels.fill(floorColor, half);
+			for (let y = 0; y < viewHeight; y++) {
+				pixels.fill(backgroundRows[y] as number, y * width, (y + 1) * width);
+			}
 
 			const dirX = Math.cos(camera.angle);
 			const dirY = Math.sin(camera.angle);
@@ -112,14 +132,13 @@ export function createRenderer(options: RendererOptions): Renderer {
 				const columnStart = textureX * textureHeight;
 
 				const lineHeight = projection / distance;
-				const wallTop = (height - lineHeight) / 2;
+				const wallTop = horizon - lineHeight / 2;
 				const top = Math.max(0, Math.floor(wallTop));
-				const bottom = Math.min(height, Math.ceil((height + lineHeight) / 2));
+				const bottom = Math.min(viewHeight, Math.ceil(horizon + lineHeight / 2));
 				const textureStep = textureHeight / lineHeight;
 				let textureY = (top + 0.5 - wallTop) * textureStep;
 
-				let light = 1 - distance / shadeDistance;
-				if (light < MIN_SHADE) light = MIN_SHADE;
+				let light = lightAt(distance);
 				if (ySide) light *= Y_SIDE_SHADE;
 				const level = Math.round(light * 256);
 				for (let y = top, i = top * width + column; y < bottom; y++, i += width) {

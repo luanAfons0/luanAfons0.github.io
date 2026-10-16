@@ -3,7 +3,7 @@ import { type Framebuffer, rgb } from "../engine/framebuffer";
 import type { InputSnapshot } from "../engine/input";
 import { createRenderer } from "../engine/renderer";
 import type { Texture } from "../engine/texture";
-import { assertHudCanDraw, createHud, type HudView } from "./hud";
+import { assertHudCanDraw, createHud, type HudView, STATUS_BAR_HEIGHT } from "./hud";
 import { type Level, loadLevel, roomAt } from "./level";
 
 export { HUD_VALUE_COLOR, STATUS_BAR_HEIGHT } from "./hud";
@@ -64,6 +64,7 @@ export function createGame(options: GameOptions): Game {
 		wallTextures: wallTexturesFor(level, options.textures),
 		ceilingColor: CEILING_COLOR,
 		floorColor: FLOOR_COLOR,
+		viewHeight: SCREEN_HEIGHT - STATUS_BAR_HEIGHT,
 	});
 	const hud = createHud(SCREEN_WIDTH, SCREEN_HEIGHT);
 	// Reused every frame, so rendering allocates nothing.

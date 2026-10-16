@@ -4,7 +4,6 @@ import type { InputSnapshot } from "../engine/input";
 import { createFixedStepLoop } from "../engine/loop";
 import { createTexture, type Texture } from "../engine/texture";
 import {
-	CEILING_COLOR,
 	createGame,
 	FLOOR_COLOR,
 	type Game,
@@ -34,6 +33,46 @@ function pixelAt(framebuffer: Framebuffer, x: number, y: number): number {
 	return framebuffer.pixels[y * framebuffer.width + x] as number;
 }
 
+const RED = rgb(255, 0, 0);
+const GREEN = rgb(0, 255, 0);
+const BLUE = rgb(0, 0, 255);
+const WHITE = rgb(255, 255, 255);
+
+/** A 4x4 texture with one solid color for each texel column, left to right. */
+function columnsTexture(colors: [number, number, number, number]): Texture {
+	const rgba = new Uint8Array(4 * 4 * 4);
+	new Uint32Array(rgba.buffer).forEach((_, i, texels) => {
+		texels[i] = colors[i % 4] as number;
+	});
+	return createTexture(4, 4, rgba);
+}
+
+/** Splits a pixel into its red, green, and blue channels. */
+function channels(pixel: number): [number, number, number] {
+	return [pixel & 0xff, (pixel >>> 8) & 0xff, (pixel >>> 16) & 0xff];
+}
+
+/** A texture of one solid color. */
+function solidTexture(color: number): Texture {
+	return columnsTexture([color, color, color, color]);
+}
+
+/** The ceiling is a gray-blue (red = green < blue) at any shade. */
+function isCeiling(pixel: number): boolean {
+	const [red, green, blue] = channels(pixel);
+	return red === green && blue > red;
+}
+
+/** The floor is a brown (red > green > blue) at any shade. */
+function isFloor(pixel: number): boolean {
+	const [red, green, blue] = channels(pixel);
+	return red > green && green > blue;
+}
+
+/** The 3D view fills the frame above the status bar; its horizon is in the middle of it. */
+const VIEW_HEIGHT = SCREEN_HEIGHT - STATUS_BAR_HEIGHT;
+const HORIZON = VIEW_HEIGHT / 2;
+
 /** A corridor that faces a wall at x = 7. The player stands `distance` tiles from it. */
 function viewOfWall(distance: number): Framebuffer {
 	const game = createGame({
@@ -41,6 +80,7 @@ function viewOfWall(distance: number): Framebuffer {
 			rows: ["#########", "#########", "#P.....##", "#########", "#########"],
 			playerOffset: { x: 6 - distance, y: 0.5 },
 		}),
+		textures: { [TEST_WALL_TEXTURE]: solidTexture(WHITE) },
 	});
 	const framebuffer = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
 	game.render(framebuffer);
@@ -135,24 +175,29 @@ describe("Game core", () => {
 
 		expect(frame.width).toBe(640);
 		expect(frame.height).toBe(360);
-		expect(pixelAt(frame, center, 0)).toBe(CEILING_COLOR);
-		expect(pixelAt(frame, center, SCREEN_HEIGHT - STATUS_BAR_HEIGHT - 1)).toBe(FLOOR_COLOR);
-		const wall = pixelAt(frame, center, SCREEN_HEIGHT / 2);
-		expect(wall).not.toBe(CEILING_COLOR);
-		expect(wall).not.toBe(FLOOR_COLOR);
+		expect(isCeiling(pixelAt(frame, center, 0))).toBe(true);
+		expect(isFloor(pixelAt(frame, center, VIEW_HEIGHT - 1))).toBe(true);
+		const wall = pixelAt(frame, center, HORIZON);
+		expect(isCeiling(wall) || isFloor(wall)).toBe(false);
 		expect(wall >>> 24).toBe(0xff);
 	});
 
-	it("draws a far wall darker and shorter than a near wall", () => {
+	it("draws the same wall darker and shorter farther away", () => {
 		const near = viewOfWall(1.5);
 		const far = viewOfWall(4.5);
 		const center = SCREEN_WIDTH / 2;
-		const middle = SCREEN_HEIGHT / 2;
 
-		expect(brightness(pixelAt(far, center, middle))).toBeLessThan(brightness(pixelAt(near, center, middle)));
-		// 60 px above the middle is still wall up close, but already ceiling far away.
-		expect(pixelAt(near, center, middle - 60)).not.toBe(CEILING_COLOR);
-		expect(pixelAt(far, center, middle - 60)).toBe(CEILING_COLOR);
+		// The wall texture is solid white, so only the shading changes its color.
+		const nearWall = pixelAt(near, center, HORIZON);
+		const farWall = pixelAt(far, center, HORIZON);
+		const [red, green, blue] = channels(nearWall);
+		expect(green).toBe(red);
+		expect(blue).toBe(red);
+		expect(brightness(farWall)).toBeLessThan(brightness(nearWall));
+		expect(brightness(nearWall)).toBeLessThan(brightness(WHITE));
+		// 60 px above the horizon is still wall up close, but already ceiling far away.
+		expect(isCeiling(pixelAt(near, center, HORIZON - 60))).toBe(false);
+		expect(isCeiling(pixelAt(far, center, HORIZON - 60))).toBe(true);
 	});
 
 	it("fails with a clear error when the framebuffer is not 640x360", () => {
@@ -290,7 +335,7 @@ describe("HUD", () => {
 				expect(pixel >>> 24).toBe(0xff);
 			}
 		}
-		expect(pixelAt(frame, center, SCREEN_HEIGHT - STATUS_BAR_HEIGHT - 1)).toBe(FLOOR_COLOR);
+		expect(isFloor(pixelAt(frame, center, VIEW_HEIGHT - 1))).toBe(true);
 	});
 
 	it("writes the current Room name in the status bar", () => {
@@ -312,25 +357,6 @@ describe("HUD", () => {
 	});
 });
 
-const RED = rgb(255, 0, 0);
-const GREEN = rgb(0, 255, 0);
-const BLUE = rgb(0, 0, 255);
-const WHITE = rgb(255, 255, 255);
-
-/** A 4x4 texture with one solid color for each texel column, left to right. */
-function columnsTexture(colors: [number, number, number, number]): Texture {
-	const rgba = new Uint8Array(4 * 4 * 4);
-	new Uint32Array(rgba.buffer).forEach((_, i, texels) => {
-		texels[i] = colors[i % 4] as number;
-	});
-	return createTexture(4, 4, rgba);
-}
-
-/** Splits a pixel into its red, green, and blue channels. */
-function channels(pixel: number): [number, number, number] {
-	return [pixel & 0xff, (pixel >>> 8) & 0xff, (pixel >>> 16) & 0xff];
-}
-
 describe("Textured walls", () => {
 	it("draws a wall column with the texture color of the spot the ray hits", () => {
 		// The player looks east at the wall face x = 7 from 3 tiles away. The view center hits the
@@ -344,7 +370,7 @@ describe("Textured walls", () => {
 		});
 		const frame = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
 		game.render(frame);
-		const middle = SCREEN_HEIGHT / 2;
+		const middle = HORIZON;
 
 		// At 3 tiles, one tile is about 118 px wide, so 20 px is about 0.17 tile.
 		const [leftRed, leftGreen, leftBlue] = channels(pixelAt(frame, SCREEN_WIDTH / 2 - 20, middle));
@@ -370,9 +396,52 @@ describe("Textured walls", () => {
 		const frame = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
 		game.render(frame);
 
-		const [red, green, blue] = channels(pixelAt(frame, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2));
+		const [red, green, blue] = channels(pixelAt(frame, SCREEN_WIDTH / 2, HORIZON));
 		expect(green).toBeGreaterThan(0);
 		expect(red + blue).toBe(0);
+	});
+
+	it("centers the horizon in the 3D view above the status bar", () => {
+		const frame = viewOfWall(3);
+		const wallRows: number[] = [];
+		for (let y = 0; y < SCREEN_HEIGHT; y++) {
+			const [red, green, blue] = channels(pixelAt(frame, SCREEN_WIDTH / 2, y));
+			if (red > 0 && red === green && green === blue) wallRows.push(y);
+		}
+		const top = wallRows[0] as number;
+		const bottom = wallRows[wallRows.length - 1] as number;
+
+		// A wall 3 tiles away is about 118 px high, and as many rows above the horizon as below.
+		expect(bottom - top + 1).toBeGreaterThan(100);
+		expect((top + bottom + 1) / 2).toBeCloseTo(HORIZON, 0);
+	});
+
+	it("draws the floor and ceiling as flat colors that get darker toward the horizon", () => {
+		// A big open room. The player looks east at a wall 11 tiles away, so the wall is short
+		// and most of the view is floor and ceiling.
+		const rows = Array.from({ length: 25 }, (_, y) =>
+			y === 0 || y === 24 ? "#".repeat(14) : y === 12 ? "#P...........#" : `#${".".repeat(12)}#`,
+		);
+		const game = createGame({ level: tiledLevel({ rows }), textures: { [TEST_WALL_TEXTURE]: solidTexture(WHITE) } });
+		const frame = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+		game.render(frame);
+		const center = SCREEN_WIDTH / 2;
+
+		for (const y of [0, HORIZON - 20]) {
+			expect(isCeiling(pixelAt(frame, center, y))).toBe(true);
+			// Flat: one row of ceiling has one color from the left edge to the right edge.
+			expect(pixelAt(frame, 0, y)).toBe(pixelAt(frame, center, y));
+			expect(pixelAt(frame, SCREEN_WIDTH - 1, y)).toBe(pixelAt(frame, center, y));
+		}
+		for (const y of [VIEW_HEIGHT - 1, HORIZON + 20]) {
+			expect(isFloor(pixelAt(frame, center, y))).toBe(true);
+			expect(pixelAt(frame, 0, y)).toBe(pixelAt(frame, center, y));
+			expect(pixelAt(frame, SCREEN_WIDTH - 1, y)).toBe(pixelAt(frame, center, y));
+		}
+		expect(brightness(pixelAt(frame, center, HORIZON - 20))).toBeLessThan(brightness(pixelAt(frame, center, 0)));
+		expect(brightness(pixelAt(frame, center, HORIZON + 20))).toBeLessThan(
+			brightness(pixelAt(frame, center, VIEW_HEIGHT - 1)),
+		);
 	});
 
 	it("fails with a clear error when a texture the Level uses is missing", () => {

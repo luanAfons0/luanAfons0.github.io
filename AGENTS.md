@@ -13,6 +13,8 @@ Use pnpm. `pnpm dev` (dev server), `pnpm build` (type check, then Vite build), `
 - `src/main.ts`: the browser shell (canvas, `requestAnimationFrame`, keyboard). Manual test only.
 - Tests sit next to the code as `*.test.ts` and go through a seam: `createGame` for Seam 1. Build test Levels with `src/game/test-support/tiled-level.ts`.
 - Tiled Levels are in `src/game/levels/`. Biome does not format them, so Tiled can write them.
+- Tiled wall tiles name their texture with a `texture` tile property, in a tileset embedded in the Level.
+- `public/freedoom/`: the Freedoom textures, sprites, and sounds the game uses, with the Freedoom license (`COPYING.txt`) and `CREDITS.txt`. `node scripts/extract-freedoom.ts <unzipped freedoom-0.13.0 folder>` makes them once; edit its `ASSETS` list to add more. Never commit a WAD file.
 
 ## Agent skills
 
