@@ -1,8 +1,8 @@
 name: Deploy to Pages
 
+# Manual only until GitHub Pages is on (the repo is private for now).
+# When Pages is on, add back:  push: { branches: [main] }
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
