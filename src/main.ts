@@ -28,7 +28,7 @@ import { MACHINE_ART_SET } from "./game/theme";
 // assets load then too: the import is ready when the game can start. startGame() runs the game.
 
 // Decode every wall texture, Bug sprite, and Exhibit poster once, before the first frame.
-// The wall and sprite PNGs are in the art set folders under public/, the posters in public/posters/.
+// The wall and sprite PNGs are in the art set folders under public/, the posters at the paths the Content names.
 const artSet = MACHINE_ART_SET;
 const texturesUrl = `${import.meta.env.BASE_URL}${artSet.folders.textures}`;
 const spritesUrl = `${import.meta.env.BASE_URL}${artSet.folders.sprites}`;

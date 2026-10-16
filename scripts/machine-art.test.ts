@@ -3,6 +3,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { inflateSync } from "node:zlib";
 import { afterAll, describe, expect, it } from "vitest";
+import { EXHIBITS, type Exhibit, partLabel } from "../src/game/content.ts";
+import { posters } from "./machine-art/posters.ts";
 import { generateMachineArt, MACHINE_ART_FOLDER } from "./machine-art.ts";
 
 const runs: string[] = [];
@@ -81,5 +83,47 @@ describe("machine art generator", () => {
 		for (const file of files.filter((file) => file.endsWith(".png"))) {
 			expect(readPng(readFileSync(join(folder, file))).texts).toMatchObject({ Software: "scripts/machine-art.ts" });
 		}
+	});
+});
+
+describe("Exhibit posters", () => {
+	/** A sample Exhibit of a kind, with its poster in the machine art folder. */
+	const exhibit = (id: string, kind: Exhibit["kind"]): Exhibit => ({
+		id,
+		kind,
+		title: `Title of ${id}`,
+		summary: "",
+		details: [],
+		links: [],
+		poster: `machine/posters/${id}.png`,
+	});
+
+	it("draws one poster per Exhibit of the Content, at the path the Content names", () => {
+		const { files } = generate();
+		for (const { id, poster } of EXHIBITS) {
+			expect(poster, id).toMatch(/^machine\//);
+			expect(files, id).toContain(poster.slice("machine/".length));
+		}
+	});
+
+	it("names each poster by the Part label the Skip View and the Exhibit Panel show", () => {
+		const { folder } = generate();
+		for (const exhibit of EXHIBITS) {
+			const png = readFileSync(join(folder, exhibit.poster.slice("machine/".length)));
+			expect(readPng(png).texts, exhibit.id).toMatchObject({ Title: partLabel(EXHIBITS, exhibit) });
+		}
+		expect(EXHIBITS.map((exhibit) => partLabel(EXHIBITS, exhibit))).toEqual(["U1", "Q1", "R1", "J1"]);
+	});
+
+	it("gives an Exhibit added to the Content a poster with its own Part label", () => {
+		const content = [exhibit("first", "project"), exhibit("talk", "contact"), exhibit("second", "project")];
+		const files = posters(content);
+		expect(files.map(({ path }) => path)).toEqual(["posters/first.png", "posters/talk.png", "posters/second.png"]);
+		expect(files.map(({ bytes }) => readPng(bytes).texts.Title)).toEqual(["U1", "J1", "U2"]);
+		expect(readPng(files[2]?.bytes ?? Buffer.alloc(0)).texts).toMatchObject({ Software: "scripts/machine-art.ts" });
+	});
+
+	it("fails with an error that names the Exhibit when its poster is not in the machine art folder", () => {
+		expect(() => posters([{ ...exhibit("old", "skill"), poster: "posters/old.png" }])).toThrow(/Exhibit "old"/);
 	});
 });
