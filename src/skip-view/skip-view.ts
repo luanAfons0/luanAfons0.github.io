@@ -8,7 +8,7 @@ export interface SkipViewInput {
 	level: Pick<Level, "rooms" | "exhibits">;
 	/**
 	 * The site base path (Vite `base`), for example `/portfolio/`. The Title Screen is there.
-	 * Only the Title Screen link uses it: Vite adds the base to asset URLs (posters, stylesheet) itself.
+	 * Only the Title Screen link uses it: Vite adds the base to asset URLs (stylesheet, icon) itself.
 	 */
 	base: string;
 	/** The href of the page stylesheet. Vite rewrites a source path to the built file. */
@@ -36,26 +36,30 @@ export function buildSkipView({ content, level, base, stylesheet }: SkipViewInpu
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Luan Afonso — Portfolio (Skip View)</title>
+<title>Luan Afonso, portfolio (Skip View)</title>
 <meta name="description" content="Luan Afonso's portfolio: projects, jobs, skills, and contact info.">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="light dark">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 ${stylesheet ? `<link rel="stylesheet" href="${escapeHtml(stylesheet)}">` : ""}
 </head>
 <body>
+<div class="skip-page">
 <header class="skip-header">
-<a class="skip-back" href="${escapeHtml(base)}"><span aria-hidden="true">&#9664;</span> Back to the Title Screen</a>
+<a class="skip-back" href="${escapeHtml(base)}"><span aria-hidden="true">&larr;</span> Back to the Title Screen</a>
+<p class="skip-datasheet only-paper"><span class="skip-part-number">LA-1</span> <span class="skip-datasheet-title">Portfolio, readable</span></p>
 <h1>Luan Afonso</h1>
 <p class="skip-lede">My portfolio: every Exhibit from the game, Room by Room.</p>
-<nav class="skip-rooms" aria-label="Contents">
-<ul>
-${rooms.map(({ room, exhibits, anchor }) => `<li><a href="#${anchor}">${escapeHtml(room.name)}</a> <span class="skip-contents-parts">${exhibits.map((e) => partLabel(content, e)).join(" ")}</span></li>`).join("\n")}
-</ul>
-</nav>
 </header>
+<nav class="skip-contents" aria-label="Contents">
+<h2><span class="only-paper">Contents</span><span class="only-board">Rooms</span></h2>
+<ol>
+${rooms.map(({ room, exhibits, anchor }) => `<li><a href="#${anchor}"><span class="skip-contents-room">${escapeHtml(room.name)}</span><span class="skip-contents-parts">${exhibits.map((e) => partLabel(content, e)).join(", ")}</span></a></li>`).join("\n")}
+</ol>
+</nav>
 <main>
 ${rooms.map(({ room, exhibits, anchor }) => roomSection(room, exhibits, anchor, content)).join("\n")}
 </main>
+</div>
 </body>
 </html>
 `;
@@ -87,9 +91,9 @@ function exhibitArticle(exhibit: Exhibit, content: readonly Exhibit[]): string {
 ${exhibit.links.map(({ label, url }) => `<li><a href="${escapeHtml(url)}">${escapeHtml(label)}</a></li>`).join("\n")}
 </ul>`;
 	return `<article class="skip-exhibit" id="exhibit-${escapeHtml(exhibit.id)}">
-<img class="skip-poster" src="${escapeHtml(`/${exhibit.poster}`)}" alt="" loading="lazy">
+<span class="skip-part">${partLabel(content, exhibit)}</span>
 <div class="skip-body">
-<p class="skip-kind"><span class="skip-part">${partLabel(content, exhibit)}</span> ${escapeHtml(KIND_LABELS[exhibit.kind])}</p>
+<p class="skip-kind">${escapeHtml(KIND_LABELS[exhibit.kind])}</p>
 <h3>${escapeHtml(exhibit.title)}</h3>
 <p class="skip-summary">${escapeHtml(exhibit.summary)}</p>
 ${exhibit.details.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("\n")}
