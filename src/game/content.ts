@@ -6,6 +6,14 @@
 
 export type ExhibitKind = "project" | "job" | "skill" | "contact";
 
+/** The label a visitor reads for each kind of Exhibit. */
+export const KIND_LABELS: Record<ExhibitKind, string> = {
+	project: "Project",
+	job: "Job",
+	skill: "Skill",
+	contact: "Contact",
+};
+
 export interface ExhibitLink {
 	label: string;
 	url: string;
