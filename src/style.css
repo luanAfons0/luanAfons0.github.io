@@ -1,0 +1,20 @@
+html,
+body {
+	margin: 0;
+	height: 100%;
+	background: #000;
+	overflow: hidden;
+}
+
+body {
+	display: grid;
+	place-items: center;
+}
+
+/* Keep 16:9 and fill the window; the black body shows as bars on the sides that are left. */
+#screen {
+	display: block;
+	width: min(100vw, calc(100vh * 16 / 9));
+	height: min(100vh, calc(100vw * 9 / 16));
+	image-rendering: pixelated;
+}
