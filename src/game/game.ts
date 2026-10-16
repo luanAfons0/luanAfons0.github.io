@@ -1,5 +1,4 @@
 import type { AnalyticsEvent } from "../analytics/analytics";
-import type { SoundEvent } from "../audio/audio";
 import { moveCircle } from "../engine/collision";
 import { type Framebuffer, rgb } from "../engine/framebuffer";
 import { cellAt } from "../engine/grid";
@@ -7,16 +6,17 @@ import type { InputSnapshot } from "../engine/input";
 import { castRay, createRayHit, faceKey } from "../engine/raycast";
 import { type Camera, createRenderer, type SpriteImage } from "../engine/renderer";
 import type { Texture } from "../engine/texture";
-import { BUG_SPRITE_NAMES, type BugState, createBugs } from "./bugs";
+import { type BugArt, type BugState, bugFrameNames, createBugs } from "./bugs";
 import { checkContent, type Exhibit } from "./content";
 import { assertHudCanDraw, createHud, type HudView, STATUS_BAR_HEIGHT } from "./hud";
 import { type Level, loadLevel, roomAt } from "./level";
 import { createPosterFace } from "./poster";
 import { DEFAULT_SETTINGS, type Settings } from "./settings";
+import { type ArtSet, MACHINE_ART_SET, type SoundEvent } from "./theme";
 import { TICKS_PER_SECOND } from "./ticks";
 
-export { BUG_SPRITE_NAMES } from "./bugs";
-export { CROSSHAIR_COLOR, HUD_HINT_COLOR, HUD_VALUE_COLOR, STATUS_BAR_HEIGHT } from "./hud";
+export { bugFrameNames } from "./bugs";
+export { STATUS_BAR_HEIGHT } from "./hud";
 
 export { TICKS_PER_SECOND } from "./ticks";
 
@@ -65,6 +65,13 @@ export interface GameOptions {
 	/** Parsed Tiled JSON for the Level. */
 	level: unknown;
 	/**
+	 * The art set the Level, the Bugs, and the HUD use. When it is given, creating the Game core
+	 * fails if the Level names a texture the art set does not have, or has Bugs and the art set has
+	 * no Bug walk or fix frame. Leave it out only in tests that name their own textures: the Bugs
+	 * and the HUD then use MACHINE_ART_SET, and the Level textures are not checked.
+	 */
+	artSet?: ArtSet;
+	/**
 	 * Decoded textures by name. It must hold every wall, door, and track texture the Level names (see `levelTextureNames`).
 	 * Leave it out only when the walls do not matter (as in movement tests): walls then draw magenta.
 	 */
@@ -80,7 +87,7 @@ export interface GameOptions {
 	 */
 	posters?: Readonly<Record<string, Texture>>;
 	/**
-	 * Decoded sprite images by name. It must hold every name in BUG_SPRITE_NAMES.
+	 * Decoded sprite images by name. It must hold every Bug frame of the art set (see `bugFrameNames`).
 	 * Leave it out only when the look of the Bugs does not matter: Bugs then draw as magenta blocks.
 	 */
 	sprites?: Readonly<Record<string, SpriteImage>>;
@@ -157,6 +164,8 @@ export interface Game {
 
 export function createGame(options: GameOptions): Game {
 	const level: Level = loadLevel(options.level);
+	if (options.artSet) checkLevelTextures(level, options.artSet);
+	const art = options.artSet ?? MACHINE_ART_SET;
 	checkContent(level.exhibits, options.content ?? []);
 	const player: PlayerState = { ...level.playerStart };
 	let paused = false;
@@ -167,7 +176,7 @@ export function createGame(options: GameOptions): Game {
 	let shakeTicks = 0;
 	const camera: Camera = { x: 0, y: 0, angle: 0, horizonOffset: 0 };
 	for (const { name } of level.rooms) assertHudCanDraw(name, `Room "${name}"`);
-	const bugs = createBugs(level.bugSpawns, options.sprites ?? PLACEHOLDER_SPRITES);
+	const bugs = createBugs(level.bugSpawns, options.sprites ?? placeholderSprites(art), art);
 	let room = roomAt(level.rooms, player.x, player.y)?.name ?? null;
 	const doors: DoorState[] = level.doors.map(({ x, y }) => ({ x, y, state: "closed", open: 0 }));
 	const exhibitsByFace = new Map<number, string>();
@@ -195,7 +204,7 @@ export function createGame(options: GameOptions): Game {
 		viewHeight: SCREEN_HEIGHT - STATUS_BAR_HEIGHT,
 		spriteTexelSize: SPRITE_TEXEL_SIZE,
 	});
-	const hud = createHud(SCREEN_WIDTH, SCREEN_HEIGHT);
+	const hud = createHud(SCREEN_WIDTH, SCREEN_HEIGHT, art.hud);
 	// Reused every frame, so rendering allocates nothing.
 	const hudView: HudView = { room: null, bugsFixed: null, hint: null };
 	// The counter text changes only when a Bug is fixed, so frames do not build strings.
@@ -311,9 +320,21 @@ export function createGame(options: GameOptions): Game {
 
 /** The names of the textures that a Level (parsed Tiled JSON) uses, so the caller can load them first. */
 export function levelTextureNames(level: unknown): string[] {
-	const { wallTextures, doorTracks } = loadLevel(level);
+	return textureNamesOf(loadLevel(level));
+}
+
+function textureNamesOf({ wallTextures, doorTracks }: Level): string[] {
 	const names = [...wallTextures, ...doorTracks].filter((name) => name !== undefined);
 	return [...new Set(names)].sort();
+}
+
+/** Fails with an error that names the first texture the Level uses and the art set does not have. */
+function checkLevelTextures(level: Level, artSet: ArtSet): void {
+	for (const name of textureNamesOf(level)) {
+		if (!artSet.textures.includes(name)) {
+			throw new Error(`The Level uses texture "${name}", but art set "${artSet.name}" has no texture with that name.`);
+		}
+	}
 }
 
 /** The poster face texture of each placed Exhibit, by `faceKey`. */
@@ -344,15 +365,15 @@ function texturesFor(names: Level["wallTextures"], textures: GameOptions["textur
 	});
 }
 
-/** A magenta block the size of a Bug, for every Bug frame. */
-const PLACEHOLDER_SPRITES: Readonly<Record<string, SpriteImage>> = (() => {
+/** A magenta block the size of a Bug, for every Bug frame of the art set. */
+function placeholderSprites(art: BugArt): Record<string, SpriteImage> {
 	const image: SpriteImage = {
 		texture: { width: 30, height: 39, texels: new Uint32Array(30 * 39).fill(rgb(255, 0, 255)) },
 		left: 15,
 		top: 35,
 	};
-	return Object.fromEntries(BUG_SPRITE_NAMES.map((name) => [name, image]));
-})();
+	return Object.fromEntries(bugFrameNames(art).map((name) => [name, image]));
+}
 
 function clampAxis(value: number): number {
 	return value < -1 ? -1 : value > 1 ? 1 : value;

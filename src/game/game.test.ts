@@ -5,13 +5,11 @@ import { createFixedStepLoop } from "../engine/loop";
 import { createTexture, type Texture } from "../engine/texture";
 import { EXHIBITS } from "./content";
 import {
-	BUG_SPRITE_NAMES,
-	CROSSHAIR_COLOR,
+	bugFrameNames,
 	createGame,
 	type DoorState,
 	FLOOR_COLOR,
 	type Game,
-	HUD_VALUE_COLOR,
 	levelTextureNames,
 	SCREEN_HEIGHT,
 	SCREEN_WIDTH,
@@ -27,6 +25,7 @@ import {
 	tiledLevel,
 	tiledRoom,
 } from "./test-support/tiled-level";
+import { MACHINE_ART_SET } from "./theme";
 
 const IDLE: InputSnapshot = { forward: 0, strafe: 0, turn: 0, look: 0 };
 const FORWARD: InputSnapshot = { ...IDLE, forward: 1 };
@@ -51,6 +50,10 @@ function aspect(indexes: number[]): number {
 	const ys = indexes.map((i) => Math.floor(i / SCREEN_WIDTH));
 	return (Math.max(...xs) - Math.min(...xs) + 1) / (Math.max(...ys) - Math.min(...ys) + 1);
 }
+
+/** The HUD colors of the machine art set, which the Game core uses by default. */
+const HUD_VALUE_COLOR = rgb(...MACHINE_ART_SET.hud.value);
+const CROSSHAIR_COLOR = rgb(...MACHINE_ART_SET.hud.crosshair);
 
 const RED = rgb(255, 0, 0);
 const GREEN = rgb(0, 255, 0);
@@ -347,6 +350,66 @@ describe("Game core", () => {
 	});
 });
 
+describe("Art set", () => {
+	const bugRoom = tiledRoom("Lobby", { x: 1, y: 1, width: 3, height: 1 });
+	const bugLevel = tiledLevel({
+		rows: ["#####", "#P..#", "#####"],
+		wallTextures: { "#": "STARTAN2" },
+		extraObjects: [bugRoom, tiledBug({ x: 3.5, y: 1.5 })],
+	});
+
+	it("creates the Game core with the real sample Level and the machine art set", () => {
+		const game = createGame({ level: sampleLevel, content: EXHIBITS, artSet: MACHINE_ART_SET });
+		expect(game.state().room).toBe("Lobby");
+	});
+
+	it("fails with an error that names a wall texture the art set does not have", () => {
+		const level = tiledLevel({ rows: ["###", "#P#", "###"], wallTextures: { "#": "NOSUCHWALL" } });
+		expect(() => createGame({ level, artSet: MACHINE_ART_SET })).toThrow(/texture "NOSUCHWALL".*art set "machine"/);
+	});
+
+	it("fails with an error that names a door texture the art set does not have", () => {
+		const level = tiledLevel({
+			rows: ["######", "#P.D.#", "######"],
+			wallTextures: { "#": "STARTAN2" },
+			doorTiles: { D: { texture: "NOSUCHDOOR", track: "DOORTRAK" } },
+		});
+		expect(() => createGame({ level, artSet: MACHINE_ART_SET })).toThrow(/texture "NOSUCHDOOR"/);
+	});
+
+	it("fails with an error that names the missing Bug walk frame when the Level has Bugs", () => {
+		const artSet = { ...MACHINE_ART_SET, bugWalkFrames: [] };
+		expect(() => createGame({ level: bugLevel, artSet })).toThrow(/Bug walk frame/);
+	});
+
+	it("fails with an error that names the missing Bug fix frame when the Level has Bugs", () => {
+		const artSet = { ...MACHINE_ART_SET, bugFixFrames: [] };
+		expect(() => createGame({ level: bugLevel, artSet })).toThrow(/Bug fix frame/);
+	});
+
+	it("loads the Bug frames the art set names", () => {
+		const artSet = { ...MACHINE_ART_SET, bugWalkFrames: ["BEETLE1"], bugFixFrames: ["PATCHED1"] };
+		const image = { texture: solidTexture(GREEN), left: 2, top: 4 };
+		expect(() => createGame({ level: bugLevel, artSet, sprites: { BEETLE1: image } })).toThrow(/"PATCHED1"/);
+		expect(() => createGame({ level: bugLevel, artSet, sprites: { BEETLE1: image, PATCHED1: image } })).not.toThrow();
+	});
+
+	it("names only committed files: textures, Bug frames with anchors, and sounds", async () => {
+		const committed = Object.keys(import.meta.glob(["/public/**/*.png", "/public/**/*.wav", "/public/**/*.json"]));
+		const { folder } = MACHINE_ART_SET;
+		const offsets = (await import(`../../public/${folder}/sprites/offsets.json`)).default as Record<string, unknown>;
+
+		for (const name of MACHINE_ART_SET.textures) expect(committed).toContain(`/public/${folder}/textures/${name}.png`);
+		for (const name of bugFrameNames(MACHINE_ART_SET)) {
+			expect(committed).toContain(`/public/${folder}/sprites/${name}.png`);
+			expect(offsets[name]).toEqual({ left: expect.any(Number), top: expect.any(Number) });
+		}
+		for (const file of Object.values(MACHINE_ART_SET.sounds)) {
+			expect(committed).toContain(`/public/${folder}/sounds/${file}.wav`);
+		}
+	});
+});
+
 describe("Rooms", () => {
 	it("puts the player in the Room whose rectangle holds the player start", () => {
 		const game = createGame({
@@ -614,12 +677,11 @@ describe("Textured walls", () => {
 		expect(() => createGame({ level })).toThrow(/gid 1 has no "texture" property/);
 	});
 
-	it("lists the textures the real sample Level uses, and each one is a committed Freedoom PNG", () => {
-		const committed = Object.keys(import.meta.glob("/public/freedoom/textures/*.png"));
+	it("lists the textures the real sample Level uses, and the machine art set has each one", () => {
 		const names = levelTextureNames(sampleLevel);
 
 		expect(names.length).toBeGreaterThan(0);
-		for (const name of names) expect(committed).toContain(`/public/freedoom/textures/${name}.png`);
+		for (const name of names) expect(MACHINE_ART_SET.textures).toContain(name);
 	});
 });
 
@@ -819,12 +881,12 @@ describe("Bugs", () => {
 	});
 
 	describe("sprites", () => {
-		/** Every Bug frame is a solid green 30x39 image, anchored like the Freedoom SKUL frames. */
+		/** Every Bug frame of the machine art set is a solid green 30x39 image, anchored like the Freedoom SKUL frames. */
 		const greenBug = (() => {
 			const rgba = new Uint8Array(30 * 39 * 4);
 			new Uint32Array(rgba.buffer).fill(GREEN);
 			const image = { texture: createTexture(30, 39, rgba), left: 15, top: 35 };
-			return Object.fromEntries(BUG_SPRITE_NAMES.map((name) => [name, image]));
+			return Object.fromEntries(bugFrameNames(MACHINE_ART_SET).map((name) => [name, image]));
 		})();
 
 		/** Green pixels are Bug pixels: the walls, floor, and ceiling here have no green. */
@@ -892,16 +954,6 @@ describe("Bugs", () => {
 		it("fails with a clear error when a Bug sprite is missing", () => {
 			const { SKULB1: _, ...withoutOne } = greenBug;
 			expect(() => createGame({ level: bugLevel([]), sprites: withoutOne })).toThrow(/SKULB1/);
-		});
-
-		it("names Bug sprites that are committed Freedoom PNGs with anchors", async () => {
-			const committed = Object.keys(import.meta.glob("/public/freedoom/sprites/*.png"));
-			const offsets = (await import("../../public/freedoom/sprites/offsets.json")).default as Record<string, unknown>;
-
-			for (const name of BUG_SPRITE_NAMES) {
-				expect(committed).toContain(`/public/freedoom/sprites/${name}.png`);
-				expect(offsets[name]).toEqual({ left: expect.any(Number), top: expect.any(Number) });
-			}
 		});
 	});
 

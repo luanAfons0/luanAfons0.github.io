@@ -3,9 +3,13 @@ import { createFramebuffer, rgb } from "../engine/framebuffer";
 import type { InputSnapshot } from "../engine/input";
 import { createTexture, type Texture } from "../engine/texture";
 import { EXHIBITS, type Exhibit } from "./content";
-import { createGame, type Game, HUD_HINT_COLOR, SCREEN_HEIGHT, SCREEN_WIDTH, STATUS_BAR_HEIGHT } from "./game";
+import { createGame, type Game, SCREEN_HEIGHT, SCREEN_WIDTH, STATUS_BAR_HEIGHT } from "./game";
 import sampleLevel from "./levels/sample.json";
 import { TEST_WALL_TEXTURE, tiledExhibit, tiledLevel } from "./test-support/tiled-level";
+import { MACHINE_ART_SET } from "./theme";
+
+/** The hint color of the machine art set, which the Game core uses by default. */
+const HUD_HINT_COLOR = rgb(...MACHINE_ART_SET.hud.hint);
 
 const IDLE: InputSnapshot = { forward: 0, strafe: 0, turn: 0, look: 0 };
 const USE: InputSnapshot = { ...IDLE, use: true };
