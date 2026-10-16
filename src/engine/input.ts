@@ -85,6 +85,6 @@ export function createKeyboardInput(target: Window): KeyboardInput {
 }
 
 /** Keys typed into a form control (for example a slider in an overlay) are for that control, not the game. */
-function isFormControl(target: EventTarget | null): boolean {
+export function isFormControl(target: EventTarget | null): boolean {
 	return target instanceof Element && target.closest("input, select, textarea") !== null;
 }

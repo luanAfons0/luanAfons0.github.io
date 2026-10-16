@@ -1,4 +1,5 @@
 import type { AnalyticsEvent } from "../analytics/analytics";
+import type { SoundEvent } from "../audio/audio";
 import { moveCircle } from "../engine/collision";
 import { type Framebuffer, rgb } from "../engine/framebuffer";
 import { cellAt } from "../engine/grid";
@@ -90,6 +91,11 @@ export interface GameOptions {
 	 * GoatCounter `track`. Default: none.
 	 */
 	track?: (event: AnalyticsEvent) => void;
+	/**
+	 * Reports a sound event: `shot` on each shot, and `door-open` when a closed door starts to open. The Game core only calls it; the browser shell
+	 * plays the sound through the Audio. Default: none.
+	 */
+	sound?: (event: SoundEvent) => void;
 	/** Settings that are not given use DEFAULT_GAME_SETTINGS. */
 	settings?: Partial<GameSettings>;
 }
@@ -195,7 +201,9 @@ export function createGame(options: GameOptions): Game {
 	function useDoorAhead(): void {
 		const hit = castRay(level.walls, player.x, player.y, player.angle, USE_DISTANCE);
 		const door = hit && doors.find(({ x, y }) => x === hit.x && y === hit.y);
-		if (door && door.state === "closed") door.state = "opening";
+		if (door?.state !== "closed") return;
+		door.state = "opening";
+		options.sound?.("door-open");
 	}
 
 	function slideDoors(): void {
@@ -235,7 +243,10 @@ export function createGame(options: GameOptions): Game {
 			room = roomAt(level.rooms, player.x, player.y)?.name ?? room;
 			bugs.step(level.walls);
 			if (shakeTicks > 0) shakeTicks--;
-			if (input.shoot) shakeTicks = SHAKE_TICKS;
+			if (input.shoot) {
+				shakeTicks = SHAKE_TICKS;
+				options.sound?.("shot");
+			}
 			if (input.shoot && bugs.shoot(level.walls, player.x, player.y, player.angle)) {
 				hudView.bugsFixed = bugsFixedText();
 				if (!goalSent && bugs.total > 0 && bugs.fixedCount() === bugs.total) {

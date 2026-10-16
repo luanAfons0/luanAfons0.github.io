@@ -1,6 +1,7 @@
 import { track } from "./analytics/analytics";
+import type { Audio } from "./audio/audio";
 import { createFramebuffer } from "./engine/framebuffer";
-import { createKeyboardInput, type InputSnapshot } from "./engine/input";
+import { createKeyboardInput, type InputSnapshot, isFormControl } from "./engine/input";
 import { createFixedStepLoop } from "./engine/loop";
 import { createMouseLook } from "./engine/pointer-lock";
 import type { SpriteImage } from "./engine/renderer";
@@ -39,8 +40,14 @@ const [textureEntries, spriteEntries, posterEntries] = await Promise.all([
 	),
 ]);
 
-/** Starts the game in the page's #screen canvas. The Title Screen calls it after NEW GAME. */
-export function startGame(): void {
+/** The key that mutes and unmutes all sound. Keys are `KeyboardEvent.code` values. */
+const MUTE_KEY = "KeyM";
+
+/**
+ * Starts the game in the page's #screen canvas. The Title Screen calls it after NEW GAME, with the
+ * Audio it started in the NEW GAME user gesture. Without an Audio, the game is silent.
+ */
+export function startGame(audio?: Audio): void {
 	const canvas = document.querySelector<HTMLCanvasElement>("#screen");
 	const context = canvas?.getContext("2d");
 	if (!canvas || !context) throw new Error("The page has no #screen canvas with a 2D context.");
@@ -50,11 +57,13 @@ export function startGame(): void {
 	canvas.focus();
 
 	const settings = loadSettings();
+	audio?.setMuted(!settings.sound);
 	const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 	const game = createGame({
 		level: sampleLevel,
 		content: EXHIBITS,
 		track,
+		sound: (event) => audio?.play(event),
 		textures: Object.fromEntries(textureEntries),
 		sprites: Object.fromEntries(spriteEntries),
 		posters: Object.fromEntries(posterEntries),
@@ -79,11 +88,20 @@ export function startGame(): void {
 		settings,
 		onResume: resume,
 		onSettingsChange(changed) {
-			// The sound setting is saved here; the Audio module will read it.
+			Object.assign(settings, changed);
 			game.updateSettings({ mouseSensitivity: changed.mouseSensitivity, invertMouse: changed.invertMouse });
+			audio?.setMuted(!changed.sound);
 			saveSettings(changed);
 		},
 	});
+
+	/** M: the same sound setting as the Pause Menu, so the menu shows it and it is saved. */
+	function toggleSound(): void {
+		settings.sound = !settings.sound;
+		audio?.setMuted(!settings.sound);
+		pauseMenu.showSettings(settings);
+		saveSettings(settings);
+	}
 
 	function openPauseMenu(): void {
 		if (pauseMenu.isOpen()) return;
@@ -95,8 +113,10 @@ export function startGame(): void {
 		pauseMenu.close();
 		game.resume();
 		canvas?.focus();
-		// Resume is a click or key press, so the browser lets the page capture the mouse again.
+		// Resume is a click or key press, so the browser lets the page capture the mouse again,
+		// and resume the sound if it suspended the audio context.
 		mouse.lock();
+		audio?.start();
 	}
 
 	/** Shows the Exhibit Panel when the Game core opened an Exhibit (the player pressed E on it). */
@@ -119,13 +139,16 @@ export function startGame(): void {
 		mouse.lock();
 	}
 
-	// A click into the game captures the mouse.
+	// A click into the game captures the mouse. It is a user gesture too, so it resumes the sound
+	// if the browser suspended the audio context.
 	canvas.addEventListener("click", () => {
+		audio?.start();
 		if (!pauseMenu.isOpen() && !exhibitPanel.isOpen()) mouse.lock();
 	});
 	// While the mouse is captured, the browser keeps Esc and releases the mouse (see above).
 	// Without capture (keyboard-only play, or an open Exhibit Panel), Esc reaches the page.
 	window.addEventListener("keydown", (event) => {
+		if (event.code === MUTE_KEY && !event.repeat && !isFormControl(event.target)) toggleSound();
 		if (event.code !== "Escape") return;
 		if (exhibitPanel.isOpen()) {
 			event.preventDefault();

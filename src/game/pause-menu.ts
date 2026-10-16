@@ -16,6 +16,8 @@ export interface PauseMenu {
 	open(): void;
 	close(): void;
 	isOpen(): boolean;
+	/** Shows settings that changed outside the menu (the M key changes the sound setting). */
+	showSettings(settings: Settings): void;
 }
 
 /** The Pause Menu: an HTML overlay above the canvas. */
@@ -43,7 +45,7 @@ export function createPauseMenu(options: PauseMenuOptions): PauseMenu {
 				<input name="invertMouse" type="checkbox" />
 			</label>
 			<label class="pause-menu__setting">
-				<span>Sound</span>
+				<span>Sound (M)</span>
 				<input name="sound" type="checkbox" />
 			</label>
 			<a class="pause-menu__item" href="${SKIP_VIEW_URL}">Skip View</a>
@@ -90,6 +92,10 @@ export function createPauseMenu(options: PauseMenuOptions): PauseMenu {
 			root.hidden = true;
 		},
 		isOpen: () => !root.hidden,
+		showSettings(changed) {
+			Object.assign(settings, changed);
+			showSettings();
+		},
 	};
 }
 

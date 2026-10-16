@@ -37,3 +37,7 @@ Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/ag
 ## Analytics
 
 `src/analytics/analytics.ts` holds the GoatCounter site code (`GOATCOUNTER_SITE`), the script tag, and `track(event)`. `track` uses optional chaining and a `try`, so a blocked script never throws. Events: `new-game` and `skip` (Title Screen), `exhibit/<id>` and `all-bugs-fixed` (Game core, through the `track` option of `createGame`; `all-bugs-fixed` goes once per visit).
+
+## Sound
+
+`src/audio/audio.ts` is the Audio: Freedoom sound effects through Web Audio, no music. Manual test only. The Game core never touches Web Audio: it reports sound events (`shot`, `door-open`) through the `sound` option of `createGame`, and the browser shell passes them to `audio.play`. The Title Screen creates the Audio, and `onNewGame` calls `audio.start()`, which creates the `AudioContext` and loads the WAVs from `public/freedoom/sounds/` then, not before. Map a new event to its WAV in `SOUND_FILES`. M and the Pause Menu sound setting are the same saved setting (`sound` in `src/game/settings.ts`); M mutes all sound through the master gain.

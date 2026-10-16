@@ -1187,3 +1187,53 @@ describe("Doors", () => {
 		expect(createGame({ level: sampleLevel, content: EXHIBITS }).state().doors.some(joinsTwoRooms)).toBe(true);
 	});
 });
+
+describe("Sound", () => {
+	const SHOOT: InputSnapshot = { ...IDLE, shoot: true };
+
+	it("reports a shot sound each time the player fires, and no sound on the ticks without a shot", () => {
+		const sound = vi.fn();
+		const game = createGame({ level: tiledLevel({ rows: ["#####", "#P..#", "#####"] }), sound });
+
+		stepTicks(game, FORWARD, 10);
+		expect(sound).not.toHaveBeenCalled();
+
+		game.step(SHOOT);
+		game.step(IDLE);
+		game.step(SHOOT);
+		expect(sound.mock.calls).toEqual([["shot"], ["shot"]]);
+	});
+
+	it("reports no sound while the game is paused", () => {
+		const sound = vi.fn();
+		const game = createGame({ level: tiledLevel({ rows: ["#####", "#P..#", "#####"] }), sound });
+
+		game.pause();
+		stepTicks(game, SHOOT, 10);
+		expect(sound).not.toHaveBeenCalled();
+	});
+
+	it("reports the door sound once, when the player starts to open a closed door", () => {
+		const sound = vi.fn();
+		const game = createGame({
+			level: tiledLevel({ rows: ["######", "#P.D.#", "######"], playerOffset: { x: 1.5, y: 0.5 } }),
+			sound,
+		});
+
+		game.step(USE);
+		expect(sound.mock.calls).toEqual([["door-open"]]);
+
+		game.step(USE); // the door is already opening
+		stepTicks(game, IDLE, 120);
+		game.step(USE); // the door is open
+		expect(sound.mock.calls).toEqual([["door-open"]]);
+	});
+
+	it("reports no door sound when the player uses a wall", () => {
+		const sound = vi.fn();
+		const game = createGame({ level: tiledLevel({ rows: ["####", "#P.#", "####"] }), sound });
+
+		game.step(USE);
+		expect(sound).not.toHaveBeenCalled();
+	});
+});
