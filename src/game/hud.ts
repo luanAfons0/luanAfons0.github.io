@@ -1,5 +1,6 @@
 import { drawText, GLYPH_HEIGHT, textWidth, undrawableChar } from "../engine/font";
 import { type Framebuffer, rgb } from "../engine/framebuffer";
+import type { HudColors } from "./theme";
 
 /** What the HUD shows. The Game core fills it from its state each frame. */
 export interface HudView {
@@ -31,28 +32,15 @@ const SECTIONS: readonly StatusBarSection[] = [
 
 /** The status bar is this many pixels high, across the bottom of the frame. */
 export const STATUS_BAR_HEIGHT = 40;
-/** The color of the values in the status bar (the big text). */
-export const HUD_VALUE_COLOR = rgb(220, 40, 32);
-/** The color of the hint above the status bar. */
-export const HUD_HINT_COLOR = rgb(255, 216, 72);
-const HINT_SHADOW_COLOR = rgb(0, 0, 0);
 const HINT_SCALE = 2;
 /** Space between the hint and the top of the status bar, in pixels. */
 const HINT_GAP = 16;
 
-/** The crosshair in the middle of the 3D view, where shots go. */
-export const CROSSHAIR_COLOR = rgb(240, 232, 160);
-/** Each crosshair arm runs from this many pixels away from the center... */
+/** The crosshair sits in the middle of the 3D view, where shots go. Each crosshair arm runs from this many pixels away from the center... */
 const CROSSHAIR_GAP = 2;
 /** ...to this many. */
 const CROSSHAIR_REACH = 5;
 
-const BAR_COLOR = rgb(92, 88, 80);
-const BAR_EDGE_COLOR = rgb(150, 144, 132);
-const SECTION_COLOR = rgb(48, 44, 40);
-const BEVEL_DARK = rgb(32, 30, 28);
-const BEVEL_LIGHT = rgb(136, 130, 118);
-const LABEL_COLOR = rgb(200, 196, 180);
 const MARGIN = 4;
 const PADDING = 6;
 const VALUE_SCALE = 2;
@@ -70,7 +58,9 @@ export interface Hud {
 	draw(framebuffer: Framebuffer, view: HudView): void;
 }
 
-export function createHud(screenWidth: number, screenHeight: number): Hud {
+/** The HUD, in the colors of an art set. */
+export function createHud(screenWidth: number, screenHeight: number, colors: Readonly<HudColors>): Hud {
+	const color = packColors(colors);
 	const top = screenHeight - STATUS_BAR_HEIGHT;
 	const boxes = layOut(screenWidth, top);
 	const centerX = screenWidth >> 1;
@@ -79,15 +69,15 @@ export function createHud(screenWidth: number, screenHeight: number): Hud {
 	return {
 		draw(framebuffer, view) {
 			const arm = CROSSHAIR_REACH - CROSSHAIR_GAP + 1;
-			fillRect(framebuffer, centerX - CROSSHAIR_REACH, centerY, arm, 1, CROSSHAIR_COLOR);
-			fillRect(framebuffer, centerX + CROSSHAIR_GAP, centerY, arm, 1, CROSSHAIR_COLOR);
-			fillRect(framebuffer, centerX, centerY - CROSSHAIR_REACH, 1, arm, CROSSHAIR_COLOR);
-			fillRect(framebuffer, centerX, centerY + CROSSHAIR_GAP, 1, arm, CROSSHAIR_COLOR);
-			fillRect(framebuffer, 0, top, screenWidth, STATUS_BAR_HEIGHT, BAR_COLOR);
-			fillRect(framebuffer, 0, top, screenWidth, 1, BAR_EDGE_COLOR);
+			fillRect(framebuffer, centerX - CROSSHAIR_REACH, centerY, arm, 1, color.crosshair);
+			fillRect(framebuffer, centerX + CROSSHAIR_GAP, centerY, arm, 1, color.crosshair);
+			fillRect(framebuffer, centerX, centerY - CROSSHAIR_REACH, 1, arm, color.crosshair);
+			fillRect(framebuffer, centerX, centerY + CROSSHAIR_GAP, 1, arm, color.crosshair);
+			fillRect(framebuffer, 0, top, screenWidth, STATUS_BAR_HEIGHT, color.bar);
+			fillRect(framebuffer, 0, top, screenWidth, 1, color.barEdge);
 			for (const box of boxes) {
-				drawSectionBox(framebuffer, box);
-				drawText(framebuffer, box.section.label, box.x + PADDING, box.y + 4, LABEL_COLOR);
+				drawSectionBox(framebuffer, box, color);
+				drawText(framebuffer, box.section.label, box.x + PADDING, box.y + 4, color.label);
 				const value = box.section.value(view);
 				if (value !== null) {
 					drawText(
@@ -95,7 +85,7 @@ export function createHud(screenWidth: number, screenHeight: number): Hud {
 						value,
 						box.x + PADDING,
 						box.y + box.height - 4 - GLYPH_HEIGHT * VALUE_SCALE,
-						HUD_VALUE_COLOR,
+						color.value,
 						VALUE_SCALE,
 						box.width - 2 * PADDING,
 					);
@@ -104,8 +94,8 @@ export function createHud(screenWidth: number, screenHeight: number): Hud {
 			if (view.hint !== null) {
 				const x = Math.round((screenWidth - textWidth(view.hint, HINT_SCALE)) / 2);
 				const y = top - HINT_GAP - GLYPH_HEIGHT * HINT_SCALE;
-				drawText(framebuffer, view.hint, x + 1, y + 1, HINT_SHADOW_COLOR, HINT_SCALE);
-				drawText(framebuffer, view.hint, x, y, HUD_HINT_COLOR, HINT_SCALE);
+				drawText(framebuffer, view.hint, x + 1, y + 1, color.hintShadow, HINT_SCALE);
+				drawText(framebuffer, view.hint, x, y, color.hint, HINT_SCALE);
 			}
 		},
 	};
@@ -131,14 +121,23 @@ function layOut(screenWidth: number, top: number): SectionBox[] {
 	});
 }
 
+/** The HUD colors as framebuffer pixels, packed once so frames do no work for them. */
+type PackedHudColors = Record<keyof HudColors, number>;
+
+function packColors(colors: Readonly<HudColors>): PackedHudColors {
+	const packed = {} as PackedHudColors;
+	for (const key of Object.keys(colors) as (keyof HudColors)[]) packed[key] = rgb(...colors[key]);
+	return packed;
+}
+
 /** A sunken box: dark on the top and left edges, light on the bottom and right edges. */
-function drawSectionBox(framebuffer: Framebuffer, box: SectionBox): void {
+function drawSectionBox(framebuffer: Framebuffer, box: SectionBox, color: PackedHudColors): void {
 	const { x, y, width, height } = box;
-	fillRect(framebuffer, x, y, width, height, SECTION_COLOR);
-	fillRect(framebuffer, x, y, width, 1, BEVEL_DARK);
-	fillRect(framebuffer, x, y, 1, height, BEVEL_DARK);
-	fillRect(framebuffer, x, y + height - 1, width, 1, BEVEL_LIGHT);
-	fillRect(framebuffer, x + width - 1, y, 1, height, BEVEL_LIGHT);
+	fillRect(framebuffer, x, y, width, height, color.section);
+	fillRect(framebuffer, x, y, width, 1, color.bevelDark);
+	fillRect(framebuffer, x, y, 1, height, color.bevelDark);
+	fillRect(framebuffer, x, y + height - 1, width, 1, color.bevelLight);
+	fillRect(framebuffer, x + width - 1, y, 1, height, color.bevelLight);
 }
 
 function fillRect(framebuffer: Framebuffer, x: number, y: number, width: number, height: number, color: number): void {

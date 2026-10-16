@@ -4,6 +4,7 @@ import { createTexture } from "../engine/texture";
 import { EXHIBITS } from "./content";
 import { createGame, levelTextureNames, SCREEN_HEIGHT, SCREEN_WIDTH } from "./game";
 import sampleLevel from "./levels/sample.json";
+import { MACHINE_ART_SET } from "./theme";
 
 // Renders frames of the real Level through the Game core (Seam 1).
 // The 60 FPS target is 16.7 ms per frame. Run it with `pnpm bench` and read the `mean` column.
@@ -15,7 +16,7 @@ describe("60 FPS target", () => {
 		// and each poster a noise texture of the sample poster size.
 		const textures = Object.fromEntries(levelTextureNames(sampleLevel).map((name) => [name, noiseTexture(128, 128)]));
 		const posters = Object.fromEntries(EXHIBITS.map(({ id }) => [id, noiseTexture(72, 66)]));
-		const game = createGame({ level: sampleLevel, content: EXHIBITS, textures, posters });
+		const game = createGame({ level: sampleLevel, artSet: MACHINE_ART_SET, content: EXHIBITS, textures, posters });
 		const framebuffer = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
 		const result = await bench("step and render", () => {
 			game.step({ forward: 0, strafe: 0, turn: 1, look: 0 });
