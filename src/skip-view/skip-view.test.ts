@@ -187,4 +187,67 @@ describe("Skip View builder (Seam 2)", () => {
 		const hrefs = [...doc.querySelectorAll("main a")].map((a) => a.getAttribute("href"));
 		for (const { url } of EXHIBITS.flatMap((e) => e.links)) expect(hrefs).toContain(url);
 	});
+
+	describe("Part labels", () => {
+		const level = loadLevel(
+			tiledLevel({
+				rows: ROWS,
+				extraObjects: [
+					WEST,
+					EAST,
+					tiledExhibit("a", { x: 2, y: 0 }, "south"),
+					tiledExhibit("b", { x: 4, y: 1 }, "east"),
+					tiledExhibit("c", { x: 4, y: 3 }, "west"),
+					tiledExhibit("d", { x: 6, y: 0 }, "south"),
+				],
+			}),
+		);
+
+		it("shows U1, J1, R1, Q1 for one Exhibit of each kind", () => {
+			const content = [
+				exhibit("a", { kind: "project" }),
+				exhibit("b", { kind: "contact" }),
+				exhibit("c", { kind: "skill" }),
+				exhibit("d", { kind: "job" }),
+			];
+			const doc = parse(buildSkipView({ content, level, base: BASE }));
+			const labels = [...doc.querySelectorAll("main article .skip-part")].map((n) => n.textContent);
+			expect(labels.sort()).toEqual(["J1", "Q1", "R1", "U1"]);
+		});
+
+		it("numbers a second project U2, in Content order", () => {
+			const content = [
+				exhibit("a", { kind: "project" }),
+				exhibit("b", { kind: "contact" }),
+				exhibit("c", { kind: "project" }),
+				exhibit("d", { kind: "job" }),
+			];
+			const doc = parse(buildSkipView({ content, level, base: BASE }));
+			const byId = (id: string) => doc.getElementById(`exhibit-${id}`)?.querySelector(".skip-part")?.textContent;
+			expect(byId("a")).toBe("U1");
+			expect(byId("c")).toBe("U2");
+		});
+
+		it("lists each Room in a Contents list with an anchor link and its Part labels", () => {
+			const content = [
+				exhibit("a", { kind: "project" }),
+				exhibit("b", { kind: "contact" }),
+				exhibit("c", { kind: "project" }),
+				exhibit("d", { kind: "job" }),
+			];
+			const doc = parse(buildSkipView({ content, level, base: BASE }));
+			const items = [...doc.querySelectorAll("nav[aria-label='Contents'] li")].map((li) => {
+				const href = li.querySelector("a")?.getAttribute("href") ?? "";
+				return [
+					li.querySelector("a")?.textContent,
+					doc.querySelector(href)?.tagName,
+					li.querySelector(".skip-contents-parts")?.textContent,
+				];
+			});
+			expect(items).toEqual([
+				["West Wing", "H2", "U1 U2"],
+				["East Wing", "H2", "J1 Q1"],
+			]);
+		});
+	});
 });

@@ -253,3 +253,8 @@ body {
 	outline: 3px solid #e8b040;
 	outline-offset: -6px;
 }
+
+.exhibit-panel__part {
+	font-weight: bold;
+	letter-spacing: 0.08em;
+}

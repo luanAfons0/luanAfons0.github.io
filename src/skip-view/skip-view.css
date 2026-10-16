@@ -232,3 +232,21 @@ h3 {
 main {
 	padding-bottom: 3rem;
 }
+
+.skip-rooms li {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.skip-contents-parts,
+.skip-part {
+	font-family: var(--mono);
+	font-weight: bold;
+	letter-spacing: 0.06em;
+}
+
+.skip-contents-parts {
+	color: var(--muted);
+	font-size: 0.875rem;
+}

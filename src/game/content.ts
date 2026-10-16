@@ -16,6 +16,27 @@ export const KIND_LABELS: Record<ExhibitKind, string> = {
 	contact: "Contact",
 };
 
+/** The letter of each kind in a Part label: project U, contact J, skill R, job Q. */
+const PART_LETTERS: Record<ExhibitKind, string> = {
+	project: "U",
+	contact: "J",
+	skill: "R",
+	job: "Q",
+};
+
+/**
+ * The Part label of an Exhibit, such as "U1": the letter of its kind and its order among the
+ * Exhibits of that kind in the Content, from 1. Derived, never stored. It fails when the Exhibit
+ * is not in the Content.
+ */
+export function partLabel(content: readonly { id: string; kind: ExhibitKind }[], exhibit: { id: string }): string {
+	const index = content.findIndex((e) => e.id === exhibit.id);
+	const found = content[index];
+	if (!found) throw new Error(`Exhibit "${exhibit.id}" is not in the Content, so it has no Part label.`);
+	const order = content.slice(0, index + 1).filter((e) => e.kind === found.kind).length;
+	return `${PART_LETTERS[found.kind]}${order}`;
+}
+
 export interface ExhibitLink {
 	label: string;
 	/** An absolute `http:`, `https:`, or `mailto:` URL. */
