@@ -153,12 +153,16 @@ describe("Exhibits in focus and use", () => {
 	});
 
 	it('shows "Press E" in the HUD, centered above the status bar, only while an Exhibit is in focus', () => {
+		// The crosshair has the hint color too, in the middle of the 3D view. The hint sits lower,
+		// just above the status bar, so look for it in the lower quarter of the 3D view only.
+		const viewHeight = SCREEN_HEIGHT - STATUS_BAR_HEIGHT;
 		const hintPixels = (game: Game) => {
 			const framebuffer = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
 			game.render(framebuffer);
 			const found: [number, number][] = [];
 			framebuffer.pixels.forEach((pixel, i) => {
-				if (pixel === HUD_HINT_COLOR) found.push([i % SCREEN_WIDTH, Math.floor(i / SCREEN_WIDTH)]);
+				const y = Math.floor(i / SCREEN_WIDTH);
+				if (pixel === HUD_HINT_COLOR && y >= (viewHeight * 3) / 4) found.push([i % SCREEN_WIDTH, y]);
 			});
 			return found;
 		};

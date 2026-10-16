@@ -12,7 +12,7 @@ export interface HudView {
 	hint: string | null;
 }
 
-/** One boxed section of the status bar: a small label above a big value. */
+/** One outlined section of the status bar: a small label above a big value. */
 interface StatusBarSection {
 	label: string;
 	/** Width in pixels. A section with no width takes the space the others leave. */
@@ -40,6 +40,18 @@ const HINT_GAP = 16;
 const CROSSHAIR_GAP = 2;
 /** ...to this many. */
 const CROSSHAIR_REACH = 5;
+
+/** The eight neighbors of a pixel, for the one-pixel outline around the hint. */
+const OUTLINE_OFFSETS: readonly (readonly [number, number])[] = [
+	[-1, -1],
+	[0, -1],
+	[1, -1],
+	[-1, 0],
+	[1, 0],
+	[-1, 1],
+	[0, 1],
+	[1, 1],
+];
 
 const MARGIN = 4;
 const PADDING = 6;
@@ -74,9 +86,9 @@ export function createHud(screenWidth: number, screenHeight: number, colors: Rea
 			fillRect(framebuffer, centerX, centerY - CROSSHAIR_REACH, 1, arm, color.crosshair);
 			fillRect(framebuffer, centerX, centerY + CROSSHAIR_GAP, 1, arm, color.crosshair);
 			fillRect(framebuffer, 0, top, screenWidth, STATUS_BAR_HEIGHT, color.bar);
-			fillRect(framebuffer, 0, top, screenWidth, 1, color.barEdge);
+			fillRect(framebuffer, 0, top, screenWidth, 1, color.outline);
 			for (const box of boxes) {
-				drawSectionBox(framebuffer, box, color);
+				outlineRect(framebuffer, box, color.outline);
 				drawText(framebuffer, box.section.label, box.x + PADDING, box.y + 4, color.label);
 				const value = box.section.value(view);
 				if (value !== null) {
@@ -94,7 +106,10 @@ export function createHud(screenWidth: number, screenHeight: number, colors: Rea
 			if (view.hint !== null) {
 				const x = Math.round((screenWidth - textWidth(view.hint, HINT_SCALE)) / 2);
 				const y = top - HINT_GAP - GLYPH_HEIGHT * HINT_SCALE;
-				drawText(framebuffer, view.hint, x + 1, y + 1, color.hintShadow, HINT_SCALE);
+				// A one-pixel outline in all eight directions, then the hint on top.
+				for (const [dx, dy] of OUTLINE_OFFSETS) {
+					drawText(framebuffer, view.hint, x + dx, y + dy, color.hintOutline, HINT_SCALE);
+				}
 				drawText(framebuffer, view.hint, x, y, color.hint, HINT_SCALE);
 			}
 		},
@@ -130,14 +145,13 @@ function packColors(colors: Readonly<HudColors>): PackedHudColors {
 	return packed;
 }
 
-/** A sunken box: dark on the top and left edges, light on the bottom and right edges. */
-function drawSectionBox(framebuffer: Framebuffer, box: SectionBox, color: PackedHudColors): void {
+/** A silkscreen outline: one pixel on each edge of the section, no fill, no bevel. */
+function outlineRect(framebuffer: Framebuffer, box: SectionBox, color: number): void {
 	const { x, y, width, height } = box;
-	fillRect(framebuffer, x, y, width, height, color.section);
-	fillRect(framebuffer, x, y, width, 1, color.bevelDark);
-	fillRect(framebuffer, x, y, 1, height, color.bevelDark);
-	fillRect(framebuffer, x, y + height - 1, width, 1, color.bevelLight);
-	fillRect(framebuffer, x + width - 1, y, 1, height, color.bevelLight);
+	fillRect(framebuffer, x, y, width, 1, color);
+	fillRect(framebuffer, x, y + height - 1, width, 1, color);
+	fillRect(framebuffer, x, y, 1, height, color);
+	fillRect(framebuffer, x + width - 1, y, 1, height, color);
 }
 
 function fillRect(framebuffer: Framebuffer, x: number, y: number, width: number, height: number, color: number): void {

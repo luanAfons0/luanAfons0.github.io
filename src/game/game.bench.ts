@@ -12,9 +12,9 @@ const FRAME_BUDGET_MS = 1000 / 60;
 
 describe("60 FPS target", () => {
 	it("renders a frame of the sample Level inside the frame budget", async ({ bench }) => {
-		// Node cannot decode the PNGs, so each wall gets a noise texture of the usual Freedoom size,
+		// Node cannot decode the PNGs, so each wall gets a noise texture of the machine art size,
 		// and each poster a noise texture of the sample poster size.
-		const textures = Object.fromEntries(levelTextureNames(sampleLevel).map((name) => [name, noiseTexture(128, 128)]));
+		const textures = Object.fromEntries(levelTextureNames(sampleLevel).map((name) => [name, noiseTexture(64, 64)]));
 		const posters = Object.fromEntries(EXHIBITS.map(({ id }) => [id, noiseTexture(72, 66)]));
 		const game = createGame({ level: sampleLevel, artSet: MACHINE_ART_SET, content: EXHIBITS, textures, posters });
 		const framebuffer = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
