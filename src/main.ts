@@ -1,7 +1,7 @@
 import { track } from "./analytics/analytics";
 import type { Audio } from "./audio/audio";
 import { createFramebuffer } from "./engine/framebuffer";
-import { createKeyboardInput, type InputSnapshot, isFormControl } from "./engine/input";
+import { createKeyboardInput, type InputSnapshot, isTextEntry } from "./engine/input";
 import { createFixedStepLoop } from "./engine/loop";
 import { createMouseLook } from "./engine/pointer-lock";
 import type { SpriteImage } from "./engine/renderer";
@@ -18,6 +18,7 @@ import {
 } from "./game/game";
 import sampleLevel from "./game/levels/sample.json";
 import { createPauseMenu } from "./game/pause-menu";
+import { createResumePrompt } from "./game/resume-prompt";
 import { loadSettings, saveSettings } from "./game/settings";
 
 // The browser shell: it owns the canvas, the clock, the keyboard, the mouse, and the overlays.
@@ -42,6 +43,8 @@ const [textureEntries, spriteEntries, posterEntries] = await Promise.all([
 
 /** The key that mutes and unmutes all sound. Keys are `KeyboardEvent.code` values. */
 const MUTE_KEY = "KeyM";
+/** The overlays above the canvas. Keys pressed in them are not for the game. */
+const OVERLAYS = ".exhibit-panel, .pause-menu, .resume-prompt";
 
 /**
  * Starts the game in the page's #screen canvas. The Title Screen calls it after NEW GAME, with the
@@ -75,13 +78,18 @@ export function startGame(audio?: Audio): void {
 	});
 	reducedMotion.addEventListener("change", (event) => game.updateSettings({ reducedMotion: event.matches }));
 
-	const keyboard = createKeyboardInput(window);
+	// Keys pressed in an overlay are for the overlay: the arrow keys scroll the Exhibit Panel, and
+	// Enter or Space press a button.
+	const keyboard = createKeyboardInput(window, {
+		belongsToPage: (target) => target instanceof Element && target.closest(OVERLAYS) !== null,
+	});
 	const mouse = createMouseLook(canvas, (locked) => {
 		// The browser releases the mouse when the player presses Esc (or leaves the window): pause.
 		// An open Exhibit Panel releases the mouse on purpose, so the visitor can click its links.
 		if (!locked && !exhibitPanel.isOpen()) openPauseMenu();
 	});
 	const exhibitPanel = createExhibitPanel({ parent: document.body, onClose: closeExhibitPanel });
+	const resumePrompt = createResumePrompt({ parent: document.body, onResume: resumeFromPrompt });
 	const exhibitsById = new Map(EXHIBITS.map((exhibit) => [exhibit.id, exhibit]));
 	const pauseMenu = createPauseMenu({
 		parent: document.body,
@@ -105,6 +113,7 @@ export function startGame(audio?: Audio): void {
 
 	function openPauseMenu(): void {
 		if (pauseMenu.isOpen()) return;
+		resumePrompt.close();
 		game.pause();
 		pauseMenu.open();
 	}
@@ -130,13 +139,31 @@ export function startGame(audio?: Audio): void {
 		mouse.unlock();
 	}
 
+	/** Close: a click (a user gesture), so the page can capture the mouse again and resume at once. */
 	function closeExhibitPanel(): void {
 		exhibitPanel.close();
 		game.closeExhibit();
 		canvas?.focus();
-		// A click on Close lets the page capture the mouse again. The browser can refuse it after Esc
-		// (Esc is not a user gesture); then the next click into the game captures it.
 		mouse.lock();
+	}
+
+	/**
+	 * Esc is not a user gesture, so the browser refuses to capture the mouse after it. The Game core
+	 * stays paused behind "Click to resume" until a click (a gesture) resumes it.
+	 */
+	function closeExhibitPanelWithEsc(): void {
+		exhibitPanel.close();
+		game.closeExhibit();
+		game.pause();
+		resumePrompt.open();
+	}
+
+	function resumeFromPrompt(): void {
+		resumePrompt.close();
+		game.resume();
+		canvas?.focus();
+		mouse.lock();
+		audio?.start();
 	}
 
 	// A click into the game captures the mouse. It is a user gesture too, so it resumes the sound
@@ -146,13 +173,14 @@ export function startGame(audio?: Audio): void {
 		if (!pauseMenu.isOpen() && !exhibitPanel.isOpen()) mouse.lock();
 	});
 	// While the mouse is captured, the browser keeps Esc and releases the mouse (see above).
-	// Without capture (keyboard-only play, or an open Exhibit Panel), Esc reaches the page.
+	// Without capture (keyboard-only play, an open Exhibit Panel, or "Click to resume"), Esc reaches the page.
 	window.addEventListener("keydown", (event) => {
-		if (event.code === MUTE_KEY && !event.repeat && !isFormControl(event.target)) toggleSound();
+		// M works everywhere but in a text field; a checkbox or slider in the Pause Menu takes no text.
+		if (event.code === MUTE_KEY && !event.repeat && !isTextEntry(event.target)) toggleSound();
 		if (event.code !== "Escape") return;
 		if (exhibitPanel.isOpen()) {
 			event.preventDefault();
-			closeExhibitPanel();
+			closeExhibitPanelWithEsc();
 		} else if (!mouse.isLocked()) {
 			openPauseMenu();
 		}

@@ -51,13 +51,13 @@ const GREEN = rgb(0, 255, 0);
 const BLUE = rgb(0, 0, 255);
 const WHITE = rgb(255, 255, 255);
 
-/** A 4x4 texture with one solid color for each texel column, left to right. */
-function columnsTexture(colors: [number, number, number, number]): Texture {
-	const rgba = new Uint8Array(4 * 4 * 4);
+/** A texture 4 texels wide (4 high by default) with one solid color for each texel column, left to right. */
+function columnsTexture(colors: [number, number, number, number], height = 4): Texture {
+	const rgba = new Uint8Array(4 * height * 4);
 	new Uint32Array(rgba.buffer).forEach((_, i, texels) => {
 		texels[i] = colors[i % 4] as number;
 	});
-	return createTexture(4, 4, rgba);
+	return createTexture(4, height, rgba);
 }
 
 /** Splits a pixel into its red, green, and blue channels. */
@@ -543,6 +543,31 @@ describe("Textured walls", () => {
 		// A wall 3 tiles away is about 118 px high, and as many rows above the horizon as below.
 		expect(bottom - top + 1).toBeGreaterThan(100);
 		expect((top + bottom + 1) / 2).toBeCloseTo(HORIZON, 0);
+	});
+
+	it("draws each column of a far wall in one texture column, up to its top pixel", () => {
+		// Each texel column of the wall texture has its own color, so a column that shows two colors
+		// (or black) read a texel outside its texture column. A tall texture on a short far wall
+		// makes the first texture row of a column easy to miss.
+		const rows = ["#".repeat(40), `#P${".".repeat(36)}##`, "#".repeat(40)];
+		const texture = columnsTexture([RED, GREEN, BLUE, WHITE], 128);
+		const frame = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+		const mixed: string[] = [];
+
+		for (let distance = 6; distance < 30; distance += 0.37) {
+			const level = tiledLevel({ rows, playerOffset: { x: 37 - distance, y: 0.5 } });
+			createGame({ level, textures: { [TEST_WALL_TEXTURE]: texture } }).render(frame);
+			for (let x = 0; x < SCREEN_WIDTH; x++) {
+				const colors = new Set<number>();
+				for (let y = 0; y < VIEW_HEIGHT; y++) {
+					const pixel = pixelAt(frame, x, y);
+					if (!isCeiling(pixel) && !isFloor(pixel)) colors.add(pixel);
+				}
+				if (colors.size > 1) mixed.push(`distance ${distance.toFixed(2)}, column ${x}`);
+			}
+		}
+
+		expect(mixed).toEqual([]);
 	});
 
 	it("draws the floor and ceiling as flat colors that get darker toward the horizon", () => {

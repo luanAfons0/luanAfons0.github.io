@@ -155,6 +155,21 @@ describe("Skip View builder (Seam 2)", () => {
 		expect(() => buildSkipView({ content: [exhibit("orca")], level, base: BASE })).toThrow(/"orca"/);
 	});
 
+	it("fails and names the Exhibit when the Level places an Exhibit that the Content does not have", () => {
+		const level = loadLevel(
+			tiledLevel({ rows: ROWS, extraObjects: [WEST, tiledExhibit("orca", { x: 4, y: 1 }, "west")] }),
+		);
+		expect(() => buildSkipView({ content: [], level, base: BASE })).toThrow(/"orca"/);
+	});
+
+	it("fails and names the Exhibit when one of its links is not an http, https, or mailto URL", () => {
+		const level = loadLevel(
+			tiledLevel({ rows: ROWS, extraObjects: [WEST, tiledExhibit("orca", { x: 4, y: 1 }, "west")] }),
+		);
+		const orca = exhibit("orca", { links: [{ label: "Bad", url: "javascript:alert(1)" }] });
+		expect(() => buildSkipView({ content: [orca], level, base: BASE })).toThrow(/"orca"/);
+	});
+
 	it("fails and names the Exhibit when the player sees it from no Room", () => {
 		// Only the East Wing is a Room, and the poster faces west, into the space that is no Room.
 		const level = loadLevel(

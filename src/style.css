@@ -224,3 +224,32 @@ body {
 	border-color: #e8b040;
 	outline: none;
 }
+
+/* "Click to resume": a button over the whole paused game, after Esc closes the Exhibit Panel. */
+.resume-prompt {
+	position: fixed;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	width: 100%;
+	border: 0;
+	background: rgb(0 0 0 / 0.5);
+	color: #e8d8b0;
+	font:
+		20px / 1.4 ui-monospace,
+		"Cascadia Mono",
+		Menlo,
+		Consolas,
+		monospace;
+	text-transform: uppercase;
+	cursor: pointer;
+}
+
+.resume-prompt[hidden] {
+	display: none;
+}
+
+.resume-prompt:focus-visible {
+	outline: 3px solid #e8b040;
+	outline-offset: -6px;
+}

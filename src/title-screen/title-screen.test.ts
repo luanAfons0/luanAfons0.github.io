@@ -23,6 +23,7 @@ beforeEach(() => {
 afterEach(() => {
 	for (const screen of screens) screen.dispose();
 	screens = [];
+	vi.restoreAllMocks();
 });
 
 const newGame = () => item("new-game");
@@ -218,6 +219,53 @@ describe("NEW GAME", () => {
 		newGame().click();
 		expect(reload).toHaveBeenCalledTimes(1);
 		expect(load).toHaveBeenCalledTimes(1);
+	});
+
+	it.each([
+		["after it loads", false],
+		["at once, when it loaded on hover", true],
+	])(
+		"shows the Title Screen again with the error when the game fails to start %s, and SKIP still works",
+		async (_, onHover) => {
+			const startGame = vi.fn(() => {
+				throw new Error("No canvas.");
+			});
+			const { resolve, navigate, reload } = setUp({ startGame });
+			vi.spyOn(console, "error").mockImplementation(() => {});
+			if (onHover) newGame().dispatchEvent(new Event("pointerenter"));
+			if (onHover) resolve("the game");
+			await settle();
+
+			newGame().click();
+			resolve("the game");
+			await settle();
+
+			expect(startGame).toHaveBeenCalledTimes(1);
+			expect(titleScreen()?.hidden).toBe(false);
+			expect(loadingBar()?.hidden).toBe(true);
+			expect(loadError()?.hidden).toBe(false);
+			expect(loadError()?.textContent).toMatch(/could not load/i);
+
+			press("ArrowDown");
+			press("Enter");
+			expect(navigate).toHaveBeenCalledTimes(1);
+			newGame().click();
+			expect(reload).toHaveBeenCalledTimes(1);
+		},
+	);
+
+	it("starts the game even when the NEW GAME hook throws (for example, no sound)", async () => {
+		const onNewGame = vi.fn(() => {
+			throw new Error("No Web Audio.");
+		});
+		const { resolve, startGame } = setUp({ onNewGame });
+		vi.spyOn(console, "error").mockImplementation(() => {});
+
+		newGame().click();
+		resolve("the game");
+		await settle();
+
+		expect(startGame).toHaveBeenCalledWith("the game");
 	});
 
 	it("shows a failed load from a hover only when the visitor chooses NEW GAME", async () => {

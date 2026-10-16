@@ -14,7 +14,8 @@ const SOUND_FILES: Record<SoundEvent, string> = { shot: "DSPISTOL", "door-open":
 export interface Audio {
 	/**
 	 * Creates the audio context, or resumes it when the browser suspended it, and starts to load the
-	 * sounds. Call it inside a user gesture. It is safe to call again.
+	 * sounds. Call it inside a user gesture. It is safe to call again. It never throws: without Web
+	 * Audio, it logs the problem once and the game stays silent.
 	 */
 	start(): void;
 	/** Plays the sound of an event. It does nothing before start(), while muted, or before the sound is loaded. */
@@ -28,6 +29,8 @@ export function createAudio(soundsUrl: string): Audio {
 	let context: AudioContext | undefined;
 	let output: GainNode | undefined;
 	let muted = false;
+	/** True once Web Audio failed: the Audio then stays silent and does not log again. */
+	let unavailable = false;
 	const buffers: Partial<Record<SoundEvent, AudioBuffer>> = {};
 
 	async function load(audio: AudioContext, event: SoundEvent): Promise<void> {
@@ -38,14 +41,24 @@ export function createAudio(soundsUrl: string): Audio {
 
 	return {
 		start() {
-			if (context) {
-				if (context.state !== "running") void context.resume();
+			if (unavailable) return;
+			// Sound must never block the game: a browser without Web Audio (or with it turned off) throws here.
+			try {
+				if (context) {
+					// A refused resume is not an error: the next user gesture tries again.
+					if (context.state !== "running") context.resume().catch(() => {});
+					return;
+				}
+				const created = new AudioContext();
+				output = created.createGain();
+				output.gain.value = muted ? 0 : 1;
+				output.connect(created.destination);
+				context = created;
+			} catch (error) {
+				unavailable = true;
+				console.error("No sound: Web Audio is not available.", error);
 				return;
 			}
-			context = new AudioContext();
-			output = context.createGain();
-			output.gain.value = muted ? 0 : 1;
-			output.connect(context.destination);
 			for (const event of Object.keys(SOUND_FILES) as SoundEvent[]) {
 				// A sound that fails to load stays silent; the game goes on.
 				load(context, event).catch((error: unknown) => console.error(error));

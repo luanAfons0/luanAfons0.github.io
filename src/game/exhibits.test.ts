@@ -37,6 +37,26 @@ describe("Exhibit Content check", () => {
 		expect(() => createGame({ level, content: [exhibit("orca"), exhibit("resume")] })).toThrow(/"resume"/);
 	});
 
+	it.each([
+		["a script", "javascript:alert(1)"],
+		["a data URL", "data:text/html,<script>alert(1)</script>"],
+		["a relative path", "/admin"],
+		["no URL at all", "not a url"],
+	])("fails creation and names the id when an Exhibit link is %s", (_, url) => {
+		const level = tiledLevel({ rows, extraObjects: [tiledExhibit("orca", { x: 6, y: 1 }, "west")] });
+		const orca = { ...exhibit("orca"), links: [{ label: "Bad", url }] };
+		expect(() => createGame({ level, content: [orca] })).toThrow(/"orca".*link/);
+	});
+
+	it("accepts http, https, and mailto links", () => {
+		const level = tiledLevel({ rows, extraObjects: [tiledExhibit("orca", { x: 6, y: 1 }, "west")] });
+		const links = ["http://example.com/", "https://example.com/a?b=1", "mailto:me@example.com"].map((url) => ({
+			label: url,
+			url,
+		}));
+		expect(() => createGame({ level, content: [{ ...exhibit("orca"), links }] })).not.toThrow();
+	});
+
 	it("creates the Game core when every Level Exhibit has Content and every Content Exhibit is placed", () => {
 		const level = tiledLevel({
 			rows: ["#######", "#P....#", "#######"],

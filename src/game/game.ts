@@ -8,9 +8,9 @@ import { castRay, faceKey } from "../engine/raycast";
 import { type Camera, createRenderer, type SpriteImage } from "../engine/renderer";
 import type { Texture } from "../engine/texture";
 import { BUG_SPRITE_NAMES, type BugState, createBugs } from "./bugs";
-import type { Exhibit } from "./content";
+import { checkContent, type Exhibit } from "./content";
 import { assertHudCanDraw, createHud, type HudView, STATUS_BAR_HEIGHT } from "./hud";
-import { type ExhibitPlacement, type Level, loadLevel, roomAt } from "./level";
+import { type Level, loadLevel, roomAt } from "./level";
 import { createPosterFace } from "./poster";
 
 export { BUG_SPRITE_NAMES } from "./bugs";
@@ -308,23 +308,6 @@ export function levelTextureNames(level: unknown): string[] {
 	const { wallTextures, doorTracks } = loadLevel(level);
 	const names = [...wallTextures, ...doorTracks].filter((name) => name !== undefined);
 	return [...new Set(names)].sort();
-}
-
-/** Fails with an error that names the `id` when the Level Exhibits and the Content do not match. */
-function checkContent(placements: readonly ExhibitPlacement[], content: readonly Exhibit[]): void {
-	const ids = new Set<string>();
-	for (const { id } of content) {
-		if (ids.has(id)) throw new Error(`The Content has two Exhibits with the id "${id}".`);
-		ids.add(id);
-	}
-	for (const { id } of placements) {
-		if (!ids.has(id)) throw new Error(`The Level places Exhibit "${id}", but the Content has no Exhibit with that id.`);
-	}
-	for (const { id } of content) {
-		if (!placements.some((placement) => placement.id === id)) {
-			throw new Error(`The Content has Exhibit "${id}", but the Level does not place it.`);
-		}
-	}
 }
 
 /** The poster face texture of each placed Exhibit, by `faceKey`. */

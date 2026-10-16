@@ -31,6 +31,14 @@ const KEY_BINDINGS: Record<string, [Axis, number]> = {
 /** The key that uses what the player looks at. It counts once per press, not while it is held. */
 const USE_KEY = "KeyE";
 
+export interface KeyboardInputOptions {
+	/**
+	 * True for a key event target whose keys go to the page, not the game (for example a scrollable
+	 * overlay): the game ignores those keys and lets the browser handle them. Default: none.
+	 */
+	belongsToPage?(target: EventTarget | null): boolean;
+}
+
 export interface KeyboardInput {
 	/** The input for the next tick, from the keys that are down now and the use key pressed since the last call. */
 	snapshot(): InputSnapshot;
@@ -39,12 +47,12 @@ export interface KeyboardInput {
 }
 
 /** Tracks the keys that are down and turns them into one input snapshot per tick. */
-export function createKeyboardInput(target: Window): KeyboardInput {
+export function createKeyboardInput(target: Window, options: KeyboardInputOptions = {}): KeyboardInput {
 	const down = new Set<string>();
 	let usePressed = false;
 
 	const onKeyDown = (event: KeyboardEvent) => {
-		if (isFormControl(event.target)) return;
+		if (isFormControl(event.target) || options.belongsToPage?.(event.target)) return;
 		if (event.code === USE_KEY) {
 			if (!event.repeat) usePressed = true;
 			return;
@@ -87,4 +95,17 @@ export function createKeyboardInput(target: Window): KeyboardInput {
 /** Keys typed into a form control (for example a slider in an overlay) are for that control, not the game. */
 export function isFormControl(target: EventTarget | null): boolean {
 	return target instanceof Element && target.closest("input, select, textarea") !== null;
+}
+
+/** The input types that take typed text. Keys typed into them are for the text, not for shortcuts. */
+const TEXT_INPUT_TYPES = new Set(["text", "search", "email", "url", "tel", "password", "number"]);
+
+/**
+ * True when keys typed at `target` enter text: a textarea, a text-like input, or editable content.
+ * A checkbox or a slider is a form control, but it takes no text, so a shortcut key still works there.
+ */
+export function isTextEntry(target: EventTarget | null): boolean {
+	if (!(target instanceof HTMLElement)) return false;
+	if (target instanceof HTMLTextAreaElement || target.isContentEditable) return true;
+	return target instanceof HTMLInputElement && TEXT_INPUT_TYPES.has(target.type);
 }

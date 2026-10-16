@@ -7,12 +7,13 @@ export interface TitleScreenOptions<Game> {
 	loadGame(): Promise<Game>;
 	/**
 	 * Starts the game that loadGame() gave, after the Title Screen is hidden. When the game was ready
-	 * before the click, it runs inside the click or key press (a user gesture).
+	 * before the click, it runs inside the click or key press (a user gesture). When it throws, the
+	 * Title Screen shows again with the load error.
 	 */
 	startGame(game: Game): void;
 	/**
 	 * Runs at once inside the NEW GAME click or Enter key press: the user gesture that lets the page
-	 * play sound. It runs once, before the game code is ready.
+	 * play sound. It runs once, before the game code is ready. When it throws, the game still starts.
 	 */
 	onNewGame?(): void;
 	/** Sends an analytics event (`new-game`, `skip`). By default it is the GoatCounter `track`. */
@@ -63,30 +64,43 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 
 	let starting = false;
 	let loadFailed = false;
+	/** Shows the error on the Title Screen. NEW GAME then reloads the page; SKIP still works. */
+	const fail = (error: unknown) => {
+		console.error(error);
+		starting = false;
+		loadFailed = true;
+		screen.hidden = false;
+		loadingBar.hidden = true;
+		loadError.textContent =
+			"The game could not load. Check your connection, then choose NEW GAME to reload the page. Or choose SKIP.";
+		loadError.hidden = false;
+	};
 	const start = (game: Game) => {
-		dispose();
 		loadingBar.hidden = true;
 		screen.hidden = true;
-		options.startGame(game);
+		try {
+			options.startGame(game);
+		} catch (error) {
+			return fail(error);
+		}
+		// The game has the keys now. On a failed start, the Title Screen keeps them.
+		dispose();
 	};
 	const startNewGame = () => {
 		if (starting) return;
 		starting = true;
 		if (loadFailed) return reload();
 		track("new-game");
-		options.onNewGame?.();
+		try {
+			options.onNewGame?.();
+		} catch (error) {
+			// The hook only starts extras (the sound). The game starts without them.
+			console.error(error);
+		}
 		const pending = preload();
 		if (loaded) return start(loaded.game);
 		loadingBar.hidden = false;
-		pending.then(start, (error: unknown) => {
-			console.error(error);
-			starting = false;
-			loadFailed = true;
-			loadingBar.hidden = true;
-			loadError.textContent =
-				"The game could not load. Check your connection, then choose NEW GAME to reload the page. Or choose SKIP.";
-			loadError.hidden = false;
-		});
+		pending.then(start, fail);
 	};
 
 	// The selected item has the cursor. Like a 1990s shooter menu, the mouse and the focus move it too.

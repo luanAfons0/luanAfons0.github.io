@@ -1,8 +1,10 @@
 /**
  * The Content: the one typed source of every Exhibit. The game and the Skip View read it.
  * The Level places each Exhibit on a wall by its `id` (see `src/game/levels/`).
- * Creating the Game core fails when the Level and this list do not match.
+ * Creating the Game core and building the Skip View fail when the Level and this list do not
+ * match (see `checkContent`).
  */
+import type { ExhibitPlacement } from "./level";
 
 export type ExhibitKind = "project" | "job" | "skill" | "contact";
 
@@ -16,8 +18,12 @@ export const KIND_LABELS: Record<ExhibitKind, string> = {
 
 export interface ExhibitLink {
 	label: string;
+	/** An absolute `http:`, `https:`, or `mailto:` URL. */
 	url: string;
 }
+
+/** The only link schemes an Exhibit may use: no script URLs, no data URLs. */
+const LINK_PROTOCOLS: ReadonlySet<string> = new Set(["http:", "https:", "mailto:"]);
 
 export interface Exhibit {
 	/** The key the Level uses to place the Exhibit. */
@@ -31,6 +37,41 @@ export interface Exhibit {
 	links: readonly ExhibitLink[];
 	/** The poster image, a PNG path relative to `public/` (for example `posters/orca.png`). */
 	poster: string;
+}
+
+/**
+ * Fails with an error that names the `id` when the Content is not valid or does not match the
+ * Level Exhibits: two Exhibits with one id, a link that is not an http, https, or mailto URL, a
+ * Level Exhibit with no Content, or a Content Exhibit the Level does not place.
+ */
+export function checkContent(placements: readonly ExhibitPlacement[], content: readonly Exhibit[]): void {
+	const ids = new Set<string>();
+	for (const { id, links } of content) {
+		if (ids.has(id)) throw new Error(`The Content has two Exhibits with the id "${id}".`);
+		ids.add(id);
+		for (const { url } of links) {
+			if (!LINK_PROTOCOLS.has(protocolOf(url))) {
+				throw new Error(`Exhibit "${id}" has the link "${url}". Use an http, https, or mailto URL.`);
+			}
+		}
+	}
+	for (const { id } of placements) {
+		if (!ids.has(id)) throw new Error(`The Level places Exhibit "${id}", but the Content has no Exhibit with that id.`);
+	}
+	for (const { id } of content) {
+		if (!placements.some((placement) => placement.id === id)) {
+			throw new Error(`The Content has Exhibit "${id}", but the Level does not place it.`);
+		}
+	}
+}
+
+/** The scheme of an absolute URL, like `https:`, or "" when it is not an absolute URL. */
+function protocolOf(url: string): string {
+	try {
+		return new URL(url).protocol;
+	} catch {
+		return "";
+	}
 }
 
 /** Sample Exhibits, one of each kind. The real content replaces them later. */

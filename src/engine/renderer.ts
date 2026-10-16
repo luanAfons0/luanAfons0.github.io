@@ -229,8 +229,10 @@ export function createRenderer(options: RendererOptions): Renderer {
 
 				const lineHeight = projection / distance;
 				const wallTop = horizon - lineHeight / 2;
-				const top = Math.max(0, Math.floor(wallTop));
-				const bottom = Math.min(viewHeight, Math.ceil(horizon + lineHeight / 2));
+				// A row shows the wall when its pixel center is on the wall (the same rule as sprites),
+				// so the first row never reads above the first texture row.
+				const top = Math.max(0, Math.ceil(wallTop - 0.5));
+				const bottom = Math.min(viewHeight, Math.ceil(horizon + lineHeight / 2 - 0.5));
 				const textureStep = textureHeight / lineHeight;
 				let textureY = (top + 0.5 - wallTop) * textureStep;
 
