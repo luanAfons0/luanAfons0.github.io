@@ -57,7 +57,7 @@ Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/ag
 
 ## Analytics
 
-`src/analytics/analytics.ts` holds the GoatCounter site code (`GOATCOUNTER_SITE`), the script tag, and `track(event)`. `track` uses optional chaining and a `try`, so a blocked script never throws. Events: `new-game`, `skip`, and `theme/<id>` (Title Screen), `exhibit/<id>` and `all-bugs-fixed` (Game core, through the `track` option of `createGame`; `all-bugs-fixed` goes once per visit).
+`src/analytics/analytics.ts` holds the GoatCounter site code (`GOATCOUNTER_SITE`), the script tag, and `track(event)`. `track` uses optional chaining and a `try`, so a blocked script never throws. Events: `new-game` and `skip` (Title Screen), `theme/<id>` (the Theme item of the Title Screen and the Theme switch of the Pause Menu), `exhibit/<id>` and `all-bugs-fixed` (Game core, through the `track` option of `createGame`; `all-bugs-fixed` goes once per visit).
 
 ## Sound
 
