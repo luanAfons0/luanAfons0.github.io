@@ -57,14 +57,14 @@ export function createPauseMenu(options: PauseMenuOptions): PauseMenu {
 				<span>Invert mouse</span>
 				<span class="pause-menu__control pause-menu__silk">
 					<input class="pause-menu__dip" name="invertMouse" type="checkbox" />
-					<span aria-hidden="true">On</span>
+					<span class="pause-menu__legend" aria-hidden="true"></span>
 				</span>
 			</label>
 			<label class="pause-menu__row">
 				<span>Sound <kbd>M</kbd></span>
 				<span class="pause-menu__control pause-menu__silk">
 					<input class="pause-menu__dip" name="sound" type="checkbox" />
-					<span aria-hidden="true">On</span>
+					<span class="pause-menu__legend" aria-hidden="true"></span>
 				</span>
 			</label>
 			<div class="pause-menu__row">

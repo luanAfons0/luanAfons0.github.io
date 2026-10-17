@@ -58,10 +58,12 @@ a:focus-visible {
 }
 
 .skip-back {
-	display: inline-block;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
 	margin-top: 20px;
 	padding: 6px 0;
-	font: 400 0.8125rem / 1 var(--font-silk);
+	font: 400 16px / 1 var(--font-silk);
 	text-decoration: none;
 }
 
@@ -86,7 +88,7 @@ a:focus-visible {
 	padding: 8px 12px 6px;
 	background: var(--ink);
 	color: var(--paper);
-	font: 400 1rem / 1 var(--font-silk);
+	font: 400 16px / 1 var(--font-silk);
 }
 
 .skip-datasheet-title {
@@ -109,7 +111,7 @@ h1 {
 	font-size: 1.1875rem;
 }
 
-/* Section headings: the Contents and each Room, with a rule under them. */
+/* Section headings: the Rooms list and each Room, with a rule under them. */
 .skip-contents h2,
 .skip-room h2 {
 	margin: 0 0 8px;
@@ -144,7 +146,7 @@ h1 {
 
 .skip-contents-parts {
 	order: 2;
-	font: 400 0.8125rem / 1.5 var(--font-silk);
+	font: 400 16px / 1.5 var(--font-silk);
 }
 
 .skip-room {
@@ -175,23 +177,20 @@ h1 {
 }
 
 .skip-part {
+	display: block;
 	align-self: start;
 	padding: 8px 0 6px;
 	background: var(--ink);
 	color: var(--paper);
-	font: 400 1.125rem / 1 var(--font-silk);
+	font: 400 16px / 1 var(--font-silk);
 	text-align: center;
 }
 
-/* Phones: the Part label sits above the text, so the text gets the full width. */
+/* Phones: the same two columns, with a narrower gutter. The kind stays under the Part label. */
 @media (max-width: 35rem) {
 	.skip-exhibit {
-		grid-template-columns: 1fr;
-		gap: 10px;
-	}
-
-	.skip-part {
-		width: 64px;
+		grid-template-columns: 64px 1fr;
+		gap: 16px;
 	}
 }
 
@@ -204,10 +203,16 @@ h1 {
 	margin: 0 0 8px;
 }
 
-.skip-body .skip-kind {
-	margin: 0;
+/* The kind sits in the gutter, under the Part label, so nothing sits above the heading. */
+.skip-kind {
+	margin: 6px 0 0;
 	color: var(--text-2);
 	font-size: 0.875rem;
+	line-height: 1.2;
+}
+
+.skip-arrow {
+	flex: none;
 }
 
 h3 {
@@ -249,7 +254,7 @@ h3 {
 
 	h1 {
 		margin-top: 28px;
-		font: 400 clamp(2rem, 6vw, 3.5rem) / 1 var(--font-silk);
+		font: 400 round(down, clamp(2rem, 6vw, 3.5rem), 8px) / 1 var(--font-silk);
 		font-stretch: normal;
 		letter-spacing: 0;
 	}
@@ -260,11 +265,11 @@ h3 {
 
 	.skip-contents h2,
 	.skip-room h2 {
-		font: 400 0.9375rem / 1.2 var(--font-silk);
+		font: 400 16px / 1.2 var(--font-silk);
 	}
 
 	.skip-room h2 {
-		font-size: 1.375rem;
+		font-size: 32px;
 	}
 
 	.skip-part {
@@ -274,7 +279,7 @@ h3 {
 	}
 
 	h3 {
-		font: 400 1.25rem / 1.2 var(--font-silk);
+		font: 400 24px / 1.2 var(--font-silk);
 		font-stretch: normal;
 	}
 

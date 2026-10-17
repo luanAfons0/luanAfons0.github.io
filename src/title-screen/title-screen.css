@@ -2,9 +2,12 @@
  * The Title Screen in two looks (src/theme.css chooses one):
  * - Paper: a datasheet cover. Part number LA-1, the name, a Features list, and a chip pinout where
  *   pins 1 to 3 are the menu and the other pins list the controls.
- * - Board: the name in silkscreen on the board, and the menu as copper pads.
+ * - Board: the name in silkscreen inside the outline of part LA-1, and the menu as pads that traces
+ *   join to the outline.
  * One markup serves both. Colors come from the look tokens in theme.css; the sizes and the layout
  * that differ come from the --ts-* tokens below.
+ * Silkscreen is a pixel face drawn on an 8px grid: every Silkscreen size snaps to a whole multiple
+ * of 8px with round(), and never goes below 8px.
  */
 
 /* The game canvas waits under the Title Screen until NEW GAME. */
@@ -34,7 +37,9 @@
 	--ts-fig-padding: 2.72em 3.52em 0 1.6em;
 	--ts-fig-gap: 1.28em;
 	--ts-fig-align: center;
-	--ts-name-font: 800 6.08em / 0.88 var(--font-sans);
+	--ts-fig-justify: stretch;
+	--ts-name-cap: 100vw; /* No cap. Narrow windows cap the name. */
+	--ts-name-font: 800 min(6.08em, var(--ts-name-cap)) / 0.88 var(--font-sans);
 	--ts-name-stretch: 72%;
 	--ts-name-spacing: -0.02em;
 	--ts-desc-size: 1.45em;
@@ -45,8 +50,9 @@
 	--ts-item-size: 1.35em;
 	--ts-item-small: 1;
 	--ts-item-padding: 0.45em 0.7em;
-	--ts-item-gap: 0.6em;
 	--ts-item-trace: block;
+	--ts-trace: 3.2em; /* Board: the trace from the chip outline to each pad, in em of the sheet. */
+	--ts-silk-line: transparent; /* A silkscreen line that only Board draws: keep-out edges, the bus. */
 	--ts-note-border: 1px;
 }
 
@@ -58,10 +64,11 @@
 	--ts-texture: var(--board-traces);
 	--ts-main-padding: 0 1.6em 0 4.8em;
 	--ts-main-gap: 1.44em;
-	--ts-fig-padding: 0 4.8em 0 1.6em;
+	--ts-fig-padding: 0 4.8em 0 4em;
 	--ts-fig-gap: 1.92em;
 	--ts-fig-align: flex-start;
-	--ts-name-font: 400 4.96em / 1 var(--font-silk);
+	--ts-fig-justify: start;
+	--ts-name-font: 400 round(down, min(4.96em, var(--ts-name-cap)), 8px) / 1 var(--font-silk);
 	--ts-name-stretch: normal;
 	--ts-name-spacing: 0;
 	--ts-desc-size: 1.4em;
@@ -72,8 +79,8 @@
 	--ts-item-size: 2.4em;
 	--ts-item-small: 0.667;
 	--ts-item-padding: 0;
-	--ts-item-gap: 1.2em;
 	--ts-item-trace: none;
+	--ts-silk-line: var(--silk-3);
 	--ts-note-border: 2px;
 }
 
@@ -84,10 +91,11 @@
 		--ts-texture: var(--board-traces);
 		--ts-main-padding: 0 1.6em 0 4.8em;
 		--ts-main-gap: 1.44em;
-		--ts-fig-padding: 0 4.8em 0 1.6em;
+		--ts-fig-padding: 0 4.8em 0 4em;
 		--ts-fig-gap: 1.92em;
 		--ts-fig-align: flex-start;
-		--ts-name-font: 400 4.96em / 1 var(--font-silk);
+		--ts-fig-justify: start;
+		--ts-name-font: 400 round(down, min(4.96em, var(--ts-name-cap)), 8px) / 1 var(--font-silk);
 		--ts-name-stretch: normal;
 		--ts-name-spacing: 0;
 		--ts-desc-size: 1.4em;
@@ -98,8 +106,8 @@
 		--ts-item-size: 2.4em;
 		--ts-item-small: 0.667;
 		--ts-item-padding: 0;
-		--ts-item-gap: 1.2em;
 		--ts-item-trace: none;
+		--ts-silk-line: var(--silk-3);
 		--ts-note-border: 2px;
 	}
 }
@@ -123,15 +131,19 @@
    font size, which grows with the sheet and never drops below 14px. */
 .title-screen__sheet {
 	--u: min(1vw, 1.7778vh);
+	/* The sheet font size, in viewport units only, so it means the same in any element. */
+	--ts-font: max(14px, calc(1.25 * var(--u)));
 
 	position: relative;
+	isolation: isolate;
 	display: grid;
 	grid-template-columns: var(--ts-columns);
 	grid-template-rows: auto 1fr auto;
 	align-items: var(--ts-align);
 	width: calc(100 * var(--u));
 	min-height: calc(56.25 * var(--u));
-	font-size: max(14px, calc(1.25 * var(--u)));
+	overflow-x: clip;
+	font-size: var(--ts-font);
 }
 
 .title-screen kbd {
@@ -140,7 +152,7 @@
 	padding: 0 5px;
 	border: 1px solid currentColor;
 	border-radius: 2px;
-	font: 400 0.75em / 1.5 var(--font-silk);
+	font: 400 max(8px, round(nearest, 0.75em, 8px)) / 1.5 var(--font-silk);
 	text-align: center;
 }
 
@@ -159,7 +171,7 @@
 	padding: 0.5em 0.9em 0.35em;
 	background: var(--ink);
 	color: var(--paper);
-	font: 400 1.25em / 1 var(--font-silk);
+	font: 400 max(8px, round(nearest, 1.25em, 8px)) / 1 var(--font-silk);
 }
 
 .title-screen__head-note {
@@ -176,12 +188,6 @@
 	flex-direction: column;
 	gap: var(--ts-main-gap);
 	padding: var(--ts-main-padding);
-}
-
-/* Board: the part reference over the name. */
-.title-screen__ref {
-	color: var(--text-2);
-	font: 400 1em / 1 var(--font-silk);
 }
 
 .title-screen__name {
@@ -211,42 +217,63 @@
 .title-screen__features ul {
 	max-width: 34em;
 	margin: 0;
-	padding: 0 0 0 1.1em;
+	padding: 0;
+	list-style: none;
 }
 
 .title-screen__features li {
+	position: relative;
 	margin: 0.15em 0;
+	padding-left: 1.1em;
 }
 
-.title-screen__features li::marker {
-	content: "\25A0  ";
-	font-size: 0.7em;
+/* The list marker: a small square pad. */
+.title-screen__features li::before {
+	content: "";
+	position: absolute;
+	top: 0.55em;
+	left: 0.1em;
+	width: 0.4em;
+	height: 0.4em;
+	background: currentColor;
 }
 
-/* Board: the chip outline around the name, with its reference designator. */
+/* The controls of pins 6 to 10, in text for narrow windows that drop those pins. */
+.title-screen__narrow {
+	display: none;
+}
+
+/* Board: the chip outline around the name, with its part number. It is a keep-out: the background
+   traces stop at its edge. Its right edge is where the pad traces start: the figure column starts at
+   1.15 / 2.15 of the sheet (--ts-columns), the pads 4em into it (--ts-fig-padding), and each trace
+   reaches --ts-trace to the left of its pad. */
 .title-screen__outline {
 	position: absolute;
+	z-index: -1;
 	top: 50%;
+	right: calc(100% / 2.15 - 4em + var(--ts-trace));
 	left: 2.88em;
-	width: 41.6em;
 	height: 24em;
 	border: 2px solid var(--silk-3);
+	background: var(--surface);
 	pointer-events: none;
 	translate: 0 -50%;
 }
 
 .title-screen__outline::before {
-	content: "U1";
+	content: "LA-1";
 	position: absolute;
 	top: -1.6em;
 	left: 0;
 	color: var(--silk-2);
-	font: 400 0.9em / 1 var(--font-silk);
+	font: 400 max(8px, round(nearest, 0.9em, 8px)) / 1 var(--font-silk);
 }
 
 .title-screen__fig {
+	position: relative;
 	grid-row: 2;
 	grid-column: 2;
+	justify-self: var(--ts-fig-justify);
 	display: flex;
 	flex-direction: column;
 	align-items: var(--ts-fig-align);
@@ -284,6 +311,21 @@
 .title-screen__foot kbd,
 .title-screen__hint kbd {
 	color: var(--text);
+}
+
+/* Board: one keep-out behind the menu, the hint, and the loading LEDs, so the background traces never
+   run under text. It starts at the chip outline (the pad traces cross it) and ends 0.8em past the
+   content, and its silkscreen edge is where the background traces stop. In Paper it is the page color
+   with no edge. */
+.title-screen__fig::before {
+	content: "";
+	position: absolute;
+	z-index: -1;
+	inset: -0.8em 4em -0.8em calc(4em - var(--ts-trace));
+	border: 1px solid var(--ts-silk-line);
+	border-left: 0;
+	background: var(--surface);
+	pointer-events: none;
 }
 
 /* Board: the hint under the pads. */
@@ -374,26 +416,26 @@
 }
 
 .pinout__marking {
-	font: 400 1.25em / 1.3 var(--font-silk);
+	font: 400 max(8px, round(nearest, 1.25em, 8px)) / 1.3 var(--font-silk);
 	text-align: center;
 }
 
 .pinout__marking small {
 	display: block;
 	color: var(--silk-2);
-	font-size: 0.6em;
+	font-size: max(8px, round(nearest, 0.6em, 8px));
 	text-transform: uppercase;
 }
 
 .pinout__num {
 	width: 1.4em;
 	color: var(--text-2);
-	font: 400 0.85em / 1 var(--font-silk);
+	font: 400 max(8px, round(nearest, 0.85em, 8px)) / 1 var(--font-silk);
 	text-align: center;
 }
 
 .pinout__name {
-	font: 400 1em / 1 var(--font-silk);
+	font: 400 max(8px, round(nearest, 1em, 8px)) / 1 var(--font-silk);
 }
 
 .pinout__name--nc {
@@ -410,27 +452,26 @@
 	position: relative;
 	display: inline-flex;
 	align-items: center;
-	gap: var(--ts-item-gap);
 	padding: var(--ts-item-padding);
 	border: 0;
 	background: none;
 	color: var(--text);
 	cursor: pointer;
-	font: 400 var(--ts-item-size) / 1 var(--font-silk);
+	font: 400 max(8px, round(nearest, var(--ts-item-size), 8px)) / 1 var(--font-silk);
 	text-decoration: none;
 }
 
 .title-screen__item--small {
-	font-size: calc(var(--ts-item-size) * var(--ts-item-small));
+	font-size: max(8px, round(nearest, calc(var(--ts-item-size) * var(--ts-item-small)), 8px));
 }
 
-/* Paper: the copper trace from the selected label to its pin. */
+/* Paper: the copper trace from the selected label to its pin, 0.8em of the label (the sheet font). */
 .title-screen__item::after {
 	content: "";
 	display: var(--ts-item-trace);
 	position: absolute;
 	top: 50%;
-	right: calc(-0.8em / 1.35 - 1px);
+	right: calc(-0.8 * var(--ts-font) - 1px);
 	width: 0;
 	height: 3px;
 	background: var(--live-trace);
@@ -443,7 +484,7 @@
 }
 
 .title-screen__item.is-selected::after {
-	width: calc(0.8em / 1.35 + 1px);
+	width: calc(0.8 * var(--ts-font) + 1px);
 }
 
 .title-screen__item:focus-visible {
@@ -455,14 +496,18 @@
 	translate: 0 1px;
 }
 
-/* Board: the pad, with its trace toward the chip outline. The NEW GAME dive grows from it. */
+/* Board: the pad, with its silkscreen trace to the chip outline. Every pad has the same size and
+   margin in em of the sheet, so the three labels share one left edge. Only the selected pad and its
+   trace are copper. The NEW GAME dive grows from the pad. */
 .title-screen__pad {
 	position: relative;
 	flex: none;
-	width: 1.1em;
-	height: 0.8em;
+	width: 2.4em;
+	height: 1.6em;
+	margin-right: 1.6em;
 	border-radius: 1px;
 	background: var(--pad);
+	font-size: var(--ts-font);
 }
 
 .title-screen__pad::before {
@@ -470,9 +515,9 @@
 	position: absolute;
 	top: 50%;
 	right: 100%;
-	width: 3.2em;
+	width: var(--ts-trace);
 	height: 3px;
-	background: var(--mask-trace);
+	background: var(--silk-3);
 	translate: 0 -50%;
 }
 
@@ -507,7 +552,7 @@
 
 .timing__signal {
 	color: var(--text-2);
-	font: 400 0.85em / 1 var(--font-silk);
+	font: 400 max(8px, round(nearest, 0.85em, 8px)) / 1 var(--font-silk);
 	text-align: right;
 }
 
@@ -545,7 +590,7 @@
 .leds__label {
 	margin-right: 0.4em;
 	color: var(--text-2);
-	font: 400 0.9em / 1 var(--font-silk);
+	font: 400 max(8px, round(nearest, 0.9em, 8px)) / 1 var(--font-silk);
 }
 
 .leds__led {
@@ -561,7 +606,7 @@
 	margin: 0;
 	padding: 0.8em 1em;
 	border: var(--ts-note-border) solid light-dark(var(--ink), var(--silk-2));
-	background: light-dark(var(--paper-2), transparent);
+	background: light-dark(var(--paper-2), var(--board));
 	color: var(--text);
 	line-height: 1.45;
 }
@@ -572,20 +617,25 @@
 
 .title-screen__error-label--board {
 	color: var(--copper-hot);
-	font: 400 1em / 1 var(--font-silk);
+	font: 400 max(8px, round(nearest, 1em, 8px)) / 1 var(--font-silk);
 }
 
-/* Narrow or tall windows (a tablet with a mouse): one column, no chip outline. */
+/* Narrow or tall windows (a tablet with a mouse): one column, no chip outline, and the name capped to
+   the window. In Board, the name, the menu, and the hint sit on one keep-out band across the sheet,
+   and the pad traces join a vertical bus near the left edge. */
 @media (max-aspect-ratio: 1 / 1) {
 	.title-screen {
 		place-items: start center;
+
+		--ts-name-cap: 17vw;
+		--ts-trace: 1em;
 	}
 
 	.title-screen__sheet {
 		--u: 1.6vw;
 
 		width: 100%;
-		grid-template-columns: 1fr;
+		grid-template-columns: minmax(0, 1fr);
 		grid-template-rows: auto;
 		align-content: start;
 		align-items: start;
@@ -613,6 +663,52 @@
 
 	.title-screen__outline {
 		display: none;
+	}
+
+	.title-screen__main {
+		background: var(--surface);
+	}
+
+	.title-screen__fig {
+		justify-self: stretch;
+	}
+
+	.title-screen__fig::before {
+		inset: 0 0 -1.5em;
+		border-width: 0 0 1px;
+	}
+
+	/* The bus: from the trace of the first pad to the trace of the last. A row is as tall as its item
+	   font (line height 1), and the 3px traces sit on the row centers. */
+	.pinout {
+		position: relative;
+	}
+
+	.pinout::before {
+		content: "";
+		position: absolute;
+		top: calc(max(8px, round(nearest, var(--ts-item-size), 8px)) / 2 - 1.5px);
+		bottom: calc(max(8px, round(nearest, calc(var(--ts-item-size) * var(--ts-item-small)), 8px)) / 2 - 1.5px);
+		left: calc(-1 * var(--ts-trace));
+		width: 3px;
+		background: var(--ts-silk-line);
+	}
+}
+
+/* The ornament tier below 600px: Paper drops pins 6 to 10 and narrows the chip, so the content keeps
+   its size. The Features list then shows the controls of those pins in text. */
+@media (max-width: 600px) {
+	.title-screen {
+		--ts-pinout-columns: auto 1.28em 7.2em;
+	}
+
+	.pinout__pin--r,
+	.pinout__label--r {
+		display: none;
+	}
+
+	.title-screen__narrow {
+		display: block;
 	}
 }
 

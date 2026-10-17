@@ -34,7 +34,7 @@
 
 .pause-menu__title {
 	margin: 0;
-	font: 400 2em / 1 var(--font-silk);
+	font: 400 max(8px, round(nearest, 2em, 8px)) / 1 var(--font-silk);
 }
 
 /* Resume and Skip View: outlined items with a pad on the right that turns copper. */
@@ -46,7 +46,7 @@
 	background: none;
 	border: 1px solid var(--silk-3);
 	color: var(--silk);
-	font: 400 1.1em / 1 var(--font-silk);
+	font: 400 max(8px, round(nearest, 1.1em, 8px)) / 1 var(--font-silk);
 	text-decoration: none;
 	cursor: pointer;
 }
@@ -85,10 +85,10 @@
 	gap: 0.6em;
 }
 
-/* The silkscreen text next to a switch: "On", "Paper", "Board". */
+/* The silkscreen text next to a switch: "On"/"Off", "Paper", "Board". */
 .pause-menu__silk {
 	color: var(--silk-2);
-	font: 400 0.8em / 1 var(--font-silk);
+	font: 400 max(8px, round(nearest, 0.8em, 8px)) / 1 var(--font-silk);
 }
 
 .pause-menu__silk label {
@@ -101,7 +101,7 @@
 	padding: 0 5px;
 	border: 1px solid currentColor;
 	border-radius: 2px;
-	font: 400 0.75em / 1.5 var(--font-silk);
+	font: 400 max(8px, round(nearest, 0.75em, 8px)) / 1.5 var(--font-silk);
 	text-align: center;
 }
 
@@ -166,12 +166,27 @@
 
 .pause-menu output {
 	min-width: 2.4em;
-	font: 400 1em / 1 var(--font-silk);
+	font: 400 max(8px, round(nearest, 1em, 8px)) / 1 var(--font-silk);
 	text-align: right;
 }
 
-/* A DIP switch: a checkbox drawn as one switch of a DIP block. The lever is down when off and up
-   (copper) when on. */
+/* The legend names the state, so it never contradicts the lever: "Off" with the lever down,
+   "On" with the lever up. */
+.pause-menu__legend {
+	display: inline-block;
+	min-width: 2.4em;
+}
+
+.pause-menu__dip ~ .pause-menu__legend::before {
+	content: "Off";
+}
+
+.pause-menu__dip:checked ~ .pause-menu__legend::before {
+	content: "On";
+}
+
+/* A DIP switch: a checkbox drawn as one switch of a DIP block. The lever is down (grey) when off
+   and up (copper) when on. */
 .pause-menu__dip {
 	-webkit-appearance: none;
 	appearance: none;

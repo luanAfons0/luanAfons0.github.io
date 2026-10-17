@@ -20,11 +20,13 @@ describe("Exhibit Panel", () => {
 		document.body.replaceChildren();
 	});
 
-	it("shows the Part label and the kind in its header", () => {
+	it("shows the Part label, named by its kind, and the kind in its header", () => {
 		const panel = createExhibitPanel({ parent: document.body, onClose: () => {} });
 		panel.open(sample("project"));
 		const header = document.querySelector(".exhibit-panel__header");
-		expect(header?.querySelector(".exhibit-panel__part")?.textContent).toBe("U1");
+		const part = header?.querySelector(".exhibit-panel__part");
+		expect(part?.textContent).toBe("U1");
+		expect(part?.getAttribute("aria-label")).toBe("Project U1");
 		expect(header?.querySelector(".exhibit-panel__kind")?.textContent).toBe("Project");
 	});
 
