@@ -54,6 +54,13 @@ export interface HudColors {
 	bar: Rgb;
 	/** The one-pixel lines of the status bar: its top edge and the outline of each section. */
 	outline: Rgb;
+	/** The one-pixel outline around the crosshair, so it reads on any wall, or null for none. */
+	crosshairOutline: Rgb | null;
+	/**
+	 * The ink of the Bug tally: a tick box per Bug next to the Bugs fixed value, ticked for each
+	 * fixed Bug. Null turns the tally off.
+	 */
+	tally: Rgb | null;
 }
 
 /** The kinds of files an art set has, each in its own folder. */
@@ -123,6 +130,8 @@ export const MACHINE_ART_SET: ArtSet = {
 		crosshair: [233, 235, 230],
 		bar: [26, 32, 36],
 		outline: [58, 64, 69],
+		crosshairOutline: null,
+		tally: null,
 	},
 };
 
@@ -153,7 +162,8 @@ export const DUNGEON_ART_SET: ArtSet = {
 	sounds: { shot: "shot", "door-open": "door-open" },
 	ceiling: [14, 13, 12],
 	floor: [34, 32, 29],
-	// A pulp paper bar with ink lines and labels; the hint and the crosshair are paper with an ink outline.
+	// A pulp paper bar with ink lines, labels, and values, and an ink tick box per Bug next to the
+	// Bugs fixed value. The hint and the crosshair are paper with an ink outline.
 	hud: {
 		value: [23, 23, 23],
 		label: [74, 70, 61],
@@ -162,6 +172,8 @@ export const DUNGEON_ART_SET: ArtSet = {
 		crosshair: [224, 217, 197],
 		bar: [224, 217, 197],
 		outline: [23, 23, 23],
+		crosshairOutline: [23, 23, 23],
+		tally: [23, 23, 23],
 	},
 };
 

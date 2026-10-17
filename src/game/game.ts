@@ -210,7 +210,7 @@ export function createGame(options: GameOptions): Game {
 	let openExhibit: string | null = null;
 	let goalSent = false;
 	// Reused every frame, so rendering allocates nothing.
-	const hudView: HudView = { room: null, bugsFixed: null, hint: null };
+	const hudView: HudView = { room: null, bugsFixed: null, bugsFixedCount: 0, hint: null };
 	// The counter text changes only when a Bug is fixed, so frames do not build strings.
 	const bugsFixedText = () => (bugs.total > 0 ? `${bugs.fixedCount()}/${bugs.total}` : null);
 	hudView.bugsFixed = bugsFixedText();
@@ -267,6 +267,7 @@ export function createGame(options: GameOptions): Game {
 			}
 			if (input.shoot && bugs.shoot(level.walls, player.x, player.y, player.angle)) {
 				hudView.bugsFixed = bugsFixedText();
+				hudView.bugsFixedCount = bugs.fixedCount();
 				if (!goalSent && bugs.total > 0 && bugs.fixedCount() === bugs.total) {
 					goalSent = true;
 					options.track?.("all-bugs-fixed");
@@ -328,7 +329,7 @@ export function createGame(options: GameOptions): Game {
 	};
 }
 
-/** What the Game core draws with one art set: the Renderer with its textures, the HUD, and the Bug frames. */
+/** What the Game core draws with one art set: the Renderer with its textures, the HUD (its layout and colors are fixed at creation), and the Bug frames. */
 interface ArtView {
 	renderer: Renderer;
 	hud: Hud;
@@ -350,7 +351,8 @@ function artView(level: Level, art: ArtSet, files: Pick<GameOptions, "textures" 
 		viewHeight: SCREEN_HEIGHT - STATUS_BAR_HEIGHT,
 		spriteTexelSize: SPRITE_TEXEL_SIZE,
 	});
-	return { renderer, hud: createHud(SCREEN_WIDTH, SCREEN_HEIGHT, art.hud), bugFrames };
+	const hud = createHud(SCREEN_WIDTH, SCREEN_HEIGHT, art.hud, level.bugSpawns.length);
+	return { renderer, hud, bugFrames };
 }
 
 /** The names of the textures that a Level (parsed Tiled JSON) uses, so the caller can load them first. */

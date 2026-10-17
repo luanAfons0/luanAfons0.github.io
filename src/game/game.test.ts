@@ -1244,6 +1244,98 @@ describe("Bugs", () => {
 			game.step(SHOOT);
 			expect(counterShape(renderNow(game))).toEqual(roomShape(renderNow(twoBugs("1/2"))));
 		});
+
+		/** The pixels of `color` in the status bar, as groups of touching pixels, left to right. */
+		function shapesOf(frame: Framebuffer, color: number): { x: number; y: number }[][] {
+			const top = SCREEN_HEIGHT - STATUS_BAR_HEIGHT;
+			const seen = new Set<number>();
+			const shapes: { x: number; y: number }[][] = [];
+			for (let start = top * SCREEN_WIDTH; start < frame.pixels.length; start++) {
+				if (frame.pixels[start] !== color || seen.has(start)) continue;
+				const shape: { x: number; y: number }[] = [];
+				const todo = [start];
+				seen.add(start);
+				while (todo.length > 0) {
+					const i = todo.pop() as number;
+					const x = i % SCREEN_WIDTH;
+					const y = Math.floor(i / SCREEN_WIDTH);
+					shape.push({ x, y });
+					for (let dy = -1; dy <= 1; dy++) {
+						for (let dx = -1; dx <= 1; dx++) {
+							const nx = x + dx;
+							const ny = y + dy;
+							const next = ny * SCREEN_WIDTH + nx;
+							if (nx < 0 || nx >= SCREEN_WIDTH || ny < top || ny >= SCREEN_HEIGHT) continue;
+							if (seen.has(next) || frame.pixels[next] !== color) continue;
+							seen.add(next);
+							todo.push(next);
+						}
+					}
+				}
+				shapes.push(shape);
+			}
+			return shapes.sort((a, b) => Math.min(...a.map(({ x }) => x)) - Math.min(...b.map(({ x }) => x)));
+		}
+
+		/** Each tally box, left to right: true when it has a tick (a pixel inside its edges). */
+		function tally(frame: Framebuffer, color: number): boolean[] {
+			return shapesOf(frame, color).map((shape) => {
+				const xs = shape.map(({ x }) => x);
+				const ys = shape.map(({ y }) => y);
+				const [left, right, top, bottom] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+				return shape.some(({ x, y }) => x > left && x < right && y > top && y < bottom);
+			});
+		}
+
+		const TALLY_COLOR = rgb(255, 0, 255);
+
+		/** Two Bugs, in an art set like the machine one whose HUD draws a tally in `TALLY_COLOR`. */
+		function twoBugsWithTally(): Game {
+			const rgba = new Uint8Array(4 * 4 * 4);
+			new Uint32Array(rgba.buffer).fill(GREEN);
+			const image = { texture: createTexture(4, 4, rgba), left: 2, top: 3 };
+			const artSet: ArtSet = { ...MACHINE_ART_SET, hud: { ...MACHINE_ART_SET.hud, tally: [255, 0, 255] } };
+			return createGame({
+				level: bugLevel(
+					[
+						{ x: 6.5, y: 1.5 },
+						{ x: 7.5, y: 3.5 },
+					],
+					{ wall: "wall-a" },
+				),
+				artSet,
+				sprites: Object.fromEntries(bugFrameNames(artSet).map((name) => [name, image])),
+			});
+		}
+
+		it("draws a tick box per Bug next to the counter when the art set has a tally, ticked for each fixed Bug", () => {
+			const game = twoBugsWithTally();
+
+			expect(tally(renderNow(game), TALLY_COLOR)).toEqual([false, false]);
+			game.step(SHOOT);
+			expect(tally(renderNow(game), TALLY_COLOR)).toEqual([true, false]);
+		});
+
+		it("puts the tally right of the counter value, inside the Bugs fixed section", () => {
+			const frame = renderNow(twoBugsWithTally());
+			const boxes = shapesOf(frame, TALLY_COLOR).flat();
+			const counter = shapesOf(frame, HUD_VALUE_COLOR)
+				.flat()
+				.filter(({ x }) => x > SCREEN_WIDTH / 2);
+
+			expect(boxes.length).toBeGreaterThan(0);
+			expect(counter.length).toBeGreaterThan(0);
+			expect(Math.min(...boxes.map(({ x }) => x))).toBeGreaterThan(Math.max(...counter.map(({ x }) => x)));
+			expect(Math.max(...boxes.map(({ x }) => x))).toBeLessThan(SCREEN_WIDTH - 4);
+		});
+
+		it("draws no tally in the machine HUD: its lines are only the top edge and the two section outlines", () => {
+			const game = twoBugs("Lobby");
+			game.step(SHOOT);
+			const lines = shapesOf(renderNow(game), rgb(...MACHINE_ART_SET.hud.outline));
+
+			expect(lines).toHaveLength(3);
+		});
 	});
 
 	describe("shot feedback", () => {
@@ -1284,6 +1376,26 @@ describe("Bugs", () => {
 
 			expect(near(1, 0) && near(-1, 0) && near(0, 1) && near(0, -1)).toBe(true);
 			expect(pixelAt(frame, 0, HORIZON)).not.toBe(CROSSHAIR_COLOR);
+		});
+
+		it("draws a one-pixel outline around the crosshair when the art set has one", () => {
+			const outline = rgb(255, 0, 255);
+			const artSet: ArtSet = { ...MACHINE_ART_SET, hud: { ...MACHINE_ART_SET.hud, crosshairOutline: [255, 0, 255] } };
+			const game = createGame({ level: tiledLevel({ rows: still, wallTextures: { "#": "wall-a" } }), artSet });
+			const frame = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+			game.render(frame);
+			const centerX = SCREEN_WIDTH / 2;
+			// Along the right arm, the outline hugs the crosshair on every side. The center stays clear; the
+			// outline of the up and down arms touches its corners.
+			const row = (dy: number) =>
+				[0, 1, 2, 3, 4, 5, 6, 7].map((dx) => {
+					const pixel = pixelAt(frame, centerX + dx, HORIZON + dy);
+					return pixel === CROSSHAIR_COLOR ? "+" : pixel === outline ? "o" : ".";
+				});
+
+			expect(row(-1).join("")).toBe("ooooooo.");
+			expect(row(0).join("")).toBe(".o++++o.");
+			expect(row(1).join("")).toBe("ooooooo.");
 		});
 	});
 });
