@@ -46,7 +46,7 @@ export function bugs(): GeneratedFile[] {
  * The Slime: a dome on a flat, rounded foot, with a rim, light from the top left, two eyes that
  * look a little down, a small smile, and a shine spot. Squashed, it is wider and lower.
  */
-function slime(squashed: boolean): Pixmap {
+export function slime(squashed: boolean): Pixmap {
 	const t = createPixmap(WIDTH, HEIGHT);
 	const halfWidth = squashed ? 14.5 : 12.5;
 	const height = squashed ? 16 : 20;

@@ -37,8 +37,12 @@ export interface TitleScreen {
 	dispose(): void;
 }
 
-/** How long the dive may run before the game starts anyway: the 420 ms transition plus a margin. */
+/** How long the dive may run before the game starts anyway: the longest transition (460 ms, Dungeon) plus a margin. */
 const DIVE_FALLBACK_MS = 600;
+
+/** The Dungeon loading die: the faces it shows, in order, one each step, like a roll. */
+const DIE_FACES = ["3", "6", "1", "5", "2", "4"] as const;
+const DIE_STEP_MS = 140;
 
 /** The menu keys. The arrow keys move the selection (and wrap); Enter chooses the selected item. */
 const MOVES: Record<string, number> = { ArrowUp: -1, ArrowDown: 1 };
@@ -60,6 +64,8 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 	const loadingBar = query<HTMLElement>(options.root, "[data-loading-bar]");
 	const loadError = query<HTMLElement>(options.root, "[data-load-error]");
 	const chip = options.root.querySelector<HTMLElement>("[data-chip]");
+	const plate = options.root.querySelector<HTMLElement>("[data-ink-plate]");
+	const die = options.root.querySelector<HTMLElement>("[data-die]");
 	const dive = query<HTMLElement>(options.root, "[data-dive]");
 	const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
 	const loadErrorText = query<HTMLElement>(options.root, "[data-load-error-text]");
@@ -82,6 +88,25 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 		preload().catch(() => {});
 	};
 
+	/**
+	 * The loading state. In Dungeon its die steps to a new face every 140 ms while it shows; under
+	 * reduced motion the die stays still.
+	 */
+	let rolling: ReturnType<typeof setInterval> | undefined;
+	const showLoading = () => {
+		loadingBar.hidden = false;
+		if (!die || rolling !== undefined || reducedMotion.matches) return;
+		let step = 0;
+		rolling = setInterval(() => {
+			die.dataset.face = DIE_FACES[step++ % DIE_FACES.length];
+		}, DIE_STEP_MS);
+	};
+	const hideLoading = () => {
+		loadingBar.hidden = true;
+		clearInterval(rolling);
+		rolling = undefined;
+	};
+
 	let starting = false;
 	let loadFailed = false;
 	/** Shows the error on the Title Screen. NEW GAME then reloads the page; SKIP still works. */
@@ -91,7 +116,7 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 		loadFailed = true;
 		hideDive();
 		screen.hidden = false;
-		loadingBar.hidden = true;
+		hideLoading();
 		loadErrorText.textContent =
 			"The game could not load. Check your connection, then choose NEW GAME to reload the page. Or choose SKIP.";
 		loadError.hidden = false;
@@ -101,8 +126,7 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 		dive.classList.remove("is-open");
 	};
 	/**
-	 * Grows the board-colored layer from `from` (the pad in Board, else the chip) to the full
-	 * screen. It resolves on the transition end, or after the fallback timeout when that never comes
+	 * Grows the dive layer from `from` (see `diveFrom`) to the full screen. It resolves on the transition end, or after the fallback timeout when that never comes
 	 * (a hidden tab does not run frames).
 	 */
 	const runDive = (from: HTMLElement) =>
@@ -127,7 +151,7 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 		});
 	const start = (game: Game) => {
 		hideDive();
-		loadingBar.hidden = true;
+		hideLoading();
 		screen.hidden = true;
 		try {
 			options.startGame(game);
@@ -149,7 +173,7 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 			console.error(error);
 		}
 		const pending = preload();
-		const from = shownTheme() === "board" ? newGame.querySelector<HTMLElement>(".title-screen__pad") : chip;
+		const from = diveFrom[shownTheme()];
 		if (!reducedMotion.matches && from) {
 			// The game starts when the dive ends, or at once if the game is not ready yet: then the bar shows.
 			pending.catch(fail);
@@ -157,13 +181,13 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 				if (loadFailed) return;
 				if (loaded) return start(loaded.game);
 				hideDive();
-				loadingBar.hidden = false;
+				showLoading();
 				pending.then(start, () => {});
 			});
 			return;
 		}
 		if (loaded) return start(loaded.game);
-		loadingBar.hidden = false;
+		showLoading();
 		pending.then(start, fail);
 	};
 
@@ -180,6 +204,12 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 	// data-theme, the CSS follows the system setting, so the label follows it too.
 	const page = themeItem.ownerDocument.documentElement;
 	const darkSystem = matchMedia("(prefers-color-scheme: dark)");
+	/** Where the dive grows from in each look: the chip, the selected pad, or the ink plate. */
+	const diveFrom: Record<Theme, HTMLElement | null> = {
+		paper: chip,
+		board: newGame.querySelector<HTMLElement>(".title-screen__pad"),
+		dungeon: plate,
+	};
 	const shownTheme = (): Theme => {
 		const theme = page.dataset.theme;
 		if (isTheme(theme)) return theme;
@@ -248,6 +278,7 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 	document.addEventListener("keydown", onKeyDown);
 
 	function dispose(): void {
+		clearInterval(rolling);
 		for (const remove of listeners) remove();
 		newGame.removeEventListener("pointerenter", preloadQuietly);
 		newGame.removeEventListener("focus", preloadQuietly);

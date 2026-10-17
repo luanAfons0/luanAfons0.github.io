@@ -26,12 +26,12 @@ export function textures(): GeneratedFile[] {
 }
 
 /** Even cut stone. */
-function stoneA(): Pixmap {
+export function stoneA(): Pixmap {
 	return stoneWall(11, false);
 }
 
 /** Rough stone with moss low on the wall and a small patch higher up. */
-function stoneB(): Pixmap {
+export function stoneB(): Pixmap {
 	const t = stoneWall(23, true);
 	const random = seededRandom(29);
 	moss(t, random, 14, 53, 7);
@@ -74,6 +74,14 @@ const GLOW = { x: 31.5, y: 18, reach: 44, depth: 6 } as const;
  * (ADR 0001), so the warm light of the flame is baked into the stone around it, as in the mock.
  */
 function torch(): Pixmap {
+	return torchWall(true);
+}
+
+/**
+ * The torch wall. With `glowing`, the light of the flame is baked into the stone; without it, a
+ * renderer that lights the scene itself (the ink plate) gets the plain wall, as in the mock.
+ */
+export function torchWall(glowing: boolean): Pixmap {
 	const t = stoneWall(41, false);
 	const random = seededRandom(43);
 	// Soot above the flame, thicker near it.
@@ -92,7 +100,7 @@ function torch(): Pixmap {
 	fillRect(t, 28, 29, 35, 29, c.IRON);
 	fillRect(t, 27, 26, 36, 26, c.IRON_HI);
 	plot(t, 27, 27, c.RIVET);
-	glow(t);
+	if (glowing) glow(t);
 	for (const [row, line] of FLAME_ROWS.entries()) {
 		for (const [column, char] of [...line].entries()) {
 			const color = FLAME_COLORS[char];
@@ -216,7 +224,7 @@ function scroll(t: Pixmap, x0: number, y: number): void {
 }
 
 /** The door: an iron-banded oak leaf under a stone lintel, with a ring pull, as in the mock. */
-function door(): Pixmap {
+export function door(): Pixmap {
 	const t = stoneWall(67, false);
 	const random = seededRandom(71);
 	const [x0, x1, y0] = [8, 55, 9];

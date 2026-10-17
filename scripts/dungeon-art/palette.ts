@@ -53,3 +53,12 @@ export const COVER_INK = 0x0f2a1c;
 /** The fiber specks in pulp paper. */
 export const PULP_SPECK = 0x4a402e;
 export const SHINE = 0xf4fbe8;
+/** The flagstone floor, the dark ceiling, and the fog of the corridor in the ink plate. */
+export const FLOOR = 0x22201d;
+export const FLOOR_A = 0x25221e;
+export const FLOOR_B = 0x1f1d1a;
+export const SEAM = 0x171513;
+export const FLOOR_SPECK_HI = 0x2a2722;
+export const FLOOR_SPECK_LO = 0x1b1916;
+export const CEILING = 0x0e0d0c;
+export const FOG = 0x0a0908;
