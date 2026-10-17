@@ -376,7 +376,7 @@ The game's colors live in `scripts/machine-art/palette.ts` and `src/game/theme.t
 ### Dungeon (the gamebook)
 Dungeon is one look with no light and dark variants (`color-scheme: light`). The palette tokens are `--dungeon-*` in `src/theme.css`. Under `:root[data-theme="dungeon"]` the look tokens take the Dungeon values: `--surface` is Pulp Page, `--surface-2` is Pulp Shade, `--text`, `--line`, `--live-text`, `--live-trace`, and `--focus` are Black Ink, `--text-2` is Grey Ink, and `--line-2` is Pulp Rule.
 - **Cloth Cover** (`dungeon-cover`): the ground around the book, under the weave tile (`.dungeon-cover`). It is the page ground of the Title Screen and the Skip View. The Skip View back link sits on it in Pulp Page text.
-- **Cloth Thread** (`dungeon-cover-ink`): the darker thread of the weave tile. The generator uses it; no CSS rule does.
+- **Cloth Thread** (`dungeon-cover-ink`): the darker thread of the weave tile. Only the generator uses it (`COVER_INK` in `scripts/dungeon-art/palette.ts`), so `src/theme.css` has no token for it.
 - **Pulp Page** (`dungeon-page`): every page, panel, slip, and the HUD strip, under the pulp tile (`.dungeon-pulp`). Also the text on any inked block.
 - **Pulp Shade** (`dungeon-page-2`): the blocked-way error note, and the light strand of the page leaves.
 - **Black Ink** (`dungeon-ink`): all text, every rule and box, tick boxes, the manicule, the selected choice, focus rings, and the `::selection` block. The one ink.
@@ -385,7 +385,6 @@ Dungeon is one look with no light and dark variants (`color-scheme: light`). The
 - **Gutter Shade** (`dungeon-gutter-shade`): Grey Ink at 45%, the inset shading where each page of the spread curves into the spine.
 - **Leader on Ink** (`dungeon-leader-on-ink`): Pulp Page at 40%, the dotted leader inside the inked (selected) choice.
 - **Scrim** (`dungeon-scrim`, 62%): the warm dimmer behind the Pause Menu and the Exhibit Panel. The resume prompt uses the same black at 50% (`dungeon-scrim-resume`).
-- `--dungeon-cover-2` (`#173d2a`) is declared in `src/theme.css`, but no rule uses it yet, so it is not a token here.
 
 ### Dungeon art set (game only)
 The game colors live in `scripts/dungeon-art/palette.ts` and `src/game/theme.ts`, not in CSS.

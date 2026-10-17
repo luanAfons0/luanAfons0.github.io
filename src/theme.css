@@ -123,8 +123,6 @@
 	   glow: a live or selected thing is inked (an ink block with page text). Only Dungeon rules use
 	   these. */
 	--dungeon-cover: #1d4a33;
-	--dungeon-cover-2: #173d2a;
-	--dungeon-cover-ink: #0f2a1c;
 	--dungeon-page: #e0d9c5;
 	--dungeon-page-2: #d4ccb5;
 	--dungeon-ink: #171717;
