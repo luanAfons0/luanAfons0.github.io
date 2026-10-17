@@ -186,7 +186,8 @@ export function startGame(startArtSet: ArtSet, audio?: Audio): void {
 		if (pauseMenu.isOpen()) return;
 		resumePrompt.close();
 		game.pause();
-		pauseMenu.open();
+		const { bugsFixed, bugsTotal } = game.state();
+		pauseMenu.open({ fixed: bugsFixed, total: bugsTotal });
 	}
 
 	function resume(): void {

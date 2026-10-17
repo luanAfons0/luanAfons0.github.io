@@ -167,6 +167,27 @@ describe("Skip View builder (Seam 2)", () => {
 		);
 	});
 
+	it("sets the Dungeon page on the cover: a running head, all Content on the pulp, the back link off it", () => {
+		const level = loadLevel(
+			tiledLevel({ rows: ROWS, extraObjects: [WEST, tiledExhibit("orca", { x: 4, y: 1 }, "west")] }),
+		);
+		const doc = parse(buildSkipView({ content: [exhibit("orca")], level, base: BASE }));
+		expect(doc.body.classList.contains("dungeon-cover")).toBe(true);
+		const pulp = doc.querySelectorAll(".dungeon-pulp");
+		expect(pulp).toHaveLength(1);
+		const page = pulp[0];
+		for (const part of ["h1", "nav", "main"]) expect(page?.querySelector(part)).not.toBeNull();
+		expect(page?.querySelector(`a[href="${BASE}"]`)).toBeNull();
+		const runningHead = page?.querySelector(".only-dungeon[aria-hidden='true'] + h1")?.previousElementSibling;
+		expect([...(runningHead?.children ?? [])].map((span) => span.textContent)).toEqual(["Every page", "Luan Afonso"]);
+		const end = page?.lastElementChild;
+		expect([end?.textContent, end?.classList.contains("only-dungeon"), end?.getAttribute("aria-hidden")]).toEqual([
+			"The end of the book.",
+			true,
+			"true",
+		]);
+	});
+
 	it("links the site icon, so the browser does not ask for a missing favicon.ico", () => {
 		const level = loadLevel(
 			tiledLevel({ rows: ROWS, extraObjects: [WEST, tiledExhibit("orca", { x: 4, y: 1 }, "west")] }),
@@ -320,6 +341,28 @@ describe("Skip View builder (Seam 2)", () => {
 			const byId = (id: string) => doc.getElementById(`exhibit-${id}`)?.querySelector(".skip-part")?.textContent;
 			expect(byId("a")).toBe("U1");
 			expect(byId("c")).toBe("U2");
+		});
+
+		it("heads each Exhibit with a Dungeon section number read as its kind and Part label", () => {
+			const content = [
+				exhibit("a", { kind: "project" }),
+				exhibit("b", { kind: "contact" }),
+				exhibit("c", { kind: "skill" }),
+				exhibit("d", { kind: "job" }),
+			];
+			const doc = parse(buildSkipView({ content, level, base: BASE }));
+			const sections = ["a", "b", "c", "d"].map((id) => {
+				const article = doc.getElementById(`exhibit-${id}`);
+				const number = article?.querySelector(".only-dungeon[role='img']");
+				const kind = article?.querySelector(".only-dungeon[aria-hidden='true']");
+				return [number?.getAttribute("aria-label"), number?.textContent, kind?.textContent];
+			});
+			expect(sections).toEqual([
+				["Project U1", "U1", "Project"],
+				["Contact J1", "J1", "Contact"],
+				["Skill R1", "R1", "Skill"],
+				["Job Q1", "Q1", "Job"],
+			]);
 		});
 
 		it("lists each Room in a Contents list with an anchor link and its Part labels", () => {
