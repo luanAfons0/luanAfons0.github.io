@@ -54,7 +54,7 @@ ${stylesheet ? `<link rel="stylesheet" href="${escapeHtml(stylesheet)}">` : ""}
 <p class="skip-datasheet only-paper"><span class="skip-part-number">LA-1</span> <span class="skip-datasheet-title">Portfolio, readable</span></p>
 <p class="skip-runhead only-dungeon" aria-hidden="true"><span>Every page</span><span>Luan Afonso</span></p>
 <h1>Luan Afonso</h1>
-<p class="skip-lede">My portfolio: every Exhibit from the game, Room by Room.</p>
+<p class="skip-lede">My portfolio: every Exhibit from the game, Room by Room. <span class="skip-sample only-dungeon">Sample content</span></p>
 </header>
 <nav class="skip-contents" aria-label="Contents">
 <h2>Rooms</h2>

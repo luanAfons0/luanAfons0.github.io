@@ -390,6 +390,12 @@ h3 {
 	font: italic 400 1.25rem / 1.35 var(--font-book);
 }
 
+/* The same stamp as the Exhibit Panel foot: the Content is still samples. */
+:root[data-theme="dungeon"] .skip-sample {
+	color: var(--dungeon-ink-2);
+	font: italic 400 0.85em / 1 var(--font-book);
+}
+
 :root[data-theme="dungeon"] .skip-contents {
 	margin: 28px 0 8px;
 }
