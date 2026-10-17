@@ -8,7 +8,17 @@
  * its frame on a 64x64 wall (`src/game/poster.ts`), so every line stays.
  */
 import { EXHIBITS, type Exhibit, type ExhibitKind, partLabel } from "../../src/game/content.ts";
-import { createPixmap, fillRect, outlineRect, type Pixmap, path, plot, seededRandom, text } from "../art-kit/pixmap.ts";
+import {
+	createPixmap,
+	fillRect,
+	outlineRect,
+	type Pixmap,
+	path,
+	plot,
+	scaled,
+	seededRandom,
+	text,
+} from "../art-kit/pixmap.ts";
 import { type GeneratedFile, pngFile } from "./files.ts";
 import * as c from "./palette.ts";
 
@@ -25,7 +35,7 @@ const MARK = 0x2a2e32;
 export function posters(content: readonly Exhibit[] = EXHIBITS): GeneratedFile[] {
 	return content.map((exhibit) => {
 		const label = partLabel(content, exhibit);
-		return pngFile(`posters/${exhibit.id}.png`, scaled(poster(exhibit.kind, label)), { Title: label });
+		return pngFile(`posters/${exhibit.id}.png`, scaled(poster(exhibit.kind, label), SCALE), { Title: label });
 	});
 }
 
@@ -128,17 +138,4 @@ function solderMask(seed: number): Pixmap {
 		pixmap.pixels[i] = r < 0.14 ? c.MASK_HI : r < 0.24 ? c.MASK_LO : c.MASK;
 	}
 	return pixmap;
-}
-
-/** The pixmap at `SCALE` times its size: each pixel becomes a square of pixels. */
-function scaled(pixmap: Pixmap): Pixmap {
-	const out = createPixmap(pixmap.width * SCALE, pixmap.height * SCALE);
-	for (let y = 0; y < out.height; y++) {
-		for (let x = 0; x < out.width; x++) {
-			out.pixels[y * out.width + x] = pixmap.pixels[
-				Math.floor(y / SCALE) * pixmap.width + Math.floor(x / SCALE)
-			] as number;
-		}
-	}
-	return out;
 }

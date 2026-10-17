@@ -1,10 +1,10 @@
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
-import { inflateSync } from "node:zlib";
 import { afterAll, describe, expect, it } from "vitest";
 import { EXHIBITS, type Exhibit, partLabel } from "../src/game/content.ts";
 import { MACHINE_ART_SET } from "../src/game/theme.ts";
+import { readPng, sameContent } from "./art-kit/read-files.ts";
 import { posters } from "./machine-art/posters.ts";
 import { generateMachineArt, MACHINE_ART_FOLDER } from "./machine-art.ts";
 
@@ -20,31 +20,6 @@ function generate(): { folder: string; files: string[] } {
 afterAll(() => {
 	for (const folder of runs) rmSync(folder, { recursive: true, force: true });
 });
-
-/** The text chunks (keyword and text) of a PNG file, and its image data before compression. */
-function readPng(png: Buffer): { texts: Record<string, string>; data: Buffer } {
-	const texts: Record<string, string> = {};
-	const compressed: Buffer[] = [];
-	for (let at = 8; at < png.length; ) {
-		const length = png.readUInt32BE(at);
-		const type = png.toString("latin1", at + 4, at + 8);
-		const body = png.subarray(at + 8, at + 8 + length);
-		if (type === "tEXt") {
-			const [keyword = "", text = ""] = body.toString("latin1").split("\0");
-			texts[keyword] = text;
-		}
-		if (type === "IDAT") compressed.push(body);
-		at += 12 + length;
-	}
-	return { texts, data: inflateSync(Buffer.concat(compressed)) };
-}
-
-/** The same file content. PNGs compare by image data and text, as another zlib may compress them differently. */
-function sameContent(file: string, a: Buffer, b: Buffer): boolean {
-	if (!file.endsWith(".png")) return a.equals(b);
-	const [pngA, pngB] = [readPng(a), readPng(b)];
-	return pngA.data.equals(pngB.data) && JSON.stringify(pngA.texts) === JSON.stringify(pngB.texts);
-}
 
 /** A folder of the art set (under `public/`) as a path inside the machine art folder. */
 function inMachineFolder(folder: string): string {
