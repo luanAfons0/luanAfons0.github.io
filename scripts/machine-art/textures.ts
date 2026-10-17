@@ -2,9 +2,20 @@
  * The wall textures: 64x64, one tile high. The Level tileset names them by file name, and the
  * art set in `src/game/theme.ts` lists the same names.
  */
+
+import {
+	createPixmap,
+	disc,
+	fillRect,
+	outlineRect,
+	type Pixmap,
+	path,
+	plot,
+	seededRandom,
+	text,
+} from "../art-kit/pixmap.ts";
 import { type GeneratedFile, pngFile } from "./files.ts";
 import * as c from "./palette.ts";
-import { createPixmap, disc, fillRect, outlineRect, type Pixmap, path, plot, seededRandom, text } from "./pixmap.ts";
 
 const SIZE = 64;
 const LAST = SIZE - 1;
