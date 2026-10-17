@@ -1,18 +1,12 @@
-/* The Skip View: a plain, readable page with a light touch of the game's 1990s look. */
-
-:root {
-	--bg: #14110e;
-	--panel: #1f1a15;
-	--line: #3a3027;
-	--text: #e8dcc4;
-	--muted: #b4a68c;
-	--accent: #e0a040;
-	--red: #c8402c;
-	--link: #f0c060;
-	--mono: ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
-	--sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-	color-scheme: dark;
-}
+/*
+ * The Skip View in two looks. The palette, the faces, and the look tokens come from theme.css.
+ * The page has no script, so it never has a saved Theme: the system setting chooses the look.
+ * Paper (light, the default): the full datasheet, with the LA-1 header and inked Part label blocks.
+ * Board (dark): the same page on the quiet board, with silkscreen headings and outlined Part labels.
+ * Colors use the look tokens, which follow the system through light-dark(); the other per-look
+ * values (faces, the board background) sit in the one dark block at the end.
+ */
+@import "../theme.css";
 
 *,
 *::before,
@@ -27,69 +21,48 @@ html {
 
 body {
 	margin: 0;
-	background: var(--bg);
+	background: var(--surface);
 	color: var(--text);
-	font: 1rem / 1.6 var(--sans);
+	font: 1rem / 1.5 var(--font-sans);
 	overflow-wrap: anywhere;
 }
 
-.skip-header,
-main {
-	max-width: 46rem;
+::selection {
+	background: var(--copper);
+	color: var(--paper);
+}
+
+.skip-page {
+	max-width: 50rem;
 	margin: 0 auto;
-	padding: 0 16px;
-}
-
-.skip-header {
-	padding-top: 1.25rem;
-	padding-bottom: 1.5rem;
-	border-bottom: 4px double var(--red);
-}
-
-h1,
-h2,
-h3,
-.skip-kind,
-.skip-back,
-.skip-rooms {
-	font-family: var(--mono);
-}
-
-h1 {
-	margin: 1rem 0 0.25rem;
-	font-size: clamp(2rem, 8vw, 3rem);
-	line-height: 1.1;
-	letter-spacing: 0.04em;
-	text-transform: uppercase;
-	color: var(--accent);
-	text-shadow: 3px 3px 0 #000;
-}
-
-.skip-lede {
-	margin: 0;
-	color: var(--muted);
+	padding: 0 16px 4rem;
 }
 
 a {
-	color: var(--link);
-	text-underline-offset: 0.2em;
-}
-
-a:hover {
-	color: #fff;
+	color: inherit;
 }
 
 a:focus-visible {
-	outline: 3px solid var(--accent);
+	outline: 2px solid var(--focus);
 	outline-offset: 2px;
+}
+
+/* The copper underline of the live link: never copper text on Paper. */
+.skip-back:hover,
+.skip-back:focus-visible,
+.skip-contents a:hover,
+.skip-contents a:focus-visible {
+	text-decoration: underline;
+	text-decoration-color: var(--live-trace);
+	text-decoration-thickness: 2px;
 }
 
 .skip-back {
 	display: inline-block;
-	padding: 0.5rem 0;
-	font-size: 0.875rem;
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
+	margin-top: 20px;
+	padding: 6px 0;
+	font: 400 0.8125rem / 1 var(--font-silk);
+	text-decoration: none;
 }
 
 /* A phone cannot play (ADR 0002): the Title Screen sends it back here, so it gets no link to it. */
@@ -99,84 +72,126 @@ a:focus-visible {
 	}
 }
 
-.skip-rooms ul {
+/* Paper: the datasheet header. The part number in an inked block, the title on the right. */
+.skip-datasheet {
 	display: flex;
-	flex-wrap: wrap;
-	gap: 0.5rem;
-	margin: 1.25rem 0 0;
+	justify-content: space-between;
+	align-items: stretch;
+	gap: 1rem;
+	margin: 28px 0 0;
+	border-bottom: 3px solid var(--line);
+}
+
+.skip-part-number {
+	padding: 8px 12px 6px;
+	background: var(--ink);
+	color: var(--paper);
+	font: 400 1rem / 1 var(--font-silk);
+}
+
+.skip-datasheet-title {
+	align-self: end;
+	padding-bottom: 6px;
+	color: var(--text-2);
+	font-size: 0.875rem;
+}
+
+h1 {
+	margin: 28px 0 8px;
+	font: 800 clamp(2.75rem, 9vw, 4.75rem) / 0.9 var(--font-sans);
+	font-stretch: 72%;
+	letter-spacing: -0.02em;
+}
+
+.skip-lede {
+	max-width: 46ch;
+	margin: 0 0 28px;
+	font-size: 1.1875rem;
+}
+
+/* Section headings: the Contents and each Room, with a rule under them. */
+.skip-contents h2,
+.skip-room h2 {
+	margin: 0 0 8px;
+	padding-bottom: 4px;
+	border-bottom: 1px solid var(--line);
+	font: 700 0.9375rem / 1.2 var(--font-sans);
+}
+
+.skip-contents ol {
+	display: grid;
+	gap: 2px;
+	margin: 0 0 40px;
 	padding: 0;
 	list-style: none;
 }
 
-.skip-rooms a {
-	display: inline-block;
-	padding: 0.5rem 0.75rem;
-	border: 2px solid var(--line);
-	background: var(--panel);
-	font-size: 0.875rem;
+/* Each Room, a dotted leader, then its Part labels, as in a datasheet's table of contents. */
+.skip-contents a {
+	display: flex;
+	gap: 8px;
+	padding: 4px 0;
 	text-decoration: none;
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
 }
 
-.skip-rooms a:hover {
-	border-color: var(--accent);
+.skip-contents a::after {
+	content: "";
+	flex: 1;
+	order: 1;
+	margin-bottom: 6px;
+	border-bottom: 1px dotted var(--text-2);
+}
+
+.skip-contents-parts {
+	order: 2;
+	font: 400 0.8125rem / 1.5 var(--font-silk);
 }
 
 .skip-room {
-	padding: 2rem 0 0.5rem;
+	margin-top: 40px;
 	scroll-margin-top: 1rem;
 }
 
-h2 {
-	margin: 0 0 1rem;
-	font-size: 1.25rem;
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
-	color: var(--accent);
-}
-
-h2::before {
-	content: "\25B6\FE0E  " / "";
-	color: var(--red);
+.skip-room h2 {
+	font-size: 1.375rem;
 }
 
 .skip-exhibits {
-	display: grid;
-	gap: 1rem;
 	margin: 0;
 	padding: 0;
 	list-style: none;
 }
 
+.skip-exhibits > li + li {
+	border-top: 1px solid var(--line-2);
+}
+
+/* An Exhibit: its Part label block on the left, its text on the right. */
 .skip-exhibit {
 	display: grid;
-	gap: 0.75rem;
-	padding: 1rem;
-	background: var(--panel);
-	border: 2px solid var(--line);
-	box-shadow: 4px 4px 0 #000;
+	grid-template-columns: 72px 1fr;
+	gap: 20px;
+	padding: 20px 0;
 }
 
-.skip-poster {
-	width: 72px;
-	height: auto;
-	image-rendering: pixelated;
-	border: 2px solid #000;
-	background: #000;
+.skip-part {
+	align-self: start;
+	padding: 8px 0 6px;
+	background: var(--ink);
+	color: var(--paper);
+	font: 400 1.125rem / 1 var(--font-silk);
+	text-align: center;
 }
 
-/* Phones: the poster sits above the text, so the text gets the full width. */
-@media (min-width: 30rem) {
+/* Phones: the Part label sits above the text, so the text gets the full width. */
+@media (max-width: 35rem) {
 	.skip-exhibit {
-		grid-template-columns: auto 1fr;
-		gap: 1rem;
+		grid-template-columns: 1fr;
+		gap: 10px;
 	}
-}
 
-@media (min-width: 40rem) {
-	.skip-poster {
-		width: 144px;
+	.skip-part {
+		width: 64px;
 	}
 }
 
@@ -185,36 +200,31 @@ h2::before {
 }
 
 .skip-body p {
-	margin: 0 0 0.75rem;
+	max-width: 65ch;
+	margin: 0 0 8px;
 }
 
 .skip-body .skip-kind {
-	display: inline-block;
-	margin: 0 0 0.25rem;
-	padding: 0 0.4rem;
-	background: var(--red);
-	color: #fff;
-	font-size: 0.75rem;
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
+	margin: 0;
+	color: var(--text-2);
+	font-size: 0.875rem;
 }
 
 h3 {
-	margin: 0 0 0.5rem;
-	font-size: 1.125rem;
-	line-height: 1.3;
+	margin: 2px 0 6px;
+	font: 700 1.5rem / 1.15 var(--font-sans);
+	font-stretch: 85%;
 }
 
-.skip-summary {
-	color: var(--text);
-	font-weight: 600;
+.skip-body .skip-summary {
+	font-size: 1.0625rem;
 }
 
 .skip-links {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 0.25rem 1.25rem;
-	margin: 0;
+	gap: 0.25rem 16px;
+	margin: 4px 0 0;
 	padding: 0;
 	list-style: none;
 }
@@ -222,31 +232,53 @@ h3 {
 .skip-links a {
 	display: inline-block;
 	padding: 0.375rem 0;
+	color: var(--live-text);
 	font-weight: 600;
+	text-decoration-color: var(--live-trace);
+	text-decoration-thickness: 2px;
+	text-underline-offset: 0.25em;
 }
 
-.skip-links a::after {
-	content: " \2192" / "";
-}
+/* Board: the quiet board, silkscreen headings, and outlined Part labels. */
+@media (prefers-color-scheme: dark) {
+	body {
+		background-color: var(--board);
+		background-image: var(--board-traces-quiet);
+		background-size: 240px 240px;
+	}
 
-main {
-	padding-bottom: 3rem;
-}
+	h1 {
+		margin-top: 28px;
+		font: 400 clamp(2rem, 6vw, 3.5rem) / 1 var(--font-silk);
+		font-stretch: normal;
+		letter-spacing: 0;
+	}
 
-.skip-rooms li {
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-}
+	.skip-lede {
+		color: var(--text-2);
+	}
 
-.skip-contents-parts,
-.skip-part {
-	font-family: var(--mono);
-	font-weight: bold;
-	letter-spacing: 0.06em;
-}
+	.skip-contents h2,
+	.skip-room h2 {
+		font: 400 0.9375rem / 1.2 var(--font-silk);
+	}
 
-.skip-contents-parts {
-	color: var(--muted);
-	font-size: 0.875rem;
+	.skip-room h2 {
+		font-size: 1.375rem;
+	}
+
+	.skip-part {
+		background: none;
+		border: 2px solid var(--silk-2);
+		color: var(--silk);
+	}
+
+	h3 {
+		font: 400 1.25rem / 1.2 var(--font-silk);
+		font-stretch: normal;
+	}
+
+	.skip-links a {
+		font-weight: 400;
+	}
 }

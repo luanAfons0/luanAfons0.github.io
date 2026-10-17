@@ -26,6 +26,7 @@ beforeEach(() => {
 	document.documentElement.removeAttribute("data-theme");
 	localStorage.clear();
 	systemScheme("light");
+	motion("reduce");
 });
 
 afterEach(() => {
@@ -39,8 +40,13 @@ function systemScheme(scheme: "light" | "dark") {
 	(window as unknown as HappyDomWindow).happyDOM.settings.device.prefersColorScheme = scheme;
 }
 
+/** Sets the reduced-motion setting. The tests run with "reduce" (no dive) unless a test asks for the dive. */
+function motion(preference: "reduce" | "no-preference") {
+	(window as unknown as HappyDomWindow).happyDOM.settings.device.prefersReducedMotion = preference;
+}
+
 interface HappyDomWindow {
-	happyDOM: { settings: { device: { prefersColorScheme: string } } };
+	happyDOM: { settings: { device: { prefersColorScheme: string; prefersReducedMotion: string } } };
 }
 
 const newGame = () => item("new-game");
@@ -485,5 +491,128 @@ describe("Title Screen page", () => {
 		expect(PAGE).toContain("<title>Luan Afonso, portfolio</title>");
 		expect(PAGE).not.toContain("\u2014");
 		expect(PAGE).not.toContain("&mdash;");
+	});
+});
+
+describe("NEW GAME dive", () => {
+	const dive = () => document.querySelector<HTMLElement>("[data-dive]");
+	const rect = (top: number, left: number, width: number, height: number) =>
+		({ top, left, width, height, right: left + width, bottom: top + height }) as DOMRect;
+	const flush = () => vi.advanceTimersByTimeAsync(0);
+
+	beforeEach(() => {
+		motion("no-preference");
+		vi.useFakeTimers();
+		vi.spyOn(document.documentElement, "clientWidth", "get").mockReturnValue(1000);
+		vi.spyOn(document.documentElement, "clientHeight", "get").mockReturnValue(600);
+	});
+
+	afterEach(() => {
+		vi.useRealTimers();
+	});
+
+	async function click() {
+		const setup = setUp();
+		newGame().dispatchEvent(new Event("pointerenter"));
+		setup.resolve("the game");
+		await flush();
+		newGame().click();
+		await flush();
+		return setup;
+	}
+
+	it("grows from the chip in Paper and starts the game when the transition ends", async () => {
+		document.documentElement.dataset.theme = "paper";
+		const chip = document.querySelector<HTMLElement>("[data-chip]");
+		vi.spyOn(chip as HTMLElement, "getBoundingClientRect").mockReturnValue(rect(100, 300, 200, 150));
+		const { startGame, onNewGame } = await click();
+
+		expect(onNewGame).toHaveBeenCalledTimes(1);
+		expect(startGame).not.toHaveBeenCalled();
+		expect(dive()?.hidden).toBe(false);
+		const style = (name: string) => dive()?.style.getPropertyValue(name);
+		expect([style("--dive-top"), style("--dive-right"), style("--dive-bottom"), style("--dive-left")]).toEqual([
+			"100px",
+			"500px",
+			"350px",
+			"300px",
+		]);
+
+		dive()?.dispatchEvent(new Event("transitionend"));
+		await flush();
+		expect(startGame).toHaveBeenCalledWith("the game");
+		expect(titleScreen()?.hidden).toBe(true);
+		expect(dive()?.hidden).toBe(true);
+	});
+
+	it("grows from the selected pad in Board", async () => {
+		document.documentElement.dataset.theme = "board";
+		const pad = newGame().querySelector<HTMLElement>(".title-screen__pad");
+		vi.spyOn(pad as HTMLElement, "getBoundingClientRect").mockReturnValue(rect(40, 60, 20, 10));
+		await click();
+
+		expect(dive()?.style.getPropertyValue("--dive-top")).toBe("40px");
+		expect(dive()?.style.getPropertyValue("--dive-left")).toBe("60px");
+	});
+
+	it("starts the game after the fallback timeout when transitionend never fires", async () => {
+		const { startGame } = await click();
+
+		await vi.advanceTimersByTimeAsync(100);
+		expect(startGame).not.toHaveBeenCalled();
+		await vi.advanceTimersByTimeAsync(1000);
+		expect(startGame).toHaveBeenCalledTimes(1);
+	});
+
+	it("starts the game once when both the transition end and the timeout fire", async () => {
+		const { startGame } = await click();
+		dive()?.dispatchEvent(new Event("transitionend"));
+		await vi.advanceTimersByTimeAsync(2000);
+		expect(startGame).toHaveBeenCalledTimes(1);
+	});
+
+	it("waits for the game to load after the dive, with the loading bar shown", async () => {
+		const { resolve, startGame } = setUp();
+		newGame().click();
+		await vi.advanceTimersByTimeAsync(2000);
+
+		expect(startGame).not.toHaveBeenCalled();
+		expect(loadingBar()?.hidden).toBe(false);
+		expect(dive()?.hidden).toBe(true);
+
+		resolve("the game");
+		await flush();
+		expect(startGame).toHaveBeenCalledWith("the game");
+	});
+
+	it("shows no dive and starts at once under reduced motion", async () => {
+		motion("reduce");
+		const setup = setUp();
+		newGame().dispatchEvent(new Event("pointerenter"));
+		setup.resolve("the game");
+		await flush();
+
+		newGame().click();
+
+		expect(setup.startGame).toHaveBeenCalledWith("the game");
+		expect(dive()?.hidden).toBe(true);
+	});
+
+	it("still sends the new-game event inside the gesture", async () => {
+		const track = vi.fn();
+		setUp({ track });
+		newGame().click();
+		expect(track).toHaveBeenCalledWith("new-game");
+	});
+
+	it("hides the dive and shows the load error when the game fails to load", async () => {
+		const { reject } = setUp();
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		newGame().click();
+		reject(new Error("offline"));
+		await flush();
+
+		expect(dive()?.hidden).toBe(true);
+		expect(loadError()?.hidden).toBe(false);
 	});
 });

@@ -1,0 +1,256 @@
+/*
+ * The Pause Menu: a board panel over the paused game, the same in both Themes (it never follows
+ * data-theme). It uses the palette tokens of src/theme.css, and sets `color-scheme: dark` so the
+ * native parts of the inputs draw dark too. Copper marks only the live thing: the selected item,
+ * an "on" switch, the slider thumb, and the focus ring.
+ */
+.pause-menu {
+	position: fixed;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	padding: 16px;
+	background: rgb(7 9 9 / 0.62);
+	color: var(--silk);
+	color-scheme: dark;
+	font: 400 16px / 1.4 var(--font-sans);
+}
+
+.pause-menu[hidden] {
+	display: none;
+}
+
+.pause-menu__panel {
+	display: grid;
+	gap: 1.1em;
+	box-sizing: border-box;
+	width: min(460px, 100%);
+	max-height: calc(100vh - 32px);
+	overflow-y: auto;
+	padding: 28px 30px;
+	border: 2px solid var(--silk-3);
+	box-shadow: 0 14px 40px rgb(0 0 0 / 0.5);
+}
+
+.pause-menu__title {
+	margin: 0;
+	font: 400 2em / 1 var(--font-silk);
+}
+
+/* Resume and Skip View: outlined items with a pad on the right that turns copper. */
+.pause-menu__item {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0.7em 0.9em;
+	background: none;
+	border: 1px solid var(--silk-3);
+	color: var(--silk);
+	font: 400 1.1em / 1 var(--font-silk);
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.pause-menu__item::after {
+	content: "";
+	width: 0.6em;
+	height: 0.6em;
+	background: var(--silk-3);
+}
+
+.pause-menu__item:hover,
+.pause-menu__item:focus-visible {
+	border-color: var(--silk);
+}
+
+.pause-menu__item:hover::after,
+.pause-menu__item:focus-visible::after {
+	background: var(--copper);
+}
+
+.pause-menu__item:active {
+	translate: 0 1px;
+}
+
+.pause-menu__row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 1em;
+}
+
+.pause-menu__control {
+	display: flex;
+	align-items: center;
+	gap: 0.6em;
+}
+
+/* The silkscreen text next to a switch: "On", "Paper", "Board". */
+.pause-menu__silk {
+	color: var(--silk-2);
+	font: 400 0.8em / 1 var(--font-silk);
+}
+
+.pause-menu__silk label {
+	cursor: pointer;
+}
+
+.pause-menu kbd {
+	display: inline-block;
+	min-width: 1.6em;
+	padding: 0 5px;
+	border: 1px solid currentColor;
+	border-radius: 2px;
+	font: 400 0.75em / 1.5 var(--font-silk);
+	text-align: center;
+}
+
+.pause-menu__sep {
+	margin: 0.2em 0;
+	border: 0;
+	border-top: 1px dashed var(--silk-3);
+}
+
+.pause-menu__hint {
+	margin: -0.5em 0 0;
+	color: var(--silk-2);
+	font-size: 0.9em;
+}
+
+/* The mouse sensitivity: a copper thumb on a silkscreen track. */
+.pause-menu__range {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 11em;
+	height: 1.4em;
+	margin: 0;
+	background: none;
+	cursor: pointer;
+}
+
+.pause-menu__range::-webkit-slider-runnable-track {
+	height: 2px;
+	background: var(--silk-3);
+}
+
+.pause-menu__range::-moz-range-track {
+	height: 2px;
+	background: var(--silk-3);
+}
+
+.pause-menu__range::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	width: 0.8em;
+	height: 1.2em;
+	margin-top: calc(-0.6em + 1px);
+	background: var(--copper);
+	border: 0;
+	border-radius: 1px;
+}
+
+.pause-menu__range::-moz-range-thumb {
+	width: 0.8em;
+	height: 1.2em;
+	background: var(--copper);
+	border: 0;
+	border-radius: 1px;
+}
+
+.pause-menu__range:active::-webkit-slider-thumb {
+	background: var(--copper-hot);
+}
+
+.pause-menu__range:active::-moz-range-thumb {
+	background: var(--copper-hot);
+}
+
+.pause-menu output {
+	min-width: 2.4em;
+	font: 400 1em / 1 var(--font-silk);
+	text-align: right;
+}
+
+/* A DIP switch: a checkbox drawn as one switch of a DIP block. The lever is down when off and up
+   (copper) when on. */
+.pause-menu__dip {
+	-webkit-appearance: none;
+	appearance: none;
+	position: relative;
+	box-sizing: border-box;
+	width: 1.5em;
+	height: 2.4em;
+	margin: 0;
+	background: var(--board-2);
+	border: 1px solid var(--silk-2);
+	cursor: pointer;
+}
+
+.pause-menu__dip::before {
+	content: "";
+	position: absolute;
+	left: 2px;
+	right: 2px;
+	bottom: 2px;
+	height: calc(50% - 3px);
+	background: var(--silk-2);
+}
+
+.pause-menu__dip:checked::before {
+	top: 2px;
+	bottom: auto;
+	background: var(--copper);
+}
+
+/* The Theme switch: one sideways DIP switch with two positions, Paper (left) and Board (right).
+   Each half is a native radio button; the checked one is the lever. */
+.pause-menu__switch {
+	display: flex;
+	gap: 2px;
+	box-sizing: border-box;
+	width: 2.6em;
+	height: 1.4em;
+	padding: 2px;
+	background: var(--board-2);
+	border: 1px solid var(--silk-2);
+}
+
+.pause-menu__switch input {
+	-webkit-appearance: none;
+	appearance: none;
+	flex: 1;
+	height: auto;
+	margin: 0;
+	background: none;
+	cursor: pointer;
+}
+
+.pause-menu__switch input[value="paper"]:checked {
+	background: var(--silk-2);
+}
+
+.pause-menu__switch input[value="board"]:checked {
+	background: var(--copper);
+}
+
+/* One copper focus ring for every control. */
+.pause-menu__item:focus-visible,
+.pause-menu__range:focus-visible,
+.pause-menu__dip:focus-visible,
+.pause-menu__switch input:focus-visible {
+	outline: 2px solid var(--copper-hot);
+	outline-offset: 2px;
+}
+
+/* The panel rises when it opens and goes at once when it closes. */
+@media (prefers-reduced-motion: no-preference) {
+	.pause-menu:not([hidden]) .pause-menu__panel {
+		animation: pause-menu-rise 140ms cubic-bezier(0.23, 1, 0.32, 1) both;
+	}
+}
+
+@keyframes pause-menu-rise {
+	from {
+		opacity: 0;
+		translate: 0 8px;
+	}
+}

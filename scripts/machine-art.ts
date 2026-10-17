@@ -13,13 +13,14 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { bugs } from "./machine-art/bugs.ts";
 import type { GeneratedFile } from "./machine-art/files.ts";
+import { posters } from "./machine-art/posters.ts";
 import { textures } from "./machine-art/textures.ts";
 
 /** The machine art folder, from the repository root. The art set in `src/game/theme.ts` points here. */
 export const MACHINE_ART_FOLDER = "public/machine";
 
 /** The asset kinds, in the order they are written. */
-const KINDS: readonly (() => GeneratedFile[])[] = [textures, bugs];
+const KINDS: readonly (() => GeneratedFile[])[] = [textures, bugs, () => posters()];
 
 /** Writes every file of the machine art set into `outDir`. Returns their paths inside `outDir`, sorted. */
 export function generateMachineArt(outDir: string): string[] {

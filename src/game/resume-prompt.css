@@ -1,0 +1,47 @@
+/*
+ * "Click to resume": a button over the whole paused game, after Esc closes the Exhibit Panel.
+ * A silkscreen label on a dimmed board, the same in both Themes (it never follows data-theme).
+ */
+.resume-prompt {
+	position: fixed;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: rgb(7 9 9 / 0.5);
+	color: var(--silk);
+	color-scheme: dark;
+	cursor: pointer;
+}
+
+.resume-prompt[hidden] {
+	display: none;
+}
+
+.resume-prompt__label {
+	padding: 0.8em 1.2em;
+	border: 2px solid var(--silk);
+	font: 400 clamp(14px, 2vw, 26px) / 1 var(--font-silk);
+}
+
+.resume-prompt:hover .resume-prompt__label {
+	border-color: var(--copper-hot);
+}
+
+.resume-prompt:active .resume-prompt__label {
+	translate: 0 1px;
+}
+
+/* The copper focus ring sits on the label: the button itself is the whole screen. */
+.resume-prompt:focus-visible {
+	outline: none;
+}
+
+.resume-prompt:focus-visible .resume-prompt__label {
+	border-color: var(--copper-hot);
+	outline: 2px solid var(--copper-hot);
+	outline-offset: 2px;
+}
