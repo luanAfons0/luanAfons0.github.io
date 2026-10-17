@@ -46,11 +46,13 @@ ${THEME_SCRIPT_MARK}
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 ${stylesheet ? `<link rel="stylesheet" href="${escapeHtml(stylesheet)}">` : ""}
 </head>
-<body>
+<body class="dungeon-cover">
 <div class="skip-page">
-<header class="skip-header">
 <a class="skip-back" href="${escapeHtml(base)}">${BACK_ARROW} Back to the Title Screen</a>
+<div class="skip-sheet dungeon-pulp">
+<header class="skip-header">
 <p class="skip-datasheet only-paper"><span class="skip-part-number">LA-1</span> <span class="skip-datasheet-title">Portfolio, readable</span></p>
+<p class="skip-runhead only-dungeon" aria-hidden="true"><span>Every page</span><span>Luan Afonso</span></p>
 <h1>Luan Afonso</h1>
 <p class="skip-lede">My portfolio: every Exhibit from the game, Room by Room.</p>
 </header>
@@ -63,6 +65,8 @@ ${rooms.map(({ room, exhibits, anchor }) => `<li><a href="#${anchor}"><span clas
 <main>
 ${rooms.map(({ room, exhibits, anchor }) => roomSection(room, exhibits, anchor, content)).join("\n")}
 </main>
+<p class="skip-end only-dungeon" aria-hidden="true">The end of the book.</p>
+</div>
 </div>
 </body>
 </html>
@@ -94,10 +98,14 @@ function exhibitArticle(exhibit: Exhibit, content: readonly Exhibit[]): string {
 			: `<ul class="skip-links">
 ${exhibit.links.map(({ label, url }) => `<li><a href="${escapeHtml(url)}">${escapeHtml(label)}</a></li>`).join("\n")}
 </ul>`;
+	const part = partLabel(content, exhibit);
+	const kind = escapeHtml(KIND_LABELS[exhibit.kind]);
 	return `<article class="skip-exhibit" id="exhibit-${escapeHtml(exhibit.id)}">
+<p class="skip-section-number only-dungeon" role="img" aria-label="${kind} ${part}"><span>${part}</span></p>
+<p class="skip-section-kind only-dungeon" aria-hidden="true">${kind}</p>
 <div class="skip-gutter">
-<span class="skip-part">${partLabel(content, exhibit)}</span>
-<p class="skip-kind">${escapeHtml(KIND_LABELS[exhibit.kind])}</p>
+<span class="skip-part">${part}</span>
+<p class="skip-kind">${kind}</p>
 </div>
 <div class="skip-body">
 <h3>${escapeHtml(exhibit.title)}</h3>
