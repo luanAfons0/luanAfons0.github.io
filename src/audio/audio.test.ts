@@ -162,6 +162,50 @@ describe("Audio art set change", () => {
 		expect(played).toEqual(["/machine/sounds/shot.wav"]);
 	});
 
+	/** Like stubWebAudio, but the first fetch of each URL in `failing` answers HTTP 404. */
+	function stubWebAudioFailingOnce(failing: readonly string[]) {
+		const fetch = stubWebAudio();
+		const failed = new Set<string>();
+		fetch.mockImplementation((url: string) => {
+			if (failing.includes(url) && !failed.has(url)) {
+				failed.add(url);
+				return Promise.resolve(new Response(null, { status: 404 }));
+			}
+			return Promise.resolve(new Response(new TextEncoder().encode(url)));
+		});
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		return fetch;
+	}
+
+	it("loads a sound that failed to load again on the next start", async () => {
+		stubWebAudioFailingOnce(["/machine/sounds/shot.wav"]);
+		const audio = createAudio("/", MACHINE_ART_SET);
+		audio.start();
+		await settle();
+		audio.play("shot");
+
+		audio.start();
+		await settle();
+		audio.play("shot");
+
+		expect(played).toEqual(["/machine/sounds/shot.wav"]);
+	});
+
+	it("loads the sounds of an art set that failed to load again on the next change to it", async () => {
+		const fetch = stubWebAudioFailingOnce(["/dungeon/sounds/shot.wav"]);
+		const audio = createAudio("/", MACHINE_ART_SET);
+		audio.start();
+		audio.changeArtSet(DUNGEON_ART_SET);
+		await settle();
+		audio.changeArtSet(MACHINE_ART_SET);
+		audio.changeArtSet(DUNGEON_ART_SET);
+		await settle();
+		audio.play("shot");
+
+		expect(fetch.mock.calls.filter(([url]) => url === "/dungeon/sounds/shot.wav")).toHaveLength(2);
+		expect(played).toEqual(["/dungeon/sounds/shot.wav"]);
+	});
+
 	it("keeps mute through the change", async () => {
 		stubWebAudio();
 		const audio = createAudio("/", MACHINE_ART_SET);

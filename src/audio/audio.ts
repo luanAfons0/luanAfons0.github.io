@@ -12,7 +12,7 @@ export type { SoundEvent } from "../game/theme";
 export interface Audio {
 	/**
 	 * Creates the audio context, or resumes it when the browser suspended it, and starts to load the
-	 * sounds. Call it inside a user gesture. It is safe to call again. It never throws: without Web
+	 * sounds (again, when a sound failed to load before). Call it inside a user gesture. It is safe to call again. It never throws: without Web
 	 * Audio, it logs the problem once and the game stays silent.
 	 */
 	start(): void;
@@ -54,12 +54,15 @@ export function createAudio(baseUrl: string, initialArtSet: ArtSounds): Audio {
 		return audio.decodeAudioData(await response.arrayBuffer());
 	}
 
-	/** Loads every sound of an art set. A sound that fails to load stays silent; the game goes on. */
+	/**
+	 * Loads every sound of an art set. A sound that fails to load stays silent; the game goes on.
+	 * A load with a failed sound is forgotten, so the next start() or change to the art set tries again.
+	 */
 	function loadAll(audio: AudioContext, art: ArtSounds): Promise<Buffers> {
 		let all = loads.get(art);
 		if (!all) {
 			const events = Object.keys(art.sounds) as SoundEvent[];
-			all = Promise.all(
+			const attempt = Promise.all(
 				events.map((event) =>
 					load(audio, art, event).then(
 						(buffer) => [event, buffer] as const,
@@ -69,7 +72,11 @@ export function createAudio(baseUrl: string, initialArtSet: ArtSounds): Audio {
 						},
 					),
 				),
-			).then((entries) => Object.fromEntries(entries.filter((entry) => entry !== undefined)));
+			).then((entries) => {
+				if (entries.includes(undefined) && loads.get(art) === attempt) loads.delete(art);
+				return Object.fromEntries(entries.filter((entry) => entry !== undefined));
+			});
+			all = attempt;
 			loads.set(art, all);
 		}
 		return all;
@@ -91,6 +98,8 @@ export function createAudio(baseUrl: string, initialArtSet: ArtSounds): Audio {
 				if (context) {
 					// A refused resume is not an error: the next user gesture tries again.
 					if (context.state !== "running") context.resume().catch(() => {});
+					// Loads the sounds again when a load failed; else they come from the cache.
+					useArtSet(context);
 					return;
 				}
 				const created = new AudioContext();
