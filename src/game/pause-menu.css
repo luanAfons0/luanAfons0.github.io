@@ -1,5 +1,5 @@
 /*
- * The Pause Menu: a board panel over the paused game, the same in both Themes (it never follows
+ * The Pause Menu: a board panel over the paused game, the same in every Theme (it never follows
  * data-theme). It uses the palette tokens of src/theme.css, and sets `color-scheme: dark` so the
  * native parts of the inputs draw dark too. Copper marks only the live thing: the selected item,
  * an "on" switch, the slider thumb, and the focus ring.
@@ -85,7 +85,7 @@
 	gap: 0.6em;
 }
 
-/* The silkscreen text next to a switch: "On"/"Off", "Paper", "Board". */
+/* The silkscreen text next to a switch: "On"/"Off", "Paper", "Board", "Dungeon". */
 .pause-menu__silk {
 	color: var(--silk-2);
 	font: 400 max(8px, round(nearest, 0.8em, 8px)) / 1 var(--font-silk);
@@ -216,42 +216,69 @@
 	background: var(--copper);
 }
 
-/* The Theme switch: one sideways DIP switch with two positions, Paper (left) and Board (right).
-   Each half is a native radio button; the checked one is the lever. */
-.pause-menu__switch {
-	display: flex;
-	gap: 2px;
-	box-sizing: border-box;
-	width: 2.6em;
-	height: 1.4em;
-	padding: 2px;
-	background: var(--board-2);
-	border: 1px solid var(--silk-2);
+/* The Theme switch: a three-position slide switch, Paper, Board, and Dungeon from left to right.
+   The three positions are one slot; each is a native radio button, and the checked one holds the
+   copper lever. The silkscreen legend of each position is under it, white when it is chosen. */
+.pause-menu__slide {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 0;
 }
 
-.pause-menu__switch input {
+.pause-menu__position {
+	display: grid;
+	justify-items: center;
+	gap: 0.6em;
+}
+
+.pause-menu__position input {
 	-webkit-appearance: none;
 	appearance: none;
-	flex: 1;
-	height: auto;
+	position: relative;
+	box-sizing: border-box;
+	width: 100%;
+	height: 1.4em;
 	margin: 0;
-	background: none;
+	background: var(--board-2);
+	border-block: 1px solid var(--silk-2);
 	cursor: pointer;
 }
 
-.pause-menu__switch input[value="paper"]:checked {
-	background: var(--silk-2);
+.pause-menu__position:first-child input {
+	border-left: 1px solid var(--silk-2);
 }
 
-.pause-menu__switch input[value="board"]:checked {
+.pause-menu__position:last-child input {
+	border-right: 1px solid var(--silk-2);
+}
+
+.pause-menu__position input:checked::before {
+	content: "";
+	position: absolute;
+	inset: 2px;
 	background: var(--copper);
+}
+
+.pause-menu__position input:checked + span {
+	color: var(--silk);
+}
+
+/* The message under the Theme switch when the art of a Theme did not load. */
+.pause-menu__error {
+	margin: -0.4em 0 0;
+	color: var(--copper-hot);
+	font-size: 0.9em;
+}
+
+.pause-menu__error[hidden] {
+	display: none;
 }
 
 /* One copper focus ring for every control. */
 .pause-menu__item:focus-visible,
 .pause-menu__range:focus-visible,
 .pause-menu__dip:focus-visible,
-.pause-menu__switch input:focus-visible {
+.pause-menu__position input:focus-visible {
 	outline: 2px solid var(--copper-hot);
 	outline-offset: 2px;
 }
