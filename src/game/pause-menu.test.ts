@@ -140,6 +140,60 @@ describe("Pause Menu", () => {
 		expect(changes.at(-1)).toEqual(DEFAULT_SETTINGS);
 	});
 
+	it("toggles the sound setting for the M key: it shows the change and reports all the settings", () => {
+		const { menu, changes } = setup();
+		menu.open(BUGS);
+		const sound = document.querySelector<HTMLInputElement>('.pause-menu input[name="sound"]');
+
+		menu.toggleSound();
+
+		expect(sound?.checked).toBe(false);
+		expect(changes.at(-1)).toEqual({ ...DEFAULT_SETTINGS, sound: false });
+		menu.toggleSound();
+		expect(sound?.checked).toBe(true);
+		expect(changes.at(-1)).toEqual(DEFAULT_SETTINGS);
+	});
+
+	it("reports no Theme on the M key after a failed load set the Theme back to none", async () => {
+		quietErrors();
+		const { menu, radio, changes } = setup({ onThemeChange: () => Promise.reject(new Error("offline")) });
+		menu.open(BUGS);
+		radio("dungeon").click();
+		await settle();
+
+		menu.toggleSound();
+
+		expect(changes.at(-1)).toEqual({ ...DEFAULT_SETTINGS, sound: false });
+	});
+
+	it("keeps the line of a load that failed after Resume until the player chooses a Theme again", async () => {
+		quietErrors();
+		let failDungeon: (error: Error) => void = () => {};
+		const { menu, radio, message } = setup({
+			onThemeChange: () =>
+				new Promise((_, reject) => {
+					failDungeon = reject;
+				}),
+		});
+		menu.open(BUGS);
+		radio("dungeon").click();
+		menu.close();
+		failDungeon(new Error("offline"));
+		await settle();
+
+		menu.open(BUGS);
+
+		expect(page.dataset.theme).toBeUndefined();
+		expect(radio("paper").checked).toBe(true);
+		expect(message()?.hidden).toBe(false);
+		expect(message()?.textContent).toBe("The Dungeon art did not load. Check your connection and try again.");
+		menu.close();
+		menu.open(BUGS);
+		expect(message()?.hidden).toBe(false);
+		radio("board").click();
+		expect(message()?.hidden).toBe(true);
+	});
+
 	it("ignores a failed load when the player chose another Theme since, and hides the line on the next choice", async () => {
 		quietErrors();
 		page.dataset.theme = "board";

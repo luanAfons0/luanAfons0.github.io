@@ -166,21 +166,13 @@ export function startGame(startArtSet: ArtSet, audio?: Audio): void {
 		onResume: resume,
 		track,
 		onThemeChange: (theme) => changeArtSet(artSetOf(theme)),
+		// The Pause Menu owns the settings from here on, so the shell keeps no copy that can go stale.
 		onSettingsChange(changed) {
-			Object.assign(settings, changed);
 			game.updateSettings({ mouseSensitivity: changed.mouseSensitivity, invertMouse: changed.invertMouse });
 			audio?.setMuted(!changed.sound);
 			saveSettings(changed);
 		},
 	});
-
-	/** M: the same sound setting as the Pause Menu, so the menu shows it and it is saved. */
-	function toggleSound(): void {
-		settings.sound = !settings.sound;
-		audio?.setMuted(!settings.sound);
-		pauseMenu.showSettings(settings);
-		saveSettings(settings);
-	}
 
 	function openPauseMenu(): void {
 		if (pauseMenu.isOpen()) return;
@@ -248,7 +240,7 @@ export function startGame(startArtSet: ArtSet, audio?: Audio): void {
 	// Without capture (keyboard-only play, an open Exhibit Panel, or "Click to resume"), Esc reaches the page.
 	window.addEventListener("keydown", (event) => {
 		// M works everywhere but in a text field; a checkbox or slider in the Pause Menu takes no text.
-		if (event.code === MUTE_KEY && !event.repeat && !isTextEntry(event.target)) toggleSound();
+		if (event.code === MUTE_KEY && !event.repeat && !isTextEntry(event.target)) pauseMenu.toggleSound();
 		if (event.code !== "Escape") return;
 		if (exhibitPanel.isOpen()) {
 			event.preventDefault();
