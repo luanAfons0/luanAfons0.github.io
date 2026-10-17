@@ -404,6 +404,11 @@ describe("Art set", () => {
 		expect(() => createGame({ level: bugLevel, artSet, sprites: { BEETLE1: image, PATCHED1: image } })).not.toThrow();
 	});
 
+	it("names each Bug frame once, so the browser shell loads a held frame once", () => {
+		const artSet = { ...MACHINE_ART_SET, bugWalkFrames: ["W1", "W2"], bugFixFrames: ["F1", "DONE", "DONE"] };
+		expect(bugFrameNames(artSet)).toEqual(["W1", "W2", "F1", "DONE"]);
+	});
+
 	it("names only committed files: textures, Bug frames with anchors, and sounds", () => {
 		const committed = Object.keys(import.meta.glob(["/public/**/*.png", "/public/**/*.wav", "/public/**/*.json"]));
 		const { folders } = MACHINE_ART_SET;
@@ -895,7 +900,7 @@ describe("Bugs", () => {
 	});
 
 	describe("sprites", () => {
-		/** Every Bug frame of the machine art set is a solid green 30x39 image, anchored like the Freedoom SKUL frames. */
+		/** Every Bug frame of the machine art set is a solid green 30x39 image, anchored 35 texels below its top. */
 		const greenBug = (() => {
 			const rgba = new Uint8Array(30 * 39 * 4);
 			new Uint32Array(rgba.buffer).fill(GREEN);
@@ -966,8 +971,55 @@ describe("Bugs", () => {
 		});
 
 		it("fails with a clear error when a Bug sprite is missing", () => {
-			const { SKULB1: _, ...withoutOne } = greenBug;
-			expect(() => createGame({ level: bugLevel([]), sprites: withoutOne })).toThrow(/SKULB1/);
+			const missing = MACHINE_ART_SET.bugWalkFrames[1] as string;
+			const { [missing]: _, ...withoutOne } = greenBug;
+			expect(() => createGame({ level: bugLevel([]), sprites: withoutOne })).toThrow(`"${missing}"`);
+		});
+
+		it("walks in its walk frames, in turn, and plays each fix frame once when shot, then is gone", () => {
+			// A Room too small to walk in keeps the Bug in the middle of the view.
+			const closet = tiledRoom("Closet", { x: 3.4, y: 1.4, width: 0.2, height: 0.2 });
+			const colors = { W1: RED, W2: BLUE, F1: rgb(255, 255, 0), F2: rgb(0, 255, 255), F3: rgb(255, 0, 255) };
+			const sprites = Object.fromEntries(
+				Object.entries(colors).map(([name, color]) => {
+					const rgba = new Uint8Array(30 * 39 * 4);
+					new Uint32Array(rgba.buffer).fill(color);
+					return [name, { texture: createTexture(30, 39, rgba), left: 15, top: 35 }];
+				}),
+			);
+			const game = createGame({
+				level: bugLevel([{ x: 3.5, y: 1.5 }], { rooms: [closet] }),
+				textures: { [TEST_WALL_TEXTURE]: solidTexture(GREEN) },
+				artSet: {
+					...MACHINE_ART_SET,
+					textures: [TEST_WALL_TEXTURE],
+					bugWalkFrames: ["W1", "W2"],
+					bugFixFrames: ["F1", "F2", "F3"],
+				},
+				sprites,
+			});
+			/** The frame in the middle of the view, by the channels its color lights; "none" when the Bug is not there. */
+			const frameShown = (): string => {
+				const lit = channels(pixelAt(render(game), SCREEN_WIDTH / 2, HORIZON)).map((value) => value > 0);
+				const name = Object.entries(colors).find(([, color]) =>
+					channels(color).every((value, i) => value > 0 === lit[i]),
+				)?.[0];
+				return name ?? "none";
+			};
+			/** The frames shown tick by tick, with repeats removed. */
+			const framesOver = (ticks: number): string[] => {
+				const shown: string[] = [];
+				for (let tick = 0; tick < ticks; tick++) {
+					const frame = frameShown();
+					if (shown.at(-1) !== frame) shown.push(frame);
+					game.step(IDLE);
+				}
+				return shown;
+			};
+
+			expect(framesOver(TICKS_PER_SECOND / 2)).toEqual(["W1", "W2", "W1"]);
+			game.step(SHOOT);
+			expect(framesOver(2 * TICKS_PER_SECOND)).toEqual(["F1", "F2", "F3", "none"]);
 		});
 	});
 

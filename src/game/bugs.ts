@@ -19,9 +19,9 @@ const WANDER_SEED = 0x8badf00d;
 /** The parts of an art set that the Bugs use. */
 export type BugArt = Pick<ArtSet, "name" | "bugWalkFrames" | "bugFixFrames">;
 
-/** Every sprite frame a Bug of the art set uses. The caller loads them and passes them to the Game core. */
+/** Every sprite frame a Bug of the art set uses, each once. The caller loads them and passes them to the Game core. */
 export function bugFrameNames(art: BugArt): string[] {
-	return [...art.bugWalkFrames, ...art.bugFixFrames];
+	return [...new Set([...art.bugWalkFrames, ...art.bugFixFrames])];
 }
 
 /** Ticks per frame of each animation. */

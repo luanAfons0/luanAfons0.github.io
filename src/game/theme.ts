@@ -60,7 +60,7 @@ export interface ArtSet {
 	textures: readonly string[];
 	/** The frames of a walking Bug, in order. A Level with Bugs needs at least one. */
 	bugWalkFrames: readonly string[];
-	/** The frames of a Bug being fixed, in order. A Level with Bugs needs at least one. */
+	/** The frames of a Bug being fixed, in order; repeat a frame to hold it. A Level with Bugs needs at least one. */
 	bugFixFrames: readonly string[];
 	/** The WAV file (with no extension) of each sound event. */
 	sounds: Readonly<Record<SoundEvent, string>>;
@@ -72,16 +72,17 @@ export interface ArtSet {
 
 /**
  * The machine art set, which the Paper and Board Themes share: a circuit board. The wall textures
- * come from `scripts/machine-art.ts`. The Bug frames and the sounds still come from Freedoom
- * until the generator draws and plays them too.
+ * and the Bug frames come from `scripts/machine-art.ts`. The sounds still come from Freedoom until
+ * the generator plays them too.
  */
 export const MACHINE_ART_SET: ArtSet = {
 	name: "machine",
-	folders: { textures: "machine/textures", sprites: "freedoom/sprites", sounds: "freedoom/sounds" },
+	folders: { textures: "machine/textures", sprites: "machine/sprites", sounds: "freedoom/sounds" },
 	textures: ["board-a", "board-b", "chip", "rack", "door", "door-track"],
-	// Freedoom's SKUL: two front-view frames walk; six frames show it being fixed.
-	bugWalkFrames: ["SKULA1", "SKULB1"],
-	bugFixFrames: ["SKULF0", "SKULG0", "SKULH0", "SKULI0", "SKULJ0", "SKULK0"],
+	// A beetle: two frames walk. When fixed, three frames flash it and fade it into a silkscreen box,
+	// then the "patched" mark (the box with a check) holds for three more.
+	bugWalkFrames: ["beetle-walk-1", "beetle-walk-2"],
+	bugFixFrames: ["beetle-fix-1", "beetle-fix-2", "beetle-fix-3", "beetle-patched", "beetle-patched", "beetle-patched"],
 	sounds: { shot: "DSPISTOL", "door-open": "DSDOROPN" },
 	ceiling: [11, 13, 15],
 	floor: [22, 27, 30],
