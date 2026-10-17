@@ -89,7 +89,7 @@ export interface Hud {
 
 /**
  * The HUD, in the colors of an art set. `bugsTotal` is the number of Bugs in the Level: the
- * boxes of the Bug tally, when the art set has one.
+ * boxes of the Bug tally, when the art set has one. It fails when the tally does not fit in the status bar.
  */
 export function createHud(screenWidth: number, screenHeight: number, colors: Readonly<HudColors>, bugsTotal = 0): Hud {
 	const color = packColors(colors);
@@ -162,9 +162,17 @@ function layOut(screenWidth: number, top: number, tallyBoxes: number): SectionBo
 	const fixed = widths.reduce<number>((sum, width) => sum + (width ?? 0), 0);
 	const flexible = widths.filter((width) => width === undefined).length;
 	const free = screenWidth - fixed - MARGIN * (SECTIONS.length + 1);
+	const flexibleWidth = Math.floor(free / flexible);
+	// A section that takes the space left must still hold its label, or the boxes run off the screen.
+	for (const [i, section] of SECTIONS.entries()) {
+		if (widths[i] !== undefined || flexibleWidth >= 2 * PADDING + textWidth(section.label)) continue;
+		throw new Error(
+			`The HUD Bug tally of ${tallyBoxes} Bugs does not fit in the ${screenWidth}-pixel status bar. Use fewer Bugs, or an art set with no tally.`,
+		);
+	}
 	let x = MARGIN;
 	return SECTIONS.map((section, i) => {
-		const width = widths[i] ?? Math.floor(free / flexible);
+		const width = widths[i] ?? flexibleWidth;
 		const box = { section, x, y: top + MARGIN, width, height };
 		x += width + MARGIN;
 		return box;
