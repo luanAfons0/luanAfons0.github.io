@@ -822,8 +822,9 @@
 	grid-template-rows: auto auto 1fr auto;
 	align-items: start;
 	width: calc(92 * var(--u));
-	height: calc(50.625 * var(--u));
-	min-height: 0;
+	/* A minimum, not a height: when the content needs more (a small window, the error under the
+	   choices), the page grows and the content stays on it. */
+	min-height: calc(50.625 * var(--u));
 	overflow-x: visible;
 	box-shadow:
 		0 1.2em 2.6em rgb(6 18 11 / 0.55),
@@ -1297,7 +1298,6 @@
 		grid-template-columns: minmax(0, 1fr);
 		grid-template-rows: auto;
 		width: 100%;
-		height: auto;
 		min-height: 100%;
 		padding: 0 0 2em;
 		box-shadow: none;
