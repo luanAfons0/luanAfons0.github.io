@@ -15,24 +15,17 @@ import * as c from "./palette.ts";
 const WIDTH = 36;
 const HEIGHT = 33;
 const SCALE = 2;
-/** Poster paths in the Content are relative to `public/`. The generator writes under `public/machine/`. */
-const FOLDER = "machine/";
 /** The faint marking on a package, such as the pin-1 dot. */
 const MARK = 0x2a2e32;
 
 /**
- * One poster for each Exhibit, at the path its `poster` names, with its Part label in the image
- * and in a `Title` text chunk. Fails when a poster is not in the machine art folder.
+ * One poster for each Exhibit, named by its id in the posters folder (`posters/<id>.png`, where the
+ * machine art set looks for it), with its Part label in the image and in a `Title` text chunk.
  */
 export function posters(content: readonly Exhibit[] = EXHIBITS): GeneratedFile[] {
 	return content.map((exhibit) => {
-		if (!exhibit.poster.startsWith(FOLDER)) {
-			throw new Error(
-				`Exhibit "${exhibit.id}" has the poster "${exhibit.poster}". Put it under ${FOLDER}posters/ so the generator draws it.`,
-			);
-		}
 		const label = partLabel(content, exhibit);
-		return pngFile(exhibit.poster.slice(FOLDER.length), scaled(poster(exhibit.kind, label)), { Title: label });
+		return pngFile(`posters/${exhibit.id}.png`, scaled(poster(exhibit.kind, label)), { Title: label });
 	});
 }
 

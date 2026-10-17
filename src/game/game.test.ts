@@ -24,7 +24,7 @@ import {
 	tiledLevel,
 	tiledRoom,
 } from "./test-support/tiled-level";
-import { MACHINE_ART_SET } from "./theme";
+import { type ArtSet, MACHINE_ART_SET, posterPath, SOUND_EVENTS, TEXTURE_ROLES } from "./theme";
 
 const IDLE: InputSnapshot = { forward: 0, strafe: 0, turn: 0, look: 0 };
 const FORWARD: InputSnapshot = { ...IDLE, forward: 1 };
@@ -364,27 +364,65 @@ describe("Art set", () => {
 	const bugRoom = tiledRoom("Lobby", { x: 1, y: 1, width: 3, height: 1 });
 	const bugLevel = tiledLevel({
 		rows: ["#####", "#P..#", "#####"],
-		wallTextures: { "#": "board-a" },
+		wallTextures: { "#": "wall-a" },
 		extraObjects: [bugRoom, tiledBug({ x: 3.5, y: 1.5 })],
 	});
+
+	/** The machine art set with no entry for one key of a map, as a broken art set would have. */
+	function without<K extends "textures" | "sounds">(key: K, missing: string): ArtSet {
+		const map = Object.fromEntries(Object.entries(MACHINE_ART_SET[key]).filter(([name]) => name !== missing));
+		return { ...MACHINE_ART_SET, [key]: map };
+	}
 
 	it("creates the Game core with the real sample Level and the machine art set", () => {
 		const game = createGame({ level: sampleLevel, content: EXHIBITS, artSet: MACHINE_ART_SET });
 		expect(game.state().room).toBe("Lobby");
 	});
 
-	it("fails with an error that names a wall texture the art set does not have", () => {
-		const level = tiledLevel({ rows: ["###", "#P#", "###"], wallTextures: { "#": "NOSUCHWALL" } });
-		expect(() => createGame({ level, artSet: MACHINE_ART_SET })).toThrow(/texture "NOSUCHWALL".*art set "machine"/);
+	it("has the real sample Level name texture roles only", () => {
+		const names = levelTextureNames(sampleLevel);
+
+		expect(names.length).toBeGreaterThan(0);
+		for (const name of names) expect(TEXTURE_ROLES).toContain(name);
 	});
 
-	it("fails with an error that names a door texture the art set does not have", () => {
+	it("maps every texture role of the machine art set to its machine file", () => {
+		expect(MACHINE_ART_SET.textures).toEqual({
+			"wall-a": "board-a",
+			"wall-b": "board-b",
+			feature: "chip",
+			storage: "rack",
+			door: "door",
+			"door-track": "door-track",
+		});
+	});
+
+	it("fails with an error that names a wall texture that is not a texture role", () => {
+		const level = tiledLevel({ rows: ["###", "#P#", "###"], wallTextures: { "#": "board-a" } });
+		expect(() => createGame({ level, artSet: MACHINE_ART_SET })).toThrow(/texture "board-a".*not a texture role/);
+	});
+
+	it("fails with an error that names a door texture that is not a texture role", () => {
 		const level = tiledLevel({
 			rows: ["######", "#P.D.#", "######"],
-			wallTextures: { "#": "board-a" },
+			wallTextures: { "#": "wall-a" },
 			doorTiles: { D: { texture: "NOSUCHDOOR", track: "door-track" } },
 		});
-		expect(() => createGame({ level, artSet: MACHINE_ART_SET })).toThrow(/texture "NOSUCHDOOR"/);
+		expect(() => createGame({ level, artSet: MACHINE_ART_SET })).toThrow(/texture "NOSUCHDOOR".*not a texture role/);
+	});
+
+	it("fails with an error that names the art set and the texture role it has no file for", () => {
+		const level = tiledLevel({ rows: ["###", "#P#", "###"], wallTextures: { "#": "wall-a" } });
+		expect(() => createGame({ level, artSet: without("textures", "storage") })).toThrow(
+			/art set "machine".*texture role "storage"/i,
+		);
+	});
+
+	it("fails with an error that names the art set and the sound event it has no sound for", () => {
+		const level = tiledLevel({ rows: ["###", "#P#", "###"], wallTextures: { "#": "wall-a" } });
+		expect(() => createGame({ level, artSet: without("sounds", "door-open") })).toThrow(
+			/art set "machine".*sound event "door-open"/i,
+		);
 	});
 
 	it("fails with an error that names the missing Bug walk frame when the Level has Bugs", () => {
@@ -397,10 +435,12 @@ describe("Art set", () => {
 		expect(() => createGame({ level: bugLevel, artSet })).toThrow(/Bug fix frame/);
 	});
 
-	it("loads the Bug frames the art set names", () => {
+	it("loads the Bug frames the art set names, and names the art set and the frame it has no image for", () => {
 		const artSet = { ...MACHINE_ART_SET, bugWalkFrames: ["BEETLE1"], bugFixFrames: ["PATCHED1"] };
 		const image = { texture: solidTexture(GREEN), left: 2, top: 4 };
-		expect(() => createGame({ level: bugLevel, artSet, sprites: { BEETLE1: image } })).toThrow(/"PATCHED1"/);
+		expect(() => createGame({ level: bugLevel, artSet, sprites: { BEETLE1: image } })).toThrow(
+			/art set "machine".*Bug frame "PATCHED1"/i,
+		);
 		expect(() => createGame({ level: bugLevel, artSet, sprites: { BEETLE1: image, PATCHED1: image } })).not.toThrow();
 	});
 
@@ -409,7 +449,7 @@ describe("Art set", () => {
 		expect(bugFrameNames(artSet)).toEqual(["W1", "W2", "F1", "DONE"]);
 	});
 
-	it("names only committed files: textures, Bug frames with anchors, and sounds", () => {
+	it("names only committed files: textures, Bug frames with anchors, posters, and sounds", () => {
 		const committed = Object.keys(import.meta.glob(["/public/**/*.png", "/public/**/*.wav", "/public/**/*.json"]));
 		const { folders } = MACHINE_ART_SET;
 		const allOffsets = import.meta.glob<Record<string, unknown>>("/public/**/offsets.json", {
@@ -418,13 +458,16 @@ describe("Art set", () => {
 		});
 		const offsets = allOffsets[`/public/${folders.sprites}/offsets.json`] ?? {};
 
-		for (const name of MACHINE_ART_SET.textures) expect(committed).toContain(`/public/${folders.textures}/${name}.png`);
+		for (const role of TEXTURE_ROLES) {
+			expect(committed).toContain(`/public/${folders.textures}/${MACHINE_ART_SET.textures[role]}.png`);
+		}
 		for (const name of bugFrameNames(MACHINE_ART_SET)) {
 			expect(committed).toContain(`/public/${folders.sprites}/${name}.png`);
 			expect(offsets[name]).toEqual({ left: expect.any(Number), top: expect.any(Number) });
 		}
-		for (const file of Object.values(MACHINE_ART_SET.sounds)) {
-			expect(committed).toContain(`/public/${folders.sounds}/${file}.wav`);
+		for (const { id } of EXHIBITS) expect(committed).toContain(`/public/${posterPath(MACHINE_ART_SET, id)}`);
+		for (const event of SOUND_EVENTS) {
+			expect(committed).toContain(`/public/${folders.sounds}/${MACHINE_ART_SET.sounds[event]}.wav`);
 		}
 	});
 });
@@ -695,13 +738,6 @@ describe("Textured walls", () => {
 		for (const tileset of level.tilesets) tileset.tiles = [];
 		expect(() => createGame({ level })).toThrow(/gid 1 has no "texture" property/);
 	});
-
-	it("lists the textures the real sample Level uses, and the machine art set has each one", () => {
-		const names = levelTextureNames(sampleLevel);
-
-		expect(names.length).toBeGreaterThan(0);
-		for (const name of names) expect(MACHINE_ART_SET.textures).toContain(name);
-	});
 });
 
 describe("Bugs", () => {
@@ -709,9 +745,13 @@ describe("Bugs", () => {
 	const rows = ["###########", "#P........#", "#.........#", "#.........#", "###########"];
 	const room = tiledRoom("Lobby", { x: 1, y: 1, width: 9, height: 3 });
 
-	function bugLevel(bugs: { x: number; y: number }[], options: { rows?: string[]; rooms?: object[] } = {}) {
+	function bugLevel(
+		bugs: { x: number; y: number }[],
+		options: { rows?: string[]; rooms?: object[]; wall?: string } = {},
+	) {
 		return tiledLevel({
 			rows: options.rows ?? rows,
+			wallTextures: { "#": options.wall ?? TEST_WALL_TEXTURE },
 			playerAngle: 0,
 			extraObjects: [...(options.rooms ?? [room]), ...bugs.map(tiledBug)],
 		});
@@ -988,11 +1028,10 @@ describe("Bugs", () => {
 				}),
 			);
 			const game = createGame({
-				level: bugLevel([{ x: 3.5, y: 1.5 }], { rooms: [closet] }),
-				textures: { [TEST_WALL_TEXTURE]: solidTexture(GREEN) },
+				level: bugLevel([{ x: 3.5, y: 1.5 }], { rooms: [closet], wall: "wall-a" }),
+				textures: { "wall-a": solidTexture(GREEN) },
 				artSet: {
 					...MACHINE_ART_SET,
-					textures: [TEST_WALL_TEXTURE],
 					bugWalkFrames: ["W1", "W2"],
 					bugFixFrames: ["F1", "F2", "F3"],
 				},

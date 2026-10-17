@@ -1,6 +1,7 @@
 /**
  * The Content: the one typed source of every Exhibit. The game and the Skip View read it.
- * The Level places each Exhibit on a wall by its `id` (see `src/game/levels/`).
+ * The Level places each Exhibit on a wall by its `id` (see `src/game/levels/`), and each art set
+ * has its poster by that `id` (see `posterPath` in `src/game/theme.ts`).
  * Creating the Game core and building the Skip View fail when the Level and this list do not
  * match (see `checkContent`).
  *
@@ -57,11 +58,6 @@ export interface Exhibit {
 	/** The full details, one paragraph per item. */
 	details: readonly string[];
 	links: readonly ExhibitLink[];
-	/**
-	 * The poster image, a PNG path relative to `public/` in the machine art folder (for example
-	 * `machine/posters/orca.png`). The generator draws it with the Exhibit's Part label.
-	 */
-	poster: string;
 }
 
 /**
@@ -111,7 +107,6 @@ export const EXHIBITS: readonly Exhibit[] = [
 			"The Level is drawn in the Tiled map editor. All Exhibit content comes from one typed source, and the tests fail when the Level and the content do not match.",
 		],
 		links: [{ label: "Source code", url: "https://github.com/luanAfons0/portfolio" }],
-		poster: "machine/posters/project-portfolio.png",
 	},
 	{
 		id: "job-sample",
@@ -120,7 +115,6 @@ export const EXHIBITS: readonly Exhibit[] = [
 		summary: "Sample job. The real work history comes later.",
 		details: ["Built and ran web services for a sample product.", "Worked with a small team, from design to deploy."],
 		links: [],
-		poster: "machine/posters/job-sample.png",
 	},
 	{
 		id: "skill-typescript",
@@ -129,7 +123,6 @@ export const EXHIBITS: readonly Exhibit[] = [
 		summary: "Strict TypeScript for browsers and Node.",
 		details: ["Typed domain models, test-first development, and small dependency-free modules."],
 		links: [{ label: "TypeScript", url: "https://www.typescriptlang.org/" }],
-		poster: "machine/posters/skill-typescript.png",
 	},
 	{
 		id: "contact",
@@ -138,6 +131,5 @@ export const EXHIBITS: readonly Exhibit[] = [
 		summary: "Want to talk? Find me on GitHub.",
 		details: ["I read every message."],
 		links: [{ label: "GitHub", url: "https://github.com/luanAfons0" }],
-		poster: "machine/posters/contact.png",
 	},
 ];
