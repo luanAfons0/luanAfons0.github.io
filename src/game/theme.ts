@@ -71,19 +71,18 @@ export interface ArtSet {
 }
 
 /**
- * The machine art set, which the Paper and Board Themes share: a circuit board. The wall textures
- * and the Bug frames come from `scripts/machine-art.ts`. The sounds still come from Freedoom until
- * the generator plays them too.
+ * The machine art set, which the Paper and Board Themes share: a circuit board. Its wall textures,
+ * Bug frames, and sounds all come from `scripts/machine-art.ts`.
  */
 export const MACHINE_ART_SET: ArtSet = {
 	name: "machine",
-	folders: { textures: "machine/textures", sprites: "machine/sprites", sounds: "freedoom/sounds" },
+	folders: { textures: "machine/textures", sprites: "machine/sprites", sounds: "machine/sounds" },
 	textures: ["board-a", "board-b", "chip", "rack", "door", "door-track"],
 	// A beetle: two frames walk. When fixed, three frames flash it and fade it into a silkscreen box,
 	// then the "patched" mark (the box with a check) holds for three more.
 	bugWalkFrames: ["beetle-walk-1", "beetle-walk-2"],
 	bugFixFrames: ["beetle-fix-1", "beetle-fix-2", "beetle-fix-3", "beetle-patched", "beetle-patched", "beetle-patched"],
-	sounds: { shot: "DSPISTOL", "door-open": "DSDOROPN" },
+	sounds: { shot: "shot", "door-open": "door-open" },
 	ceiling: [11, 13, 15],
 	floor: [22, 27, 30],
 	// Silkscreen grey labels, copper values, silkscreen white hint and crosshair, on solder mask.

@@ -81,6 +81,22 @@ describe("machine art generator", () => {
 		}
 	});
 
+	it("writes every sound of the art set as a mono 16-bit WAV that names the generator", () => {
+		const { folder, files } = generate();
+		const soundsFolder = inMachineFolder(MACHINE_ART_SET.folders.sounds);
+
+		for (const name of Object.values(MACHINE_ART_SET.sounds)) {
+			const file = `${soundsFolder}/${name}.wav`;
+			expect(files).toContain(file);
+			const wav = readFileSync(join(folder, file));
+			expect(wav.toString("latin1", 0, 4) + wav.toString("latin1", 8, 12), file).toBe("RIFFWAVE");
+			expect(wav.readUInt32LE(4), file).toBe(wav.length - 8);
+			expect([wav.readUInt16LE(20), wav.readUInt16LE(22), wav.readUInt16LE(34)], file).toEqual([1, 1, 16]);
+			expect(wav.toString("latin1"), file).toContain("ISFT");
+			expect(wav.toString("latin1"), file).toContain("scripts/machine-art.ts");
+		}
+	});
+
 	it("gives byte-identical files when it runs twice", () => {
 		const first = generate();
 		const second = generate();

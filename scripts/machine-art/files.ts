@@ -53,3 +53,43 @@ function chunk(type: string, data: Buffer): Buffer {
 	crc.writeUInt32BE(crc32(typeAndData));
 	return Buffer.concat([length, typeAndData, crc]);
 }
+
+/** The sample rate of every generated sound, in samples per second. */
+export const SAMPLE_RATE = 22050;
+
+/**
+ * A WAV file of mono samples from -1 to 1: 16-bit PCM at `SAMPLE_RATE`, with a `LIST` `INFO`
+ * chunk whose `ISFT` (software) text names the generator. Samples outside -1 to 1 are clipped.
+ */
+export function wavFile(path: string, samples: Float32Array): GeneratedFile {
+	const format = Buffer.alloc(16);
+	format.writeUInt16LE(1, 0); // PCM
+	format.writeUInt16LE(1, 2); // mono
+	format.writeUInt32LE(SAMPLE_RATE, 4);
+	format.writeUInt32LE(SAMPLE_RATE * 2, 8); // bytes per second
+	format.writeUInt16LE(2, 12); // bytes per sample frame
+	format.writeUInt16LE(16, 14); // bits per sample
+	const data = Buffer.alloc(samples.length * 2);
+	for (const [i, sample] of samples.entries()) {
+		data.writeInt16LE(Math.round(Math.max(-1, Math.min(1, sample)) * 32767), i * 2);
+	}
+	const info = Buffer.concat([
+		Buffer.from("INFO", "latin1"),
+		riffChunk("ISFT", Buffer.from(`${GENERATOR}\0`, "latin1")),
+	]);
+	const body = Buffer.concat([
+		Buffer.from("WAVE", "latin1"),
+		riffChunk("fmt ", format),
+		riffChunk("LIST", info),
+		riffChunk("data", data),
+	]);
+	return { path, bytes: riffChunk("RIFF", body) };
+}
+
+/** A RIFF chunk: its id, its little-endian length, its data, and a pad byte when the length is odd. */
+function riffChunk(id: string, data: Buffer): Buffer {
+	const length = Buffer.alloc(4);
+	length.writeUInt32LE(data.length);
+	const pad = Buffer.alloc(data.length % 2);
+	return Buffer.concat([Buffer.from(id, "latin1"), length, data, pad]);
+}

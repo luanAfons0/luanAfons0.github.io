@@ -1,11 +1,12 @@
 import { createAudio } from "../audio/audio";
+import { MACHINE_ART_SET } from "../game/theme";
 import { createTitleScreen } from "./title-screen";
 
 // The Title Screen page entry. It has no game code: the game is a separate chunk that the
 // dynamic import below loads on hover or focus of NEW GAME. Manual test only; the logic is in title-screen.ts.
 
 // The Audio creates nothing and loads nothing until NEW GAME starts it.
-const audio = createAudio(`${import.meta.env.BASE_URL}freedoom/sounds`);
+const audio = createAudio(`${import.meta.env.BASE_URL}${MACHINE_ART_SET.folders.sounds}`);
 
 createTitleScreen({
 	root: document,
