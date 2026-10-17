@@ -1327,7 +1327,9 @@
 		font-size: min(5.4em, 15vw);
 	}
 
+	/* The foot ends the page, after the plate and How to Play. */
 	.title-screen__book-foot {
+		order: 2;
 		padding-bottom: 0;
 	}
 
