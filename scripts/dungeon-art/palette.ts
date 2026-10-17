@@ -47,4 +47,9 @@ export const SLIME_HI = 0xa6dc78;
 export const SLIME_SH = 0x4f9a42;
 export const SLIME_RIM = 0x2f6b2c;
 export const EYE = 0xf6f6f0;
+/** The book cover: deep green cloth and its darker thread. Only the HTML pages show it. */
+export const COVER = 0x1d4a33;
+export const COVER_INK = 0x0f2a1c;
+/** The fiber specks in pulp paper. */
+export const PULP_SPECK = 0x4a402e;
 export const SHINE = 0xf4fbe8;

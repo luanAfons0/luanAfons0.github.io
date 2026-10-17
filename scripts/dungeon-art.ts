@@ -16,12 +16,13 @@ import type { GeneratedFile } from "./dungeon-art/files.ts";
 import { posters } from "./dungeon-art/posters.ts";
 import { sounds } from "./dungeon-art/sounds.ts";
 import { textures } from "./dungeon-art/textures.ts";
+import { tiles } from "./dungeon-art/tiles.ts";
 
 /** The dungeon art folder, from the repository root. The art set in `src/game/theme.ts` points here. */
 export const DUNGEON_ART_FOLDER = "public/dungeon";
 
 /** The asset kinds, in the order they are written. */
-const KINDS: readonly (() => GeneratedFile[])[] = [textures, bugs, () => posters(), sounds];
+const KINDS: readonly (() => GeneratedFile[])[] = [textures, bugs, () => posters(), sounds, tiles];
 
 /** Writes every file of the dungeon art set into `outDir`. Returns their paths inside `outDir`, sorted. */
 export function generateDungeonArt(outDir: string): string[] {

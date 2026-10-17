@@ -149,3 +149,50 @@ describe("dungeon banner posters", () => {
 		expect(project?.equals(images[0] ?? Buffer.alloc(0))).toBe(true);
 	});
 });
+
+describe("dungeon page tiles", () => {
+	/** The pulp page and the cover green of the approved mock, as RGB. */
+	const PAGE = [0xe0, 0xd9, 0xc5];
+	const COVER = [0x1d, 0x4a, 0x33];
+
+	/** The RGBA pixels of a generated PNG (8-bit RGBA, filter 0 on each row). */
+	function pixelsOf(png: Buffer): number[][] {
+		const [width, height] = pngSize(png);
+		const { data } = readPng(png);
+		const pixels: number[][] = [];
+		for (let y = 0; y < height; y++) {
+			for (let x = 0; x < width; x++) {
+				const at = y * (width * 4 + 1) + 1 + x * 4;
+				pixels.push([...data.subarray(at, at + 4)]);
+			}
+		}
+		return pixels;
+	}
+
+	/** True when each channel of `rgb` is at or under the channel of `ground`, and one is under it. */
+	const darker = (rgb: number[], ground: number[]) =>
+		rgb.every((value, i) => value <= (ground[i] as number)) && rgb.some((value, i) => value < (ground[i] as number));
+
+	it("writes the pulp speck tile: opaque pulp page with a few darker specks", () => {
+		const { folder, files } = generate();
+		expect(files).toContain("tiles/pulp.png");
+		const pixels = pixelsOf(readFileSync(join(folder, "tiles/pulp.png")));
+		const plain = pixels.filter(([r, g, b]) => [r, g, b].join() === PAGE.join());
+
+		expect(pixels.every(([, , , alpha]) => alpha === 255)).toBe(true);
+		expect(plain.length / pixels.length).toBeGreaterThan(0.75);
+		expect(plain.length).toBeLessThan(pixels.length);
+		for (const pixel of pixels) if (!plain.includes(pixel)) expect(darker(pixel.slice(0, 3), PAGE)).toBe(true);
+	});
+
+	it("writes the cloth weave tile: opaque cover green crossed by darker threads", () => {
+		const { folder, files } = generate();
+		expect(files).toContain("tiles/weave.png");
+		const pixels = pixelsOf(readFileSync(join(folder, "tiles/weave.png")));
+		const plain = pixels.filter(([r, g, b]) => [r, g, b].join() === COVER.join());
+
+		expect(pixels.every(([, , , alpha]) => alpha === 255)).toBe(true);
+		expect(plain.length).toBeGreaterThan(0);
+		for (const pixel of pixels) if (!plain.includes(pixel)) expect(darker(pixel.slice(0, 3), COVER)).toBe(true);
+	});
+});
