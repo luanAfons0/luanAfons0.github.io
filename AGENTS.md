@@ -51,6 +51,18 @@ Pull requests:
 
 `src/game/pause-menu.ts` builds one markup for every Theme. Paper and Board show it as the board panel; Dungeon restyles the same elements as the Adventure Sheet in the last section of `src/game/pause-menu.css` (boxed fields with their names on the box edge, tick boxes, ink focus rings). `.pause-menu__fields` is `display: contents` outside Dungeon, so the Paper and Board layout does not change. The shell opens the menu with the Bugs fixed and the Bug total from `game.state()` (`pauseMenu.open({ fixed, total })`); the Bugs fixed field (only in Dungeon) ticks one box per fixed Bug and is hidden when the Level has no Bugs.
 
+## Exhibit Panel look
+
+`src/game/exhibit-panel.ts` and `src/game/resume-prompt.ts` build one markup for every Theme. Dungeon shows the Exhibit Panel as a gamebook page (a numbered section between double rules, Close with an `Esc` key) and "Click to resume" as a pulp slip; the rules are the last section of `src/game/exhibit-panel.css` and `src/game/resume-prompt.css`. The `Sample content` stamp (Dungeon only) marks the sample Exhibits, in the panel foot (`.exhibit-panel__sample`) and at the end of the Skip View lede (`.skip-sample`): remove both when the real Content lands. On touch screens the base hover rules still apply in Dungeon, so the Dungeon section undoes them and inverts only inside `@media (hover: hover) and (pointer: fine)`.
+
+## Skip View look
+
+`buildSkipView` writes one markup for every Theme. Dungeon shows it as the whole book: a pulp page column (`.skip-sheet.dungeon-pulp`) on the green cover, each Exhibit a numbered section (`.skip-section-number`, `.skip-section-kind`), with a running head and an end line (all `.only-dungeon`). The per-look values are the `--sv-*` tokens of `src/skip-view/skip-view.css`; the Dungeon tokens and rules are its last section ("Dungeon: the whole book"). The section number uses a `<span>`: a Skip View test asserts that `main` has no `<b>`.
+
+## HUD look
+
+The HUD colors of an art set include two that can be `null`: `crosshairOutline` (no outline) and `tally` (no Bug tally). The dungeon art set draws the HUD as a pulp strip in ink, with one tick box per Bug in the BUGS FIXED section; the machine art set sets both to `null`, so its HUD does not change. `game.changeArtSet` builds a new HUD, because the layout and the colors are fixed when the HUD is created.
+
 ## Agent skills
 
 ### Issue tracker
