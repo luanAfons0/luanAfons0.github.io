@@ -20,7 +20,7 @@ import sampleLevel from "./game/levels/sample.json";
 import { createPauseMenu } from "./game/pause-menu";
 import { createResumePrompt } from "./game/resume-prompt";
 import { loadSettings, saveSettings } from "./game/settings";
-import { type ArtSet, artSetOf, posterPath, type TextureRole } from "./game/theme";
+import { type ArtSet, artSetOf, isTextureRole, posterPath, type TextureRole } from "./game/theme";
 
 // The browser shell: it owns the canvas, the clock, the keyboard, the mouse, and the overlays.
 // Everything it does is manual-test only; the Game core has the tests.
@@ -68,11 +68,13 @@ async function fetchArt(artSet: ArtSet): Promise<GameArt> {
 	const base = import.meta.env.BASE_URL;
 	const [textureEntries, spriteEntries, posterEntries] = await Promise.all([
 		Promise.all(
-			levelTextureNames(sampleLevel).map(async (role) => {
-				const file = artSet.textures[role as TextureRole];
-				if (!file) throw new Error(`Art set "${artSet.name}" has no texture file for the texture role "${role}".`);
-				return [role, await loadTexture(`${base}${artSet.folders.textures}/${file}.png`)] as const;
-			}),
+			levelTextureNames(sampleLevel)
+				// createGame and game.changeArtSet name a texture that is not a role or has no file; load only the others.
+				.filter((name): name is TextureRole => isTextureRole(name) && Boolean(artSet.textures[name]))
+				.map(
+					async (role) =>
+						[role, await loadTexture(`${base}${artSet.folders.textures}/${artSet.textures[role]}.png`)] as const,
+				),
 		),
 		loadSprites(`${base}${artSet.folders.sprites}`, bugFrameNames(artSet)),
 		Promise.all(EXHIBITS.map(async ({ id }) => [id, await loadTexture(`${base}${posterPath(artSet, id)}`)] as const)),
@@ -166,21 +168,13 @@ export function startGame(startArtSet: ArtSet, audio?: Audio): void {
 		onResume: resume,
 		track,
 		onThemeChange: (theme) => changeArtSet(artSetOf(theme)),
+		// The Pause Menu owns the settings from here on, so the shell keeps no copy that can go stale.
 		onSettingsChange(changed) {
-			Object.assign(settings, changed);
 			game.updateSettings({ mouseSensitivity: changed.mouseSensitivity, invertMouse: changed.invertMouse });
 			audio?.setMuted(!changed.sound);
 			saveSettings(changed);
 		},
 	});
-
-	/** M: the same sound setting as the Pause Menu, so the menu shows it and it is saved. */
-	function toggleSound(): void {
-		settings.sound = !settings.sound;
-		audio?.setMuted(!settings.sound);
-		pauseMenu.showSettings(settings);
-		saveSettings(settings);
-	}
 
 	function openPauseMenu(): void {
 		if (pauseMenu.isOpen()) return;
@@ -248,7 +242,7 @@ export function startGame(startArtSet: ArtSet, audio?: Audio): void {
 	// Without capture (keyboard-only play, an open Exhibit Panel, or "Click to resume"), Esc reaches the page.
 	window.addEventListener("keydown", (event) => {
 		// M works everywhere but in a text field; a checkbox or slider in the Pause Menu takes no text.
-		if (event.code === MUTE_KEY && !event.repeat && !isTextEntry(event.target)) toggleSound();
+		if (event.code === MUTE_KEY && !event.repeat && !isTextEntry(event.target)) pauseMenu.toggleSound();
 		if (event.code !== "Escape") return;
 		if (exhibitPanel.isOpen()) {
 			event.preventDefault();

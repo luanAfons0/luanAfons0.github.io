@@ -7,8 +7,10 @@
  * Sprite PNGs have no place for the anchor, so this module also writes `sprites/offsets.json`.
  */
 
+import { bugFrameFiles } from "../art-kit/kinds.ts";
 import {
 	createPixmap,
+	flash,
 	line,
 	outlineRect,
 	type Pixmap,
@@ -115,18 +117,14 @@ const LEGS: readonly (readonly (readonly Point[])[])[] = [
 const FRAMES: Readonly<Record<string, () => Pixmap>> = {
 	"beetle-walk-1": () => beetle(0),
 	"beetle-walk-2": () => beetle(1),
-	"beetle-fix-1": () => flash(beetle(0)),
+	"beetle-fix-1": () => flash(beetle(0), c.SILK),
 	"beetle-fix-2": () => patchedBox(fade(beetle(0, false), 2), true),
 	"beetle-fix-3": () => patchedBox(fade(beetle(0, false), 4), false),
 	"beetle-patched": () => check(patchedBox(createPixmap(WIDTH, HEIGHT), false)),
 };
 
 export function bugs(): GeneratedFile[] {
-	const offsets = Object.fromEntries(Object.keys(FRAMES).map((name) => [name, ANCHOR]));
-	return [
-		...Object.entries(FRAMES).map(([name, draw]) => pngFile(`sprites/${name}.png`, draw())),
-		{ path: "sprites/offsets.json", bytes: Buffer.from(`${JSON.stringify(offsets, null, "\t")}\n`) },
-	];
+	return bugFrameFiles(pngFile, FRAMES, ANCHOR);
 }
 
 /** The beetle in walk pose 0 or 1. Without legs, it has pulled them in. */
@@ -144,12 +142,6 @@ function beetle(pose: 0 | 1, legs = true): Pixmap {
 			plot(t, 27 - x, y, BODY_COLORS[char === "s" ? "c" : char] as number);
 		}
 	}
-	return t;
-}
-
-/** The hit: every pixel of the beetle turns silkscreen white for one frame. */
-function flash(t: Pixmap): Pixmap {
-	for (let i = 0; i < t.pixels.length; i++) if (t.pixels[i] !== TRANSPARENT) t.pixels[i] = c.SILK;
 	return t;
 }
 

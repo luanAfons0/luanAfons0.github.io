@@ -35,6 +35,12 @@ export function plot(pixmap: Pixmap, x: number, y: number, color: number): void 
 	if (x >= 0 && x < pixmap.width && y >= 0 && y < pixmap.height) pixmap.pixels[y * pixmap.width + x] = color;
 }
 
+/** The hit frame of a Bug: every pixel that is not transparent turns `color`. Changes `pixmap` and returns it. */
+export function flash(pixmap: Pixmap, color: number): Pixmap {
+	for (let i = 0; i < pixmap.pixels.length; i++) if (pixmap.pixels[i] !== TRANSPARENT) pixmap.pixels[i] = color;
+	return pixmap;
+}
+
 /** The pixmap at `factor` times its size: each pixel becomes a square of pixels. */
 export function scaled(pixmap: Pixmap, factor: number): Pixmap {
 	const out = createPixmap(pixmap.width * factor, pixmap.height * factor);

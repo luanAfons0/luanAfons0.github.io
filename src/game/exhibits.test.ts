@@ -51,6 +51,15 @@ describe("Exhibit Content check", () => {
 		expect(() => createGame({ level, content: [orca] })).toThrow(/"orca".*link/);
 	});
 
+	// The id is the poster file name in each art set, so it must be a safe file name.
+	it.each(["../orca", "Orca", "orca poster", "orca.png"])(
+		'fails creation and names the id when an Exhibit id "%s" is not lowercase letters, digits, and hyphens',
+		(id) => {
+			const level = tiledLevel({ rows, extraObjects: [tiledExhibit(id, { x: 6, y: 1 }, "west")] });
+			expect(() => createGame({ level, content: [exhibit(id)] })).toThrow(`Exhibit id "${id}"`);
+		},
+	);
+
 	it("accepts http, https, and mailto links", () => {
 		const level = tiledLevel({ rows, extraObjects: [tiledExhibit("orca", { x: 6, y: 1 }, "west")] });
 		const links = ["http://example.com/", "https://example.com/a?b=1", "mailto:me@example.com"].map((url) => ({

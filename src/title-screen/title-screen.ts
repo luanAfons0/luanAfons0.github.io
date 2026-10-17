@@ -1,6 +1,6 @@
 import { type AnalyticsEvent, track as sendEvent } from "../analytics/analytics";
 import { loadSettings, saveSettings } from "../game/settings";
-import { isTheme, THEME_LABELS, THEMES, type Theme } from "../game/theme";
+import { THEME_LABELS, THEMES, type Theme, shownTheme as themeOf } from "../game/theme";
 
 export interface TitleScreenOptions<Game> {
 	/** The document (or part of it) that holds the Title Screen markup from index.html. */
@@ -113,6 +113,7 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 	const fail = (error: unknown) => {
 		console.error(error);
 		starting = false;
+		themeItem.removeAttribute("aria-disabled");
 		loadFailed = true;
 		hideDive();
 		screen.hidden = false;
@@ -165,6 +166,8 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 		if (starting) return;
 		starting = true;
 		if (loadFailed) return reload();
+		// The game starts with the art of the shown Theme, so the Theme stays until it starts or fails.
+		themeItem.setAttribute("aria-disabled", "true");
 		track("new-game");
 		try {
 			options.onNewGame?.();
@@ -210,11 +213,7 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 		board: newGame.querySelector<HTMLElement>(".title-screen__pad"),
 		dungeon: plate,
 	};
-	const shownTheme = (): Theme => {
-		const theme = page.dataset.theme;
-		if (isTheme(theme)) return theme;
-		return darkSystem.matches ? "board" : "paper";
-	};
+	const shownTheme = () => themeOf(page, darkSystem);
 	const showThemeName = () => {
 		themeName.textContent = THEME_LABELS[shownTheme()];
 	};
@@ -222,18 +221,18 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 	/**
 	 * Switches to the next Theme (in `THEMES` order, wrapping) at once and saves it. The Theme item
 	 * keeps the selection and the focus. The game loaded so far has the art of the old Theme, so the
-	 * next hover, focus, or NEW GAME loads it again.
+	 * next hover, focus, or NEW GAME loads it again. After NEW GAME, until the game starts or fails to
+	 * load, it does nothing: the game and the Audio start with the art of the Theme NEW GAME saw.
 	 */
 	const switchTheme = () => {
+		if (starting) return;
 		const theme = THEMES[(THEMES.indexOf(shownTheme()) + 1) % THEMES.length] as Theme;
 		page.dataset.theme = theme;
 		saveSettings({ ...loadSettings(), theme });
 		showThemeName();
 		track(`theme/${theme}`);
-		if (!starting) {
-			loading = undefined;
-			loaded = undefined;
-		}
+		loading = undefined;
+		loaded = undefined;
 	};
 
 	const choose = () => {

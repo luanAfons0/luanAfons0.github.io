@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
@@ -82,7 +82,7 @@ describe("dungeon art generator", () => {
 		}
 	});
 
-	it("gives byte-identical files when it runs twice", () => {
+	it("gives the same bytes when it runs twice in one process", () => {
 		const first = generate();
 		const second = generate();
 		expect(second.files).toEqual(first.files);
@@ -91,13 +91,23 @@ describe("dungeon art generator", () => {
 		}
 	});
 
-	it("matches the committed files, so the build needs no generation step", () => {
+	it("matches the committed files (PNGs by image data and text), so the build needs no generation step", () => {
 		const { folder, files } = generate();
 		for (const file of files) {
 			const committed = readFileSync(join(import.meta.dirname, "..", DUNGEON_ART_FOLDER, file));
 			const generated = readFileSync(join(folder, file));
 			expect(sameContent(file, committed, generated), `${file} is out of date: run the generator`).toBe(true);
 		}
+	});
+
+	it("commits exactly the files it writes, and no other file", () => {
+		const { files } = generate();
+		const artFolder = join(import.meta.dirname, "..", DUNGEON_ART_FOLDER);
+		const committed = readdirSync(artFolder, { recursive: true, withFileTypes: true })
+			.filter((entry) => entry.isFile())
+			.map((entry) => relative(artFolder, join(entry.parentPath, entry.name)))
+			.sort();
+		expect(committed, "the committed art folder must hold exactly the files the generator writes").toEqual(files);
 	});
 
 	it("names the generator as the provenance of each PNG", () => {

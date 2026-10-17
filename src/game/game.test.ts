@@ -1335,6 +1335,21 @@ describe("Bugs", () => {
 			expect(Math.max(...boxes.map(({ x }) => x))).toBeLessThan(SCREEN_WIDTH - 4);
 		});
 
+		it("fails with a clear error when the tally of the Level's Bugs does not fit in the status bar", () => {
+			const image = { texture: createTexture(4, 4, new Uint8Array(4 * 4 * 4)), left: 2, top: 3 };
+			const artSet: ArtSet = { ...MACHINE_ART_SET, hud: { ...MACHINE_ART_SET.hud, tally: [255, 0, 255] } };
+			// 60 Bugs need 60 tick boxes, 10 pixels apart: more than the 640-pixel status bar holds.
+			const bugs = Array.from({ length: 60 }, (_, i) => ({ x: 1.5 + (i % 9), y: 1.2 + 0.2 * Math.floor(i / 9) }));
+
+			expect(() =>
+				createGame({
+					level: bugLevel(bugs, { wall: "wall-a" }),
+					artSet,
+					sprites: Object.fromEntries(bugFrameNames(artSet).map((name) => [name, image])),
+				}),
+			).toThrow(/Bug tally of 60 Bugs does not fit/);
+		});
+
 		it("draws no tally in the machine HUD: its lines are only the top edge and the two section outlines", () => {
 			const game = twoBugs("Lobby");
 			game.step(SHOOT);

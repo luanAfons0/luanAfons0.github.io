@@ -45,11 +45,14 @@ export interface ExhibitLink {
 	url: string;
 }
 
+/** An Exhibit id: it is also the poster file name in each art set, so only a-z, 0-9, and "-". */
+const EXHIBIT_ID = /^[a-z0-9-]+$/;
+
 /** The only link schemes an Exhibit may use: no script URLs, no data URLs. */
 const LINK_PROTOCOLS: ReadonlySet<string> = new Set(["http:", "https:", "mailto:"]);
 
 export interface Exhibit {
-	/** The key the Level uses to place the Exhibit. */
+	/** The key the Level uses to place the Exhibit, and its poster file name: lowercase letters, digits, and hyphens. */
 	id: string;
 	kind: ExhibitKind;
 	title: string;
@@ -62,12 +65,15 @@ export interface Exhibit {
 
 /**
  * Fails with an error that names the `id` when the Content is not valid or does not match the
- * Level Exhibits: two Exhibits with one id, a link that is not an http, https, or mailto URL, a
+ * Level Exhibits: an id that is not a safe file name (see `EXHIBIT_ID`), two Exhibits with one id, a link that is not an http, https, or mailto URL, a
  * Level Exhibit with no Content, or a Content Exhibit the Level does not place.
  */
 export function checkContent(placements: readonly { id: string }[], content: readonly Exhibit[]): void {
 	const ids = new Set<string>();
 	for (const { id, links } of content) {
+		if (!EXHIBIT_ID.test(id)) {
+			throw new Error(`Exhibit id "${id}" is not valid. Use only lowercase letters, digits, and hyphens.`);
+		}
 		if (ids.has(id)) throw new Error(`The Content has two Exhibits with the id "${id}".`);
 		ids.add(id);
 		for (const { url } of links) {

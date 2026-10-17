@@ -1,6 +1,6 @@
 import "./pause-menu.css";
 import { MOUSE_SENSITIVITY_RANGE, type Settings } from "./settings";
-import { isTheme, THEME_LABELS, THEMES, type Theme } from "./theme";
+import { isTheme, shownTheme, THEME_LABELS, THEMES, type Theme } from "./theme";
 
 /** The Skip View page, next to the game page. */
 export const SKIP_VIEW_URL = `${import.meta.env.BASE_URL}skip/`;
@@ -8,16 +8,18 @@ export const SKIP_VIEW_URL = `${import.meta.env.BASE_URL}skip/`;
 export interface PauseMenuOptions {
 	/** The element the overlay goes into. */
 	parent: HTMLElement;
+	/** The settings at the start. From then on the menu owns them: each change goes out through `onSettingsChange`. */
 	settings: Settings;
 	onResume(): void;
-	/** Runs after each settings change, with all the settings. The caller saves them. */
+	/** Runs after each settings change, with all the settings. The caller applies and saves them as they are. */
 	onSettingsChange(settings: Settings): void;
 	/** Sends the `theme/<id>` analytics event when the player switches the Theme. */
 	track(event: `theme/${Theme}`): void;
 	/**
 	 * Runs after the player switches the Theme, after `onSettingsChange`: the caller changes the game
 	 * art to the art set of the Theme. When it fails (the art did not load), the menu sets the Theme
-	 * back, reports the settings again, and shows one line, unless the player chose another Theme since.
+	 * back, reports the settings again, and shows one line until the next Theme choice, unless the
+	 * player chose another Theme since.
 	 */
 	onThemeChange(theme: Theme): Promise<void>;
 }
@@ -33,8 +35,8 @@ export interface PauseMenu {
 	open(bugs: BugsFixed): void;
 	close(): void;
 	isOpen(): boolean;
-	/** Shows settings that changed outside the menu (the M key changes the sound setting). */
-	showSettings(settings: Settings): void;
+	/** The M key: turns the sound setting on or off, shows it, and reports the settings, open or closed. */
+	toggleSound(): void;
 }
 
 /**
@@ -135,18 +137,13 @@ export function createPauseMenu(options: PauseMenuOptions): PauseMenu {
 	// setting (light gives Paper, dark gives Board), so the switch follows it too.
 	const page = options.parent.ownerDocument.documentElement;
 	const darkSystem = matchMedia("(prefers-color-scheme: dark)");
-	const shownTheme = (): Theme => {
-		const theme = page.dataset.theme;
-		if (isTheme(theme)) return theme;
-		return darkSystem.matches ? "board" : "paper";
-	};
 
 	const showSettings = () => {
 		sensitivity.value = String(settings.mouseSensitivity);
 		sensitivityValue.value = settings.mouseSensitivity.toFixed(1);
 		invertMouse.checked = settings.invertMouse;
 		sound.checked = settings.sound;
-		const theme = shownTheme();
+		const theme = shownTheme(page, darkSystem);
 		for (const input of themes) input.checked = input.value === theme;
 	};
 	showSettings();
@@ -200,7 +197,6 @@ export function createPauseMenu(options: PauseMenuOptions): PauseMenu {
 			// The Title Screen may have changed the Theme since this menu was made.
 			showSettings();
 			showBugs(bugs);
-			themeError.hidden = true;
 			root.hidden = false;
 			resume.focus();
 		},
@@ -208,9 +204,10 @@ export function createPauseMenu(options: PauseMenuOptions): PauseMenu {
 			root.hidden = true;
 		},
 		isOpen: () => !root.hidden,
-		showSettings(changed) {
-			Object.assign(settings, changed);
+		toggleSound() {
+			settings.sound = !settings.sound;
 			showSettings();
+			options.onSettingsChange({ ...settings });
 		},
 	};
 }

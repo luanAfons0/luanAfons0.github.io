@@ -18,6 +18,20 @@ export function isTheme(value: unknown): value is Theme {
 	return typeof value === "string" && (THEMES as readonly string[]).includes(value);
 }
 
+/**
+ * The Theme a page shows: the saved Theme in `data-theme` on its root, or, with none, the system
+ * look (a dark system setting gives Board, a light one Paper). Pass the page root and the
+ * `(prefers-color-scheme: dark)` media query.
+ */
+export function shownTheme(
+	root: { readonly dataset: { readonly theme?: string } },
+	darkSystem: { readonly matches: boolean },
+): Theme {
+	const theme = root.dataset.theme;
+	if (isTheme(theme)) return theme;
+	return darkSystem.matches ? "board" : "paper";
+}
+
 /** A color as red, green, and blue values from 0 to 255. */
 export type Rgb = readonly [red: number, green: number, blue: number];
 

@@ -8,18 +8,9 @@
  * its frame on a 64x64 wall (`src/game/poster.ts`), so every line stays and the stone matches the
  * texel size of the walls.
  */
-import { EXHIBITS, type Exhibit, type ExhibitKind, partLabel } from "../../src/game/content.ts";
-import {
-	createPixmap,
-	fillRect,
-	line,
-	outlineRect,
-	type Pixmap,
-	plot,
-	scaled,
-	seededRandom,
-	text,
-} from "../art-kit/pixmap.ts";
+import { EXHIBITS, type Exhibit, type ExhibitKind } from "../../src/game/content.ts";
+import { posterFiles } from "../art-kit/kinds.ts";
+import { createPixmap, fillRect, line, outlineRect, type Pixmap, plot, seededRandom, text } from "../art-kit/pixmap.ts";
 import { type GeneratedFile, pngFile } from "./files.ts";
 import * as c from "./palette.ts";
 import { colorAt, stoneWall } from "./stone.ts";
@@ -37,10 +28,7 @@ const LABEL_BOX = { left: 9, top: 5, right: 26, bottom: 15 } as const;
  * dungeon art set looks for it), with its Part label in the image and in a `Title` text chunk.
  */
 export function posters(content: readonly Exhibit[] = EXHIBITS): GeneratedFile[] {
-	return content.map((exhibit) => {
-		const label = partLabel(content, exhibit);
-		return pngFile(`posters/${exhibit.id}.png`, scaled(banner(exhibit.kind, label), SCALE), { Title: label });
-	});
+	return posterFiles(pngFile, content, banner, SCALE);
 }
 
 function banner(kind: ExhibitKind, label: string): Pixmap {

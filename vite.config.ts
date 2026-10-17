@@ -70,13 +70,18 @@ function skipView(): Plugin {
 /**
  * Puts the Theme head script (`src/theme-script.ts`) into both pages, at their theme-script mark,
  * after the Title Screen and Skip View plugins. It fails the build when a page has no mark.
+ * Other HTML files the dev server serves (such as the mocks) stay as they are.
  */
 function themeScript(): Plugin {
+	let pages: readonly string[] = [];
 	return {
 		name: "theme-script",
+		configResolved(config) {
+			pages = [resolve(config.root, "index.html"), resolve(config.root, "skip/index.html")];
+		},
 		transformIndexHtml: {
 			order: "pre",
-			handler: (html) => withThemeScript(html),
+			handler: (html, { filename }) => (pages.includes(resolve(filename)) ? withThemeScript(html) : undefined),
 		},
 	};
 }

@@ -502,6 +502,45 @@ describe("Theme", () => {
 		expect(startGame).toHaveBeenCalledExactlyOnceWith("dungeon game");
 	});
 
+	it("keeps the Theme while NEW GAME starts the game, so the game starts with the art it loaded", async () => {
+		const track = vi.fn();
+		const loads: (() => void)[] = [];
+		// Like the real entry: the load gets the art of the shown Theme, and the start uses the shown Theme.
+		const load = vi.fn(() => {
+			const theme = shownTheme() ?? "paper";
+			return new Promise<string>((resolve) => loads.push(() => resolve(`${theme} game`)));
+		});
+		const started: string[] = [];
+		setUp({ loadGame: load, track, startGame: (game) => started.push(`${game}, shown ${shownTheme() ?? "paper"}`) });
+
+		newGame().click();
+		expect(themeItem().getAttribute("aria-disabled")).toBe("true");
+		themeItem().click();
+		themeItem().focus();
+		press("Enter");
+		loads[0]?.();
+		await vi.waitFor(() => expect(started).toHaveLength(1));
+
+		expect(started).toEqual(["paper game, shown paper"]);
+		expect(load).toHaveBeenCalledTimes(1);
+		expect(loadSettings().theme).toBeUndefined();
+		expect(themeLabel()).toBe("Theme: Paper");
+		expect(track).not.toHaveBeenCalledWith(expect.stringMatching(/^theme\//));
+	});
+
+	it("lets the visitor switch the Theme again after the game failed to load", async () => {
+		const { reject } = setUp();
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		newGame().click();
+		reject(new Error("offline"));
+		await vi.waitFor(() => expect(loadError()?.hidden).toBe(false));
+
+		themeItem().click();
+
+		expect(themeItem().hasAttribute("aria-disabled")).toBe(false);
+		expect(shownTheme()).toBe("board");
+	});
+
 	it("switches away from the system look on the first choice", () => {
 		systemScheme("dark");
 		const { load, navigate } = setUp();

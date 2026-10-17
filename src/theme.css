@@ -123,8 +123,6 @@
 	   glow: a live or selected thing is inked (an ink block with page text). Only Dungeon rules use
 	   these. */
 	--dungeon-cover: #1d4a33;
-	--dungeon-cover-2: #173d2a;
-	--dungeon-cover-ink: #0f2a1c;
 	--dungeon-page: #e0d9c5;
 	--dungeon-page-2: #d4ccb5;
 	--dungeon-ink: #171717;
@@ -191,10 +189,12 @@
 }
 
 /* Every numeral in the Dungeon look is a lining figure: Alegreya's default old-style "1" reads as
-   "I" in "U1". It is set on every element, because the `font` shorthand resets it. */
+   "I" in "U1". It is set on every element, and it is important, because a `font` shorthand in any
+   other rule resets it. */
 :root[data-theme="dungeon"],
 :root[data-theme="dungeon"] * {
-	font-variant-numeric: lining-nums;
+	/* biome-ignore lint/complexity/noImportantStyles: the one rule that must beat every font shorthand. */
+	font-variant-numeric: lining-nums !important;
 }
 
 :root[data-theme="board"] {

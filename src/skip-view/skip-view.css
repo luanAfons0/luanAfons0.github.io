@@ -354,11 +354,16 @@ h3 {
 
 :root[data-theme="dungeon"] .skip-back:hover,
 :root[data-theme="dungeon"] .skip-back:focus-visible {
-	outline: none;
 	text-decoration: underline;
 	text-decoration-color: currentColor;
 	text-decoration-thickness: auto;
 	text-underline-offset: 0.25em;
+}
+
+/* The focus ring is in the ink of the link: page text on the cover, where black ink would not show. */
+:root[data-theme="dungeon"] .skip-back:focus-visible {
+	outline-color: currentColor;
+	outline-offset: 4px;
 }
 
 :root[data-theme="dungeon"] .skip-sheet {
@@ -516,9 +521,6 @@ h3 {
 	display: inline;
 	padding: 0;
 	color: var(--dungeon-ink);
-	text-decoration: underline;
-	text-decoration-color: var(--dungeon-ink);
-	text-decoration-thickness: 2px;
 	text-underline-offset: 0.22em;
 }
 
@@ -535,14 +537,15 @@ h3 {
 	text-align: center;
 }
 
-/* Phones: the page goes full width, with no back link (a phone cannot play, ADR 0002). */
+/* Narrow windows: the page goes full width. The back link stays for a narrow desktop window; the
+   coarse pointer rule above hides it on phones (a phone cannot play, ADR 0002). */
 @media (max-width: 35rem) {
 	:root[data-theme="dungeon"] .skip-page {
 		padding: 16px 0 32px;
 	}
 
 	:root[data-theme="dungeon"] .skip-back {
-		display: none;
+		margin-left: 16px;
 	}
 
 	:root[data-theme="dungeon"] .skip-sheet {

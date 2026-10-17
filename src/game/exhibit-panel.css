@@ -404,11 +404,9 @@
 }
 
 :root[data-theme="dungeon"] .exhibit-panel__details {
-	max-width: 62ch;
 	margin: 0.8em 0 0;
 	color: var(--dungeon-ink);
 	font-size: 1.12em;
-	line-height: 1.55;
 }
 
 :root[data-theme="dungeon"] .exhibit-panel__details + .exhibit-panel__details {
@@ -513,5 +511,19 @@
 		background: var(--dungeon-ink);
 		border-color: var(--dungeon-page);
 		color: var(--dungeon-page);
+	}
+}
+
+/* The page rises 10px when it opens, like the Adventure Sheet, and goes at once when it closes. */
+@media (prefers-reduced-motion: no-preference) {
+	:root[data-theme="dungeon"] .exhibit-panel__panel {
+		animation-name: exhibit-panel-rise-dungeon;
+	}
+}
+
+@keyframes exhibit-panel-rise-dungeon {
+	from {
+		opacity: 0;
+		translate: 0 10px;
 	}
 }

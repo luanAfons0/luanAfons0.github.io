@@ -376,7 +376,7 @@ The game's colors live in `scripts/machine-art/palette.ts` and `src/game/theme.t
 ### Dungeon (the gamebook)
 Dungeon is one look with no light and dark variants (`color-scheme: light`). The palette tokens are `--dungeon-*` in `src/theme.css`. Under `:root[data-theme="dungeon"]` the look tokens take the Dungeon values: `--surface` is Pulp Page, `--surface-2` is Pulp Shade, `--text`, `--line`, `--live-text`, `--live-trace`, and `--focus` are Black Ink, `--text-2` is Grey Ink, and `--line-2` is Pulp Rule.
 - **Cloth Cover** (`dungeon-cover`): the ground around the book, under the weave tile (`.dungeon-cover`). It is the page ground of the Title Screen and the Skip View. The Skip View back link sits on it in Pulp Page text.
-- **Cloth Thread** (`dungeon-cover-ink`): the darker thread of the weave tile. The generator uses it; no CSS rule does.
+- **Cloth Thread** (`dungeon-cover-ink`): the darker thread of the weave tile. Only the generator uses it (`COVER_INK` in `scripts/dungeon-art/palette.ts`), so `src/theme.css` has no token for it.
 - **Pulp Page** (`dungeon-page`): every page, panel, slip, and the HUD strip, under the pulp tile (`.dungeon-pulp`). Also the text on any inked block.
 - **Pulp Shade** (`dungeon-page-2`): the blocked-way error note, and the light strand of the page leaves.
 - **Black Ink** (`dungeon-ink`): all text, every rule and box, tick boxes, the manicule, the selected choice, focus rings, and the `::selection` block. The one ink.
@@ -385,7 +385,6 @@ Dungeon is one look with no light and dark variants (`color-scheme: light`). The
 - **Gutter Shade** (`dungeon-gutter-shade`): Grey Ink at 45%, the inset shading where each page of the spread curves into the spine.
 - **Leader on Ink** (`dungeon-leader-on-ink`): Pulp Page at 40%, the dotted leader inside the inked (selected) choice.
 - **Scrim** (`dungeon-scrim`, 62%): the warm dimmer behind the Pause Menu and the Exhibit Panel. The resume prompt uses the same black at 50% (`dungeon-scrim-resume`).
-- `--dungeon-cover-2` (`#173d2a`) is declared in `src/theme.css`, but no rule uses it yet, so it is not a token here.
 
 ### Dungeon art set (game only)
 The game colors live in `scripts/dungeon-art/palette.ts` and `src/game/theme.ts`, not in CSS.
@@ -453,7 +452,7 @@ The Title Screen, Pause Menu, and Exhibit Panel size in em of their own font: th
 
 **The Two Faces Rule.** Archivo reads; Silkscreen labels. Body text, ledes, and long sentences are never Silkscreen. Silkscreen carries names and titles only on Board, where they are print on the board.
 
-**The Lining Figures Rule.** In Dungeon every element sets `font-variant-numeric: lining-nums`, because Alegreya's old-style "1" reads as "I" in "U1". A rule that uses the `font` shorthand resets it, so that rule sets it again. Numerals are Alegreya, never IM Fell English.
+**The Lining Figures Rule.** In Dungeon every element sets `font-variant-numeric: lining-nums`, because Alegreya's old-style "1" reads as "I" in "U1". The shared rule in `src/theme.css` is `!important`, so a `font` shorthand cannot reset it. Numerals are Alegreya, never IM Fell English.
 
 **The Book Faces Rule.** IM Fell English sets titles, names, and running heads; Alegreya sets reading text and every number; Alegreya SC sets labels, choices, and key caps. IM Fell English has no bold: never set it above 400.
 
@@ -602,7 +601,7 @@ The same 40px bar and sections as the machine HUD, as a pulp strip: Pulp Page ba
 - **Do** take ornament from real datasheets and boards: pin numbers, notches, pads, designators, dotted leaders, LEDs, timing diagrams.
 - **Do** write every Dungeon rule under `:root[data-theme="dungeon"]` or on an `.only-dungeon` element, and put the page grounds on with `.dungeon-pulp` and `.dungeon-cover`.
 - **Do** ink the selected thing in Dungeon: an ink block with Pulp Page text, as one step; invert on hover only on a fine pointer.
-- **Do** set lining figures again after a `font` shorthand in Dungeon, and set every numeral in Alegreya.
+- **Do** set every numeral in Alegreya in Dungeon; the shared lining figures rule covers every `font` shorthand.
 - **Do** take Dungeon ornament from real gamebooks and printed books: running heads, folios, section numbers between double rules, stat boxes, tick boxes, dotted leaders, the manicule, the pen-and-ink plate.
 - **Do** draw new Dungeon art in `scripts/dungeon-art/` with a fixed seed, and let the file name `scripts/dungeon-art.ts`.
 - **Do** call a Slime a Bug in every label and text.
