@@ -3,6 +3,7 @@ import type { Grid } from "../engine/grid";
 import { castRay, createRayHit } from "../engine/raycast";
 import type { Sprite, SpriteImage } from "../engine/renderer";
 import type { BugSpawn, Room } from "./level";
+import type { ArtSet } from "./theme";
 import { TICKS_PER_SECOND } from "./ticks";
 
 /** Bugs walk at 0.6 tiles per second (the player walks at 3). Per tick. */
@@ -15,11 +16,14 @@ const MAX_HEADING_TICKS = 4 * TICKS_PER_SECOND;
 /** The same seed every visit, so the Game core stays deterministic. */
 const WANDER_SEED = 0x8badf00d;
 
-/** The Bug is Freedoom's SKUL. Two front-view frames walk; six frames show it being fixed. */
-const WALK_FRAMES = ["SKULA1", "SKULB1"] as const;
-const FIX_FRAMES = ["SKULF0", "SKULG0", "SKULH0", "SKULI0", "SKULJ0", "SKULK0"] as const;
-/** Every sprite frame a Bug uses. The caller loads them and passes them to the Game core. */
-export const BUG_SPRITE_NAMES: readonly string[] = [...WALK_FRAMES, ...FIX_FRAMES];
+/** The parts of an art set that the Bugs use. */
+export type BugArt = Pick<ArtSet, "name" | "bugWalkFrames" | "bugFixFrames">;
+
+/** Every sprite frame a Bug of the art set uses, each once. The caller loads them and passes them to the Game core. */
+export function bugFrameNames(art: BugArt): string[] {
+	return [...new Set([...art.bugWalkFrames, ...art.bugFixFrames])];
+}
+
 /** Ticks per frame of each animation. */
 const WALK_FRAME_TICKS = 10;
 const FIX_FRAME_TICKS = 6;
@@ -70,15 +74,28 @@ export interface Bugs {
 	state(): BugState[];
 }
 
-/** `images` must hold every name in BUG_SPRITE_NAMES. */
-export function createBugs(spawns: readonly BugSpawn[], images: Readonly<Record<string, SpriteImage>>): Bugs {
+/**
+ * The Bugs of the spawns, drawn with the frames of `art`. `images` must hold every name in
+ * `bugFrameNames(art)`. With spawns, the art set needs at least one walk frame and one fix frame.
+ */
+export function createBugs(
+	spawns: readonly BugSpawn[],
+	images: Readonly<Record<string, SpriteImage>>,
+	art: BugArt,
+): Bugs {
+	if (spawns.length > 0) {
+		if (art.bugWalkFrames.length === 0)
+			throw new Error(`The Level has Bugs, but art set "${art.name}" has no Bug walk frame.`);
+		if (art.bugFixFrames.length === 0)
+			throw new Error(`The Level has Bugs, but art set "${art.name}" has no Bug fix frame.`);
+	}
 	const frame = (name: string): SpriteImage => {
 		const image = images[name];
 		if (!image) throw new Error(`The Bug needs sprite "${name}", but no sprite has that name.`);
 		return image;
 	};
-	const walkImages = WALK_FRAMES.map(frame);
-	const fixImages = FIX_FRAMES.map(frame);
+	const walkImages = art.bugWalkFrames.map(frame);
+	const fixImages = art.bugFixFrames.map(frame);
 	const random = createRandom(WANDER_SEED);
 	const bugs: Bug[] = spawns.map((spawn) => ({
 		x: spawn.x,

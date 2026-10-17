@@ -4,51 +4,163 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<!--
-			The phone redirect (ADR 0002). It is a classic inline script, so it runs before the first paint.
-			A phone (touch is the main pointer and there is no mouse) goes to the Skip View. A tablet with a
-			mouse or a trackpad has a fine pointer too, so it stays. replace() keeps the Title Screen out of
-			the history, and the Skip View has no script, so the redirect cannot loop. The page is hidden,
-			so the Title Screen does not paint while the browser goes to the Skip View.
+			A classic inline script, so it runs before the first paint.
+			1. The phone redirect (ADR 0002). A phone (touch is the main pointer and there is no mouse) goes to
+			   the Skip View. A tablet with a mouse or a trackpad has a fine pointer too, so it stays. replace()
+			   keeps the Title Screen out of the history, and the Skip View has no script, so the redirect cannot
+			   loop. The page is hidden, so the Title Screen does not paint while the browser goes to the Skip View.
+			2. The saved Theme (`theme` in src/game/settings.ts, same storage key). It sets data-theme on the
+			   root, so the page never flashes the wrong look. With no saved Theme, or broken storage, there is no
+			   data-theme and the CSS follows the system light or dark setting.
 		-->
 		<script>
 			if (matchMedia("(pointer: coarse)").matches && !matchMedia("(any-pointer: fine)").matches) {
 				document.documentElement.hidden = true;
 				location.replace("%BASE_URL%skip/");
 			}
+			try {
+				const savedTheme = JSON.parse(localStorage.getItem("portfolio.settings.v1")).theme;
+				if (savedTheme === "paper" || savedTheme === "board") document.documentElement.dataset.theme = savedTheme;
+			} catch {
+				// No saved settings, or storage is blocked: follow the system setting.
+			}
 		</script>
-		<title>Luan Afonso — Portfolio</title>
-		<meta name="description" content="Luan Afonso's portfolio as a Doom-inspired game. Or skip it and read every project, job, and skill." />
-		<meta name="color-scheme" content="dark" />
+		<title>Luan Afonso, portfolio</title>
+		<meta name="description" content="Luan Afonso's portfolio as a small first-person game in your browser. Or skip it and read every project, job, and skill." />
+		<meta name="color-scheme" content="light dark" />
 		<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+		<link rel="preload" href="/fonts/archivo/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin />
+		<link rel="preload" href="/fonts/silkscreen/silkscreen-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+		<link rel="stylesheet" href="/src/theme.css" />
 		<link rel="stylesheet" href="/src/title-screen/title-screen.css" />
 		<link rel="stylesheet" href="/src/style.css" />
 	</head>
 	<body>
-		<!-- The Title Screen: plain HTML and CSS. The game code loads only when the visitor points at or focuses NEW GAME. -->
+		<!--
+			The Title Screen: plain HTML and CSS. The game code loads only when the visitor points at or focuses NEW GAME.
+			One markup serves both Themes: Paper (a datasheet cover with a chip pinout) and Board (the name in
+			silkscreen and the menu as copper pads). Elements with only-paper or only-board show in one look only.
+		-->
 		<main class="title-screen" data-title-screen>
-			<h1 class="title-screen__logo">
-				<span class="title-screen__name">Luan Afonso</span>
-				<span class="title-screen__tagline">Portfolio</span>
-			</h1>
-			<nav class="title-screen__menu" aria-label="Title Screen">
-				<ul>
-					<li>
-						<button class="title-screen__item is-selected" type="button" data-menu-item="new-game">New Game</button>
-					</li>
-					<li>
-						<a class="title-screen__item" href="%BASE_URL%skip/" data-menu-item="skip">Skip</a>
-					</li>
-				</ul>
-			</nav>
-			<div class="title-screen__loading" data-loading-bar role="progressbar" aria-label="Loading the game" hidden>
-				<span class="title-screen__loading-label" aria-hidden="true">Loading</span>
-				<span class="title-screen__loading-track"><span class="title-screen__loading-fill"></span></span>
+			<div class="title-screen__sheet">
+				<div class="title-screen__outline only-board" aria-hidden="true"></div>
+				<header class="title-screen__head only-paper">
+					<span class="title-screen__part">LA-1</span>
+					<span class="title-screen__head-note">Portfolio, playable</span>
+				</header>
+				<div class="title-screen__main">
+					<h1 class="title-screen__name">Luan Afonso</h1>
+					<p class="title-screen__desc">Software engineer. This portfolio is a small first-person game that runs in your browser.</p>
+					<section class="title-screen__features only-paper" aria-labelledby="title-features">
+						<h2 id="title-features">Features</h2>
+						<ul>
+							<li><!--level-features--></li>
+							<li>A raycasting engine I wrote from scratch in TypeScript</li>
+							<li>Skip View: every project, job, and skill on one page</li>
+							<!-- Narrow windows drop pins 6 to 10, so this item lists their controls. -->
+							<li class="title-screen__narrow"><kbd>E</kbd> to use, click to fix a Bug, <kbd>Esc</kbd> to pause, <kbd>M</kbd> to mute</li>
+						</ul>
+					</section>
+				</div>
+				<figure class="title-screen__fig">
+					<!-- The chip pinout. Pins 1 to 3 are the menu; the other pins list the controls (Paper only). -->
+					<nav class="pinout" aria-label="Title Screen">
+						<span class="pinout__label pinout__label--menu" style="--row: 1">
+							<button class="title-screen__item is-selected" type="button" data-menu-item="new-game"><span class="title-screen__pad only-board" aria-hidden="true"></span><span>New Game</span></button>
+							<span class="pinout__num only-paper" aria-hidden="true">1</span>
+						</span>
+						<span class="pinout__pin pinout__pin--l only-paper" style="--row: 1"></span>
+						<span class="pinout__label pinout__label--menu" style="--row: 2">
+							<a class="title-screen__item" href="%BASE_URL%skip/" data-menu-item="skip"><span class="title-screen__pad only-board" aria-hidden="true"></span><span>Skip</span></a>
+							<span class="pinout__num only-paper" aria-hidden="true">2</span>
+						</span>
+						<span class="pinout__pin pinout__pin--l only-paper" style="--row: 2"></span>
+						<span class="pinout__label pinout__label--menu" style="--row: 3">
+							<button class="title-screen__item title-screen__item--small" type="button" data-menu-item="theme"><span class="title-screen__pad only-board" aria-hidden="true"></span><span>Theme: <span data-theme-name></span></span></button>
+							<span class="pinout__num only-paper" aria-hidden="true">3</span>
+						</span>
+						<span class="pinout__pin pinout__pin--l only-paper" style="--row: 3"></span>
+						<span class="pinout__label only-paper" style="--row: 4">
+							<span class="pinout__key"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span>
+							<span class="pinout__name">Move</span>
+							<span class="pinout__num" aria-hidden="true">4</span>
+						</span>
+						<span class="pinout__pin pinout__pin--l only-paper" style="--row: 4"></span>
+						<span class="pinout__label only-paper" style="--row: 5">
+							<span class="pinout__key">Mouse</span>
+							<span class="pinout__name">Look</span>
+							<span class="pinout__num" aria-hidden="true">5</span>
+						</span>
+						<span class="pinout__pin pinout__pin--l only-paper" style="--row: 5"></span>
+						<!-- The chip body: the NEW GAME dive grows from it in Paper (from the selected pad in Board). -->
+						<span class="pinout__body only-paper" data-chip aria-hidden="true">
+							<span class="pinout__marking">LA-1<small>Luan Afonso</small></span>
+						</span>
+						<span class="pinout__pin pinout__pin--r only-paper" style="--row: 1"></span>
+						<span class="pinout__label pinout__label--r only-paper" style="--row: 1">
+							<span class="pinout__num" aria-hidden="true">10</span>
+							<span class="pinout__name">Use</span>
+							<span class="pinout__key"><kbd>E</kbd></span>
+						</span>
+						<span class="pinout__pin pinout__pin--r only-paper" style="--row: 2"></span>
+						<span class="pinout__label pinout__label--r only-paper" style="--row: 2">
+							<span class="pinout__num" aria-hidden="true">9</span>
+							<span class="pinout__name">Fix Bug</span>
+							<span class="pinout__key">Click</span>
+						</span>
+						<span class="pinout__pin pinout__pin--r only-paper" style="--row: 3"></span>
+						<span class="pinout__label pinout__label--r only-paper" style="--row: 3">
+							<span class="pinout__num" aria-hidden="true">8</span>
+							<span class="pinout__name">Pause</span>
+							<span class="pinout__key"><kbd>Esc</kbd></span>
+						</span>
+						<span class="pinout__pin pinout__pin--r only-paper" style="--row: 4"></span>
+						<span class="pinout__label pinout__label--r only-paper" style="--row: 4">
+							<span class="pinout__num" aria-hidden="true">7</span>
+							<span class="pinout__name">Mute</span>
+							<span class="pinout__key"><kbd>M</kbd></span>
+						</span>
+						<span class="pinout__pin pinout__pin--r only-paper" style="--row: 5"></span>
+						<span class="pinout__label pinout__label--r only-paper" style="--row: 5">
+							<span class="pinout__num" aria-hidden="true">6</span>
+							<span class="pinout__name pinout__name--nc">NC</span>
+							<span class="pinout__key">No connection</span>
+						</span>
+					</nav>
+					<figcaption class="title-screen__caption only-paper">Figure 1. Pin configuration <span>(pins 1 to 3 are the menu)</span></figcaption>
+
+					<!-- No progress events come from a dynamic import, so the loading state shows that work goes on, not how much. -->
+					<div class="title-screen__loading" data-loading-bar role="progressbar" aria-label="Loading the game" hidden>
+						<div class="timing only-paper">
+							<div class="timing__row">
+								<span class="timing__signal">CLK</span>
+								<svg class="timing__wave" viewBox="0 0 400 20" preserveAspectRatio="none" aria-hidden="true"><path class="timing__clock" d="M0 18H20V2H40V18H60V2H80V18H100V2H120V18H140V2H160V18H180V2H200V18H220V2H240V18H260V2H280V18H300V2H320V18H340V2H360V18H380V2H400V18H420V2H440V18H460V2H480V18H500V2H520V18" /></svg>
+							</div>
+							<div class="timing__row">
+								<span class="timing__signal">GAME</span>
+								<svg class="timing__wave timing__wave--data" viewBox="0 0 400 20" preserveAspectRatio="none" aria-hidden="true"><path d="M0 18H120L128 2H400" /></svg>
+							</div>
+							<p class="timing__label">Loading the game.</p>
+						</div>
+						<div class="leds only-board">
+							<span class="leds__label">Loading</span>
+							<span class="leds__led"></span><span class="leds__led"></span><span class="leds__led"></span><span class="leds__led"></span><span class="leds__led"></span><span class="leds__led"></span><span class="leds__led"></span>
+						</div>
+					</div>
+					<p class="title-screen__error" data-load-error role="alert" hidden><strong class="title-screen__error-label only-paper">Note 1.</strong><strong class="title-screen__error-label title-screen__error-label--board only-board">Fault.</strong> <span data-load-error-text></span></p>
+
+					<p class="title-screen__hint only-board">
+						<kbd>&uarr;</kbd> <kbd>&darr;</kbd> to choose, <kbd>Enter</kbd> to select<br />
+						Skip to read every project, job, and skill without playing.
+					</p>
+				</figure>
+				<footer class="title-screen__foot only-paper">
+					<span><kbd>&uarr;</kbd> <kbd>&darr;</kbd> to choose, <kbd>Enter</kbd> to select</span>
+					<span>Skip to read every project, job, and skill without playing.</span>
+				</footer>
 			</div>
-			<p class="title-screen__error" data-load-error role="alert" hidden></p>
-			<p class="title-screen__hint">
-				<kbd>&uarr;</kbd> <kbd>&darr;</kbd> to choose &middot; <kbd>Enter</kbd> to select<br />
-				Skip to read every project, job, and skill without playing.
-			</p>
+			<!-- The NEW GAME dive: a board-colored layer that grows from the chip (Paper) or the pad (Board). -->
+			<div class="title-screen__dive" data-dive aria-hidden="true" hidden></div>
 		</main>
 		<canvas id="screen" width="640" height="360" tabindex="-1" hidden aria-label="Game view. Click to capture the mouse. Press Esc to pause. Press M to mute."></canvas>
 		<script type="module" src="/src/title-screen/main.ts"></script>

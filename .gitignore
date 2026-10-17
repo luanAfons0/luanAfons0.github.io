@@ -3,3 +3,7 @@ dist/
 *.log
 .DS_Store
 *.wad
+.impeccable/questions/
+.impeccable/tmp/
+.impeccable/hook.cache.json
+.impeccable/review/

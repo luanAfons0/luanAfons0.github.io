@@ -3,9 +3,13 @@ import { createFramebuffer, rgb } from "../engine/framebuffer";
 import type { InputSnapshot } from "../engine/input";
 import { createTexture, type Texture } from "../engine/texture";
 import { EXHIBITS, type Exhibit } from "./content";
-import { createGame, type Game, HUD_HINT_COLOR, SCREEN_HEIGHT, SCREEN_WIDTH, STATUS_BAR_HEIGHT } from "./game";
+import { createGame, type Game, SCREEN_HEIGHT, SCREEN_WIDTH, STATUS_BAR_HEIGHT } from "./game";
 import sampleLevel from "./levels/sample.json";
 import { TEST_WALL_TEXTURE, tiledExhibit, tiledLevel } from "./test-support/tiled-level";
+import { MACHINE_ART_SET } from "./theme";
+
+/** The hint color of the machine art set, which the Game core uses by default. */
+const HUD_HINT_COLOR = rgb(...MACHINE_ART_SET.hud.hint);
 
 const IDLE: InputSnapshot = { forward: 0, strafe: 0, turn: 0, look: 0 };
 const USE: InputSnapshot = { ...IDLE, use: true };
@@ -73,7 +77,7 @@ describe("The real Level and the real Content (the build content check)", () => 
 	});
 
 	it("give every Exhibit a poster that is a committed PNG", () => {
-		const committed = Object.keys(import.meta.glob("/public/posters/*.png"));
+		const committed = Object.keys(import.meta.glob("/public/machine/posters/*.png"));
 		for (const { id, poster } of EXHIBITS) expect(committed, id).toContain(`/public/${poster}`);
 	});
 });
@@ -149,12 +153,16 @@ describe("Exhibits in focus and use", () => {
 	});
 
 	it('shows "Press E" in the HUD, centered above the status bar, only while an Exhibit is in focus', () => {
+		// The crosshair has the hint color too, in the middle of the 3D view. The hint sits lower,
+		// just above the status bar, so look for it in the lower quarter of the 3D view only.
+		const viewHeight = SCREEN_HEIGHT - STATUS_BAR_HEIGHT;
 		const hintPixels = (game: Game) => {
 			const framebuffer = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
 			game.render(framebuffer);
 			const found: [number, number][] = [];
 			framebuffer.pixels.forEach((pixel, i) => {
-				if (pixel === HUD_HINT_COLOR) found.push([i % SCREEN_WIDTH, Math.floor(i / SCREEN_WIDTH)]);
+				const y = Math.floor(i / SCREEN_WIDTH);
+				if (pixel === HUD_HINT_COLOR && y >= (viewHeight * 3) / 4) found.push([i % SCREEN_WIDTH, y]);
 			});
 			return found;
 		};

@@ -88,9 +88,9 @@ describe("Skip View builder (Seam 2)", () => {
 		});
 		const article = parse(buildSkipView({ content: [orca], level, base: BASE })).querySelector("main section article");
 		expect(article?.querySelector("h3")?.textContent).toBe("Title of orca");
-		// A root path to the public poster: Vite adds the base, as it does for every asset URL in a page.
-		expect(article?.querySelector("img")?.getAttribute("src")).toBe("/posters/orca.png");
-		expect(article?.textContent).toContain("Job");
+		// The kind sits in the gutter with the Part label, not above the heading.
+		expect(article?.querySelector(".skip-gutter .skip-kind")?.textContent).toBe("Job");
+		expect(article?.querySelector(".skip-body .skip-kind")).toBeNull();
 		expect([...(article?.querySelectorAll("p") ?? [])].map((p) => p.textContent)).toEqual(
 			expect.arrayContaining(["Summary of orca", "First paragraph.", "Second paragraph."]),
 		);
@@ -119,6 +119,50 @@ describe("Skip View builder (Seam 2)", () => {
 		expect(titleScreen).toHaveLength(1);
 		expect(titleScreen[0]?.textContent).toMatch(/Title Screen/);
 		expect(html).not.toMatch(/<script/i);
+		// The arrow is an authored pixel SVG, not a Unicode glyph.
+		expect(html).not.toContain("\u2190");
+		expect(html).not.toContain("&larr;");
+		expect(titleScreen[0]?.querySelector("svg[aria-hidden='true'][shape-rendering='crispEdges']")).not.toBeNull();
+	});
+
+	it("uses one heading, Rooms, for the table of contents in both looks", () => {
+		const level = loadLevel(
+			tiledLevel({ rows: ROWS, extraObjects: [WEST, tiledExhibit("orca", { x: 4, y: 1 }, "west")] }),
+		);
+		const doc = parse(buildSkipView({ content: [exhibit("orca")], level, base: BASE }));
+		expect(doc.querySelector("nav h2")?.textContent).toBe("Rooms");
+		expect(doc.querySelector("nav .only-paper, nav .only-board")).toBeNull();
+	});
+
+	it("has a page title with no em dash", () => {
+		const level = loadLevel(
+			tiledLevel({ rows: ROWS, extraObjects: [WEST, tiledExhibit("orca", { x: 4, y: 1 }, "west")] }),
+		);
+		const doc = parse(buildSkipView({ content: [exhibit("orca")], level, base: BASE }));
+		expect(doc.title).toBe("Luan Afonso, portfolio (Skip View)");
+		expect(buildSkipView({ content: [exhibit("orca")], level, base: BASE })).not.toContain("\u2014");
+	});
+
+	it("follows the system light or dark setting: Paper for light, Board for dark", () => {
+		const level = loadLevel(
+			tiledLevel({ rows: ROWS, extraObjects: [WEST, tiledExhibit("orca", { x: 4, y: 1 }, "west")] }),
+		);
+		const doc = parse(buildSkipView({ content: [exhibit("orca")], level, base: BASE }));
+		expect(doc.querySelector('meta[name="color-scheme"]')?.getAttribute("content")).toBe("light dark");
+		// No saved Theme here: the page has no script to set one.
+		expect(doc.documentElement.hasAttribute("data-theme")).toBe(false);
+	});
+
+	it("opens with the datasheet header: part number LA-1, then the name and the lede", () => {
+		const level = loadLevel(
+			tiledLevel({ rows: ROWS, extraObjects: [WEST, tiledExhibit("orca", { x: 4, y: 1 }, "west")] }),
+		);
+		const doc = parse(buildSkipView({ content: [exhibit("orca")], level, base: BASE }));
+		expect(doc.querySelector(".skip-datasheet .skip-part-number")?.textContent).toBe("LA-1");
+		expect(doc.querySelector("h1")?.textContent).toBe("Luan Afonso");
+		expect(doc.querySelector(".skip-lede")?.textContent).toBe(
+			"My portfolio: every Exhibit from the game, Room by Room.",
+		);
 	});
 
 	it("links the site icon, so the browser does not ask for a missing favicon.ico", () => {
@@ -126,7 +170,7 @@ describe("Skip View builder (Seam 2)", () => {
 			tiledLevel({ rows: ROWS, extraObjects: [WEST, tiledExhibit("orca", { x: 4, y: 1 }, "west")] }),
 		);
 		const doc = parse(buildSkipView({ content: [exhibit("orca")], level, base: BASE }));
-		// Vite adds the base path, as it does for the posters.
+		// A root path: Vite adds the base path, as it does for every asset URL in a page.
 		expect(doc.querySelector('link[rel="icon"]')?.getAttribute("href")).toBe("/favicon.svg");
 	});
 
@@ -186,5 +230,68 @@ describe("Skip View builder (Seam 2)", () => {
 		expect(shown.sort()).toEqual(EXHIBITS.map((e) => e.title).sort());
 		const hrefs = [...doc.querySelectorAll("main a")].map((a) => a.getAttribute("href"));
 		for (const { url } of EXHIBITS.flatMap((e) => e.links)) expect(hrefs).toContain(url);
+	});
+
+	describe("Part labels", () => {
+		const level = loadLevel(
+			tiledLevel({
+				rows: ROWS,
+				extraObjects: [
+					WEST,
+					EAST,
+					tiledExhibit("a", { x: 2, y: 0 }, "south"),
+					tiledExhibit("b", { x: 4, y: 1 }, "east"),
+					tiledExhibit("c", { x: 4, y: 3 }, "west"),
+					tiledExhibit("d", { x: 6, y: 0 }, "south"),
+				],
+			}),
+		);
+
+		it("shows U1, J1, R1, Q1 for one Exhibit of each kind", () => {
+			const content = [
+				exhibit("a", { kind: "project" }),
+				exhibit("b", { kind: "contact" }),
+				exhibit("c", { kind: "skill" }),
+				exhibit("d", { kind: "job" }),
+			];
+			const doc = parse(buildSkipView({ content, level, base: BASE }));
+			const labels = [...doc.querySelectorAll("main article .skip-part")].map((n) => n.textContent);
+			expect(labels.sort()).toEqual(["J1", "Q1", "R1", "U1"]);
+		});
+
+		it("numbers a second project U2, in Content order", () => {
+			const content = [
+				exhibit("a", { kind: "project" }),
+				exhibit("b", { kind: "contact" }),
+				exhibit("c", { kind: "project" }),
+				exhibit("d", { kind: "job" }),
+			];
+			const doc = parse(buildSkipView({ content, level, base: BASE }));
+			const byId = (id: string) => doc.getElementById(`exhibit-${id}`)?.querySelector(".skip-part")?.textContent;
+			expect(byId("a")).toBe("U1");
+			expect(byId("c")).toBe("U2");
+		});
+
+		it("lists each Room in a Contents list with an anchor link and its Part labels", () => {
+			const content = [
+				exhibit("a", { kind: "project" }),
+				exhibit("b", { kind: "contact" }),
+				exhibit("c", { kind: "project" }),
+				exhibit("d", { kind: "job" }),
+			];
+			const doc = parse(buildSkipView({ content, level, base: BASE }));
+			const items = [...doc.querySelectorAll("nav[aria-label='Contents'] li")].map((li) => {
+				const href = li.querySelector("a")?.getAttribute("href") ?? "";
+				return [
+					li.querySelector("a .skip-contents-room")?.textContent,
+					doc.querySelector(href)?.tagName,
+					li.querySelector("a .skip-contents-parts")?.textContent,
+				];
+			});
+			expect(items).toEqual([
+				["West Wing", "H2", "U1, U2"],
+				["East Wing", "H2", "J1, Q1"],
+			]);
+		});
 	});
 });

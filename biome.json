@@ -7,7 +7,7 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"includes": ["**", "!**/levels/*.json"]
+		"includes": ["**", "!**/levels/*.json", "!.impeccable"]
 	},
 	"formatter": {
 		"enabled": true,

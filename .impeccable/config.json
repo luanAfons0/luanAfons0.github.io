@@ -1,0 +1,44 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "tight-leading",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/ui-studio/parts/screens.html"
+        ],
+        "createdAt": "2026-10-16T21:17:13.369Z",
+        "reason": "agent triage: approved design mock, not source; findings are one-line labels at line-height 1 and full-bleed screens or the chip body flagged as cramped containers"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/ui-studio/parts/screens.html"
+        ],
+        "createdAt": "2026-10-16T21:17:13.385Z",
+        "reason": "agent triage: approved design mock, not source; findings are one-line labels at line-height 1 and full-bleed screens or the chip body flagged as cramped containers"
+      },
+      {
+        "rule": "tight-leading",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/ui-studio/inside-the-machine.html"
+        ],
+        "createdAt": "2026-10-16T21:17:13.400Z",
+        "reason": "agent triage: approved design mock, not source; findings are one-line labels at line-height 1 and full-bleed screens or the chip body flagged as cramped containers"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/ui-studio/inside-the-machine.html"
+        ],
+        "createdAt": "2026-10-16T21:17:13.414Z",
+        "reason": "agent triage: approved design mock, not source; findings are one-line labels at line-height 1 and full-bleed screens or the chip body flagged as cramped containers"
+      }
+    ]
+  }
+}

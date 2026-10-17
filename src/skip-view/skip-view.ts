@@ -1,4 +1,4 @@
-import { checkContent, type Exhibit, KIND_LABELS } from "../game/content";
+import { checkContent, type Exhibit, KIND_LABELS, partLabel } from "../game/content";
 import { FACE_OFFSETS, type Level, type Room, roomAt } from "../game/level";
 
 export interface SkipViewInput {
@@ -8,7 +8,7 @@ export interface SkipViewInput {
 	level: Pick<Level, "rooms" | "exhibits">;
 	/**
 	 * The site base path (Vite `base`), for example `/portfolio/`. The Title Screen is there.
-	 * Only the Title Screen link uses it: Vite adds the base to asset URLs (posters, stylesheet) itself.
+	 * Only the Title Screen link uses it: Vite adds the base to asset URLs (stylesheet, icon) itself.
 	 */
 	base: string;
 	/** The href of the page stylesheet. Vite rewrites a source path to the built file. */
@@ -36,26 +36,30 @@ export function buildSkipView({ content, level, base, stylesheet }: SkipViewInpu
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Luan Afonso — Portfolio (Skip View)</title>
+<title>Luan Afonso, portfolio (Skip View)</title>
 <meta name="description" content="Luan Afonso's portfolio: projects, jobs, skills, and contact info.">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="light dark">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 ${stylesheet ? `<link rel="stylesheet" href="${escapeHtml(stylesheet)}">` : ""}
 </head>
 <body>
+<div class="skip-page">
 <header class="skip-header">
-<a class="skip-back" href="${escapeHtml(base)}"><span aria-hidden="true">&#9664;</span> Back to the Title Screen</a>
+<a class="skip-back" href="${escapeHtml(base)}">${BACK_ARROW} Back to the Title Screen</a>
+<p class="skip-datasheet only-paper"><span class="skip-part-number">LA-1</span> <span class="skip-datasheet-title">Portfolio, readable</span></p>
 <h1>Luan Afonso</h1>
 <p class="skip-lede">My portfolio: every Exhibit from the game, Room by Room.</p>
-<nav class="skip-rooms" aria-label="Rooms">
-<ul>
-${rooms.map(({ room, anchor }) => `<li><a href="#${anchor}">${escapeHtml(room.name)}</a></li>`).join("\n")}
-</ul>
-</nav>
 </header>
+<nav class="skip-contents" aria-label="Contents">
+<h2>Rooms</h2>
+<ol>
+${rooms.map(({ room, exhibits, anchor }) => `<li><a href="#${anchor}"><span class="skip-contents-room">${escapeHtml(room.name)}</span><span class="skip-contents-parts">${exhibits.map((e) => partLabel(content, e)).join(", ")}</span></a></li>`).join("\n")}
+</ol>
+</nav>
 <main>
-${rooms.map(({ room, exhibits, anchor }) => roomSection(room, exhibits, anchor)).join("\n")}
+${rooms.map(({ room, exhibits, anchor }) => roomSection(room, exhibits, anchor, content)).join("\n")}
 </main>
+</div>
 </body>
 </html>
 `;
@@ -70,16 +74,16 @@ function roomOf(exhibit: Exhibit, level: SkipViewInput["level"]): Room {
 	return room;
 }
 
-function roomSection(room: Room, exhibits: readonly Exhibit[], anchor: string): string {
+function roomSection(room: Room, exhibits: readonly Exhibit[], anchor: string, content: readonly Exhibit[]): string {
 	return `<section class="skip-room" aria-labelledby="${anchor}">
 <h2 id="${anchor}">${escapeHtml(room.name)}</h2>
 <ul class="skip-exhibits">
-${exhibits.map((exhibit) => `<li>${exhibitArticle(exhibit)}</li>`).join("\n")}
+${exhibits.map((exhibit) => `<li>${exhibitArticle(exhibit, content)}</li>`).join("\n")}
 </ul>
 </section>`;
 }
 
-function exhibitArticle(exhibit: Exhibit): string {
+function exhibitArticle(exhibit: Exhibit, content: readonly Exhibit[]): string {
 	const links =
 		exhibit.links.length === 0
 			? ""
@@ -87,9 +91,11 @@ function exhibitArticle(exhibit: Exhibit): string {
 ${exhibit.links.map(({ label, url }) => `<li><a href="${escapeHtml(url)}">${escapeHtml(label)}</a></li>`).join("\n")}
 </ul>`;
 	return `<article class="skip-exhibit" id="exhibit-${escapeHtml(exhibit.id)}">
-<img class="skip-poster" src="${escapeHtml(`/${exhibit.poster}`)}" alt="" loading="lazy">
-<div class="skip-body">
+<div class="skip-gutter">
+<span class="skip-part">${partLabel(content, exhibit)}</span>
 <p class="skip-kind">${escapeHtml(KIND_LABELS[exhibit.kind])}</p>
+</div>
+<div class="skip-body">
 <h3>${escapeHtml(exhibit.title)}</h3>
 <p class="skip-summary">${escapeHtml(exhibit.summary)}</p>
 ${exhibit.details.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("\n")}
@@ -97,6 +103,10 @@ ${links}
 </div>
 </article>`;
 }
+
+/** A left arrow drawn on an 8 by 8 pixel grid, shown at 16 by 16 pixels: whole-pixel, crisp edges. */
+const BACK_ARROW =
+	'<svg class="skip-arrow" width="16" height="16" viewBox="0 0 8 8" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><path d="M3 1h1v1H3zM2 2h2v1H2zM0 3h8v2H0zM2 5h2v1H2zM3 6h1v1H3z"/></svg>';
 
 const ESCAPES: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
 

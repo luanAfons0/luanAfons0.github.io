@@ -1,0 +1,130 @@
+{
+  "title": "Choose the expression of \"Inside the machine\"",
+  "question": "Your world is pinned. The roll picked how to express it: the datasheet. Keep it, take an alternate, or re-roll.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "The Datasheet and the Board",
+      "kicker": "THE ROLL",
+      "lineage": "IC datasheets, pinout diagrams, and the PCB the part sits on",
+      "thesis": "You read the part's datasheet, then you walk inside the part.",
+      "palette": ["#f2f3f0", "#16181a", "#c06a36", "#0f1214", "#e9ebe6"],
+      "materials": ["cool datasheet paper and black ink", "matte-black solder mask, copper traces, white silkscreen"],
+      "viewport": "Title Screen is a datasheet cover: part number LA-1 'Luan Afonso', and a chip pinout where NEW GAME and SKIP are pins; the selected pin's trace runs copper. NEW GAME dives into the chip and the game is the board inside: black solder-mask walls, silkscreen labels, insect Bugs. Exhibit Panel is a datasheet page pulled over the game; the Skip View is the full datasheet.",
+      "risk": "Paper outside, board inside: two materials must read as one system, or it feels like two sites.",
+      "raised": [
+        {"from": "jacquard-punched-brocade", "raise": "Traceability: each Exhibit gets a reference designator (U1 project, J1 contact, R1 skill, Q1 job) that is the same on the wall, in the Exhibit Panel, and in the Skip View."},
+        {"from": "forge-scale-shower", "raise": "Discrete states: select, press, and fix are step changes, not soft glows; a fixed Bug leaves a silkscreen 'patched' mark."},
+        {"from": "vu-meter-bridge", "raise": "Copper means live: copper only marks the selected item and traces carrying signal; everything else is ink, paper, or board."},
+        {"from": "emigre-bitmap-specimen", "raise": "Pixel honesty: pixel type and pixel art only at whole-pixel sizes."},
+        {"from": "tdr-info-noise-sleeve", "raise": "Declared ornament tiers: traces and silkscreen ornament drop in two declared steps at narrow widths; content never shrinks."}
+      ]
+    },
+    {
+      "id": "model-pick",
+      "label": "The Circuit Board",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "the bare PCB",
+      "thesis": "Everything is the board: menus, panels, and walls are solder mask and copper.",
+      "palette": ["#0f1214", "#c06a36", "#e9ebe6", "#2a2f33"],
+      "materials": ["matte-black solder mask", "copper traces and vias", "white silkscreen"],
+      "viewport": "Title Screen is a top-down board; your name is silkscreen; menu items are pads joined by traces.",
+      "risk": "The literal reading of the brief and the most familiar one; it can drift toward a generic 'tech' wallpaper."
+    },
+    {
+      "id": "challenger-one-bit",
+      "label": "One-bit Desktop",
+      "verdict": "competitive",
+      "lineage": "early one-bit desktops",
+      "thesis": "The portfolio as an old black-and-white desktop: windows, dithers, marching ants.",
+      "palette": ["#000000", "#ffffff", "#808080"],
+      "materials": ["ordered dither", "one-pixel window chrome"],
+      "viewport": "A dithered desktop; NEW GAME and SKIP are icons; the Exhibit Panel is a window.",
+      "case": "Developers know it by heart; it is the computer's face, not its inside, so it loses on the brief.",
+      "risk": "Reads as a retro OS homage instead of 'inside the machine'.",
+      "hero": "https://impeccable.style/worlds/cards/medium-native-one-bit-desktop-hero.webp"
+    },
+    {
+      "id": "challenger-jacquard",
+      "label": "Jacquard Brocade",
+      "verdict": "declined",
+      "lineage": "punched-card looms",
+      "thesis": "Binary choices woven into one picture.",
+      "palette": ["#141c3a", "#d9a640", "#efe6cf"],
+      "materials": ["midnight silk", "gold weft"],
+      "viewport": "Loom rows that weave the name.",
+      "case": "Beautiful, but visitors do not read a loom as a developer.",
+      "kept": "Traceability through reference designators.",
+      "risk": "Off-brief.",
+      "hero": "https://impeccable.style/worlds/cards/textiles-weave-drape-fashion-jacquard-punched-brocade-hero.webp"
+    },
+    {
+      "id": "challenger-forge",
+      "label": "Forge Scale Shower",
+      "verdict": "declined",
+      "lineage": "blacksmith power hammer",
+      "thesis": "Each blow visibly changes the metal.",
+      "palette": ["#121212", "#ff7a1a", "#6b6f73"],
+      "materials": ["hot iron", "black scale"],
+      "viewport": "A billet under the hammer.",
+      "case": "Too violent for harmless Bugs; no developer identity.",
+      "kept": "Discrete step states.",
+      "risk": "Off-brief.",
+      "hero": "https://impeccable.style/worlds/cards/metal-forging-patina-blacksmith-scale-shower-hero.webp"
+    },
+    {
+      "id": "challenger-vu",
+      "label": "VU Meter Bridge",
+      "verdict": "declined",
+      "lineage": "recording desks",
+      "thesis": "A row of needles reads the room.",
+      "palette": ["#efe6cf", "#111111", "#c8302a"],
+      "materials": ["ivory meter faces", "walnut"],
+      "viewport": "A row of meters.",
+      "case": "An audio world, not a code world.",
+      "kept": "One color that means 'live'.",
+      "risk": "Off-brief.",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-vu-meter-bridge-hero.webp"
+    },
+    {
+      "id": "challenger-emigre",
+      "label": "Emigre Bitmap Specimen",
+      "verdict": "declined",
+      "lineage": "bitmap type specimens",
+      "thesis": "Low resolution as the aesthetic.",
+      "palette": ["#f4f4f0", "#111111", "#ff3b00"],
+      "materials": ["bitmap type", "halftone"],
+      "viewport": "A giant pixel headline.",
+      "case": "A type poster, not a place to walk.",
+      "kept": "Whole-pixel type sizes.",
+      "risk": "Off-brief.",
+      "hero": "https://impeccable.style/worlds/cards/emigre-bitmap-specimen-hero.webp"
+    },
+    {
+      "id": "challenger-tdr",
+      "label": "Info-noise Sleeve",
+      "verdict": "declined",
+      "lineage": "The Designers Republic sleeves",
+      "thesis": "Hostile-brand noise as branding.",
+      "palette": ["#000000", "#ff2d95", "#ff7a00"],
+      "materials": ["flat print", "registration marks"],
+      "viewport": "One huge word through the noise.",
+      "case": "Too loud for recruiters reading a portfolio.",
+      "kept": "Declared ornament tiers.",
+      "risk": "Off-brief.",
+      "hero": "https://impeccable.style/worlds/cards/tdr-info-noise-sleeve-hero.webp"
+    }
+  ],
+  "reroll": { "registers": ["safer", "bolder"] },
+  "buildPath": { "value": "code", "toggle": false },
+  "canon": true,
+  "canonCard": {
+    "label": "The category standard",
+    "thesis": "A dark developer-portfolio game skin: terminal font, one accent, clean panels.",
+    "palette": ["#0e1116", "#e6e8eb", "#4ea1ff"],
+    "materials": ["flat dark panels", "monospace UI"],
+    "viewport": "Centered name, two menu items, a clean status bar in game.",
+    "risk": "Clean, but forgettable next to other dev portfolios."
+  },
+  "steer": true
+}
