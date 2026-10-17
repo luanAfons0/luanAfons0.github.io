@@ -1,12 +1,32 @@
 /*
  * The Skip View in two looks. The palette, the faces, and the look tokens come from theme.css.
- * The page has no script, so it never has a saved Theme: the system setting chooses the look.
+ * The Theme head script sets the saved Theme as data-theme on the root; with none, or with script
+ * blocked, the system setting chooses the look.
  * Paper (light, the default): the full datasheet, with the LA-1 header and inked Part label blocks.
  * Board (dark): the same page on the quiet board, with silkscreen headings and outlined Part labels.
- * Colors use the look tokens, which follow the system through light-dark(); the other per-look
- * values (faces, the board background) sit in the one dark block at the end.
+ * Colors use the look tokens, which follow the look through light-dark(); the other per-look values
+ * (faces, the board background) are the --sv-* tokens below, with the Board values at the end.
  */
 @import "../theme.css";
+
+/* The Paper values of the per-look tokens. */
+:root {
+	--sv-page-color: var(--surface);
+	--sv-page-texture: none;
+	--sv-page-texture-size: auto;
+	--sv-name-font: 800 clamp(2.75rem, 9vw, 4.75rem) / 0.9 var(--font-sans);
+	--sv-name-stretch: 72%;
+	--sv-name-spacing: -0.02em;
+	--sv-lede-color: var(--text);
+	--sv-heading-font: 700 0.9375rem / 1.2 var(--font-sans);
+	--sv-room-heading-size: 1.375rem;
+	--sv-part-background: var(--ink);
+	--sv-part-border: none;
+	--sv-part-color: var(--paper);
+	--sv-exhibit-font: 700 1.5rem / 1.15 var(--font-sans);
+	--sv-exhibit-stretch: 85%;
+	--sv-link-weight: 600;
+}
 
 *,
 *::before,
@@ -21,7 +41,9 @@ html {
 
 body {
 	margin: 0;
-	background: var(--surface);
+	background-color: var(--sv-page-color);
+	background-image: var(--sv-page-texture);
+	background-size: var(--sv-page-texture-size);
 	color: var(--text);
 	font: 1rem / 1.5 var(--font-sans);
 	overflow-wrap: anywhere;
@@ -100,14 +122,15 @@ a:focus-visible {
 
 h1 {
 	margin: 28px 0 8px;
-	font: 800 clamp(2.75rem, 9vw, 4.75rem) / 0.9 var(--font-sans);
-	font-stretch: 72%;
-	letter-spacing: -0.02em;
+	font: var(--sv-name-font);
+	font-stretch: var(--sv-name-stretch);
+	letter-spacing: var(--sv-name-spacing);
 }
 
 .skip-lede {
 	max-width: 46ch;
 	margin: 0 0 28px;
+	color: var(--sv-lede-color);
 	font-size: 1.1875rem;
 }
 
@@ -117,7 +140,7 @@ h1 {
 	margin: 0 0 8px;
 	padding-bottom: 4px;
 	border-bottom: 1px solid var(--line);
-	font: 700 0.9375rem / 1.2 var(--font-sans);
+	font: var(--sv-heading-font);
 }
 
 .skip-contents ol {
@@ -155,7 +178,7 @@ h1 {
 }
 
 .skip-room h2 {
-	font-size: 1.375rem;
+	font-size: var(--sv-room-heading-size);
 }
 
 .skip-exhibits {
@@ -180,8 +203,9 @@ h1 {
 	display: block;
 	align-self: start;
 	padding: 8px 0 6px;
-	background: var(--ink);
-	color: var(--paper);
+	border: var(--sv-part-border);
+	background: var(--sv-part-background);
+	color: var(--sv-part-color);
 	font: 400 16px / 1 var(--font-silk);
 	text-align: center;
 }
@@ -217,8 +241,8 @@ h1 {
 
 h3 {
 	margin: 2px 0 6px;
-	font: 700 1.5rem / 1.15 var(--font-sans);
-	font-stretch: 85%;
+	font: var(--sv-exhibit-font);
+	font-stretch: var(--sv-exhibit-stretch);
 }
 
 .skip-body .skip-summary {
@@ -238,52 +262,48 @@ h3 {
 	display: inline-block;
 	padding: 0.375rem 0;
 	color: var(--live-text);
-	font-weight: 600;
+	font-weight: var(--sv-link-weight);
 	text-decoration-color: var(--live-trace);
 	text-decoration-thickness: 2px;
 	text-underline-offset: 0.25em;
 }
 
-/* Board: the quiet board, silkscreen headings, and outlined Part labels. */
+/* Board: the quiet board, silkscreen headings, and outlined Part labels. Keep the two blocks below
+   the same: the first is the saved Theme, the second the system setting when no Theme is saved. */
+:root[data-theme="board"] {
+	--sv-page-color: var(--board);
+	--sv-page-texture: var(--board-traces-quiet);
+	--sv-page-texture-size: 240px 240px;
+	--sv-name-font: 400 round(down, clamp(2rem, 6vw, 3.5rem), 8px) / 1 var(--font-silk);
+	--sv-name-stretch: normal;
+	--sv-name-spacing: 0;
+	--sv-lede-color: var(--text-2);
+	--sv-heading-font: 400 16px / 1.2 var(--font-silk);
+	--sv-room-heading-size: 32px;
+	--sv-part-background: none;
+	--sv-part-border: 2px solid var(--silk-2);
+	--sv-part-color: var(--silk);
+	--sv-exhibit-font: 400 24px / 1.2 var(--font-silk);
+	--sv-exhibit-stretch: normal;
+	--sv-link-weight: 400;
+}
+
 @media (prefers-color-scheme: dark) {
-	body {
-		background-color: var(--board);
-		background-image: var(--board-traces-quiet);
-		background-size: 240px 240px;
-	}
-
-	h1 {
-		margin-top: 28px;
-		font: 400 round(down, clamp(2rem, 6vw, 3.5rem), 8px) / 1 var(--font-silk);
-		font-stretch: normal;
-		letter-spacing: 0;
-	}
-
-	.skip-lede {
-		color: var(--text-2);
-	}
-
-	.skip-contents h2,
-	.skip-room h2 {
-		font: 400 16px / 1.2 var(--font-silk);
-	}
-
-	.skip-room h2 {
-		font-size: 32px;
-	}
-
-	.skip-part {
-		background: none;
-		border: 2px solid var(--silk-2);
-		color: var(--silk);
-	}
-
-	h3 {
-		font: 400 24px / 1.2 var(--font-silk);
-		font-stretch: normal;
-	}
-
-	.skip-links a {
-		font-weight: 400;
+	:root:not([data-theme]) {
+		--sv-page-color: var(--board);
+		--sv-page-texture: var(--board-traces-quiet);
+		--sv-page-texture-size: 240px 240px;
+		--sv-name-font: 400 round(down, clamp(2rem, 6vw, 3.5rem), 8px) / 1 var(--font-silk);
+		--sv-name-stretch: normal;
+		--sv-name-spacing: 0;
+		--sv-lede-color: var(--text-2);
+		--sv-heading-font: 400 16px / 1.2 var(--font-silk);
+		--sv-room-heading-size: 32px;
+		--sv-part-background: none;
+		--sv-part-border: 2px solid var(--silk-2);
+		--sv-part-color: var(--silk);
+		--sv-exhibit-font: 400 24px / 1.2 var(--font-silk);
+		--sv-exhibit-stretch: normal;
+		--sv-link-weight: 400;
 	}
 }

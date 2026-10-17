@@ -170,7 +170,7 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 		});
 	};
 
-	// The Theme: data-theme on the root, set by the head script from the saved settings. With no
+	// The Theme: data-theme on the root, set by the Theme head script from the saved settings. With no
 	// data-theme, the CSS follows the system setting, so the label follows it too.
 	const page = themeItem.ownerDocument.documentElement;
 	const darkSystem = matchMedia("(prefers-color-scheme: dark)");

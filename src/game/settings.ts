@@ -15,7 +15,7 @@ export interface Settings {
 	sound: boolean;
 	/**
 	 * The Theme the visitor chose. Missing means "follow the system": a light system setting shows
-	 * Paper and a dark one shows Board. The head script in index.html reads it from the same key.
+	 * Paper and a dark one shows Board. The Theme head script of both pages reads it from the same key.
 	 */
 	theme?: Theme;
 }
@@ -28,14 +28,14 @@ export const DEFAULT_SETTINGS: Readonly<Settings> = {
 
 export const MOUSE_SENSITIVITY_RANGE = { min: 0.2, max: 3, step: 0.1 } as const;
 
-/** The storage key. The head script in index.html reads the Theme from it too: change both together. */
-const STORAGE_KEY = "portfolio.settings.v1";
+/** The storage key. The Theme head script (`src/theme-script.ts`) reads the saved Theme from it too. */
+export const SETTINGS_STORAGE_KEY = "portfolio.settings.v1";
 
 /** Reads the saved settings. A missing, broken, or unreadable value gives the default. */
 export function loadSettings(): Settings {
 	let saved: unknown;
 	try {
-		const raw = window.localStorage.getItem(STORAGE_KEY);
+		const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
 		saved = raw === null ? undefined : JSON.parse(raw);
 	} catch {
 		saved = undefined;
@@ -56,7 +56,7 @@ export function loadSettings(): Settings {
 /** Saves the settings. When storage fails, the settings still apply for this visit. */
 export function saveSettings(settings: Settings): void {
 	try {
-		window.localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+		window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
 	} catch {
 		// Storage is full, blocked, or missing. Nothing else to do.
 	}

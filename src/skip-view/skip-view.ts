@@ -1,5 +1,6 @@
 import { checkContent, type Exhibit, KIND_LABELS, partLabel } from "../game/content";
 import { FACE_OFFSETS, type Level, type Room, roomAt } from "../game/level";
+import { THEME_SCRIPT_MARK } from "../theme-script";
 
 export interface SkipViewInput {
 	/** The Content: every Exhibit. */
@@ -17,7 +18,9 @@ export interface SkipViewInput {
 
 /**
  * The Skip View builder (Seam 2). It makes the Skip View page from the Content and the Rooms, at
- * build time: static, semantic HTML with every Exhibit under its Room, and no script.
+ * build time: static, semantic HTML with every Exhibit under its Room. It writes no script: its head
+ * has the mark where the `theme-script` plugin puts the Theme head script, and the page works fully
+ * without it.
  * An Exhibit is in the Room the player stands in to see it: the cell in front of its poster.
  * It fails with an error that names the Exhibit when the Content and the Level do not match, or
  * when the Content is not valid (see `checkContent`).
@@ -39,6 +42,7 @@ export function buildSkipView({ content, level, base, stylesheet }: SkipViewInpu
 <title>Luan Afonso, portfolio (Skip View)</title>
 <meta name="description" content="Luan Afonso's portfolio: projects, jobs, skills, and contact info.">
 <meta name="color-scheme" content="light dark">
+${THEME_SCRIPT_MARK}
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 ${stylesheet ? `<link rel="stylesheet" href="${escapeHtml(stylesheet)}">` : ""}
 </head>

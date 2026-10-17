@@ -4,14 +4,19 @@ import { resolve } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Face } from "../engine/raycast";
 import { DEFAULT_SETTINGS, loadSettings, saveSettings } from "../game/settings";
+import { THEMES } from "../game/theme";
+import { skipViewPage } from "../skip-view/page";
+import { withThemeScript } from "../theme-script";
 import { titleScreenPage } from "./page";
 import { createTitleScreen, type TitleScreen, type TitleScreenOptions } from "./title-screen";
 
 const BASE = "/portfolio/";
 
-/** The real index.html, as Vite builds it: the base path and the Level counts put in. */
-const PAGE = titleScreenPage(
-	readFileSync(resolve(import.meta.dirname, "../../index.html"), "utf8").replaceAll("%BASE_URL%", BASE),
+/** The real index.html, as Vite builds it: the base path, the Level counts, and the Theme head script put in. */
+const PAGE = withThemeScript(
+	titleScreenPage(
+		readFileSync(resolve(import.meta.dirname, "../../index.html"), "utf8").replaceAll("%BASE_URL%", BASE),
+	),
 );
 /** The page body without its script: the Title Screen markup and the game canvas. */
 const BODY = PAGE.slice(PAGE.indexOf("<body>") + "<body>".length, PAGE.indexOf("</body>")).replace(
@@ -354,13 +359,18 @@ describe("Title Screen analytics on a SKIP click", () => {
 	});
 });
 
-/** The inline script in the page head (the phone redirect and the saved Theme), run on a desktop. */
+/** The inline scripts in the head of a page, in page order. */
+function headScripts(page: string): string[] {
+	const head = page.slice(0, page.indexOf("</head>"));
+	return [...head.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((match) => match[1] ?? "");
+}
+
+/** The inline scripts in the page head (the phone redirect, then the Theme head script), run on a desktop. */
 function runHeadScript() {
-	const head = PAGE.slice(0, PAGE.indexOf("</head>"));
-	const script = /<script>([\s\S]*?)<\/script>/.exec(head)?.[1];
-	if (!script) throw new Error("index.html has no inline script in its head.");
+	const scripts = headScripts(PAGE);
+	if (scripts.length === 0) throw new Error("index.html has no inline script in its head.");
 	const desktop = (query: string) => ({ matches: query === "(pointer: fine)" || query === "(any-pointer: fine)" });
-	new Function("matchMedia", "location", script)(desktop, { replace: vi.fn() });
+	for (const script of scripts) new Function("matchMedia", "location", script)(desktop, { replace: vi.fn() });
 }
 
 const shownTheme = () => document.documentElement.getAttribute("data-theme");
@@ -387,6 +397,20 @@ describe("Theme", () => {
 
 		setUp();
 		expect(themeLabel()).toBe("Theme: Board");
+	});
+
+	it.each(THEMES)("accepts the saved %s Theme in the head script", (theme) => {
+		saveSettings({ ...DEFAULT_SETTINGS, theme });
+		runHeadScript();
+		expect(shownTheme()).toBe(theme);
+	});
+
+	it("has the same Theme head script as the Skip View, after the phone redirect", () => {
+		const [redirect, themeScript, ...rest] = headScripts(PAGE);
+		expect(redirect).toContain("location.replace");
+		expect(themeScript).not.toContain("location");
+		expect(rest).toEqual([]);
+		expect(headScripts(withThemeScript(skipViewPage(BASE)))).toEqual([themeScript]);
 	});
 
 	it("falls back to the system setting when storage is broken", () => {
