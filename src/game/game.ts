@@ -207,9 +207,9 @@ export function createGame(options: GameOptions): Game {
 		viewHeight: SCREEN_HEIGHT - STATUS_BAR_HEIGHT,
 		spriteTexelSize: SPRITE_TEXEL_SIZE,
 	});
-	const hud = createHud(SCREEN_WIDTH, SCREEN_HEIGHT, art.hud);
+	const hud = createHud(SCREEN_WIDTH, SCREEN_HEIGHT, art.hud, bugs.total);
 	// Reused every frame, so rendering allocates nothing.
-	const hudView: HudView = { room: null, bugsFixed: null, hint: null };
+	const hudView: HudView = { room: null, bugsFixed: null, bugsFixedCount: 0, hint: null };
 	// The counter text changes only when a Bug is fixed, so frames do not build strings.
 	const bugsFixedText = () => (bugs.total > 0 ? `${bugs.fixedCount()}/${bugs.total}` : null);
 	hudView.bugsFixed = bugsFixedText();
@@ -266,6 +266,7 @@ export function createGame(options: GameOptions): Game {
 			}
 			if (input.shoot && bugs.shoot(level.walls, player.x, player.y, player.angle)) {
 				hudView.bugsFixed = bugsFixedText();
+				hudView.bugsFixedCount = bugs.fixedCount();
 				if (!goalSent && bugs.total > 0 && bugs.fixedCount() === bugs.total) {
 					goalSent = true;
 					options.track?.("all-bugs-fixed");
