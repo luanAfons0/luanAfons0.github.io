@@ -5,6 +5,9 @@ import { DEFAULT_SETTINGS, type Settings } from "./settings";
 
 const page = document.documentElement;
 
+/** Bugs fixed and the Bug total of a Level, as the Game core reports them. */
+const BUGS = { fixed: 3, total: 7 };
+
 function setup(overrides: Partial<PauseMenuOptions> = {}) {
 	const changes: Settings[] = [];
 	const events: string[] = [];
@@ -46,7 +49,7 @@ describe("Pause Menu", () => {
 	it("shows the Theme on the page root when it opens", () => {
 		page.dataset.theme = "board";
 		const { menu, radio } = setup();
-		menu.open();
+		menu.open(BUGS);
 		expect(radio("board").checked).toBe(true);
 		expect(radio("paper").checked).toBe(false);
 	});
@@ -55,20 +58,20 @@ describe("Pause Menu", () => {
 		page.dataset.theme = "board";
 		const { menu, radio } = setup();
 		page.dataset.theme = "paper";
-		menu.open();
+		menu.open(BUGS);
 		expect(radio("paper").checked).toBe(true);
 	});
 
 	it("shows Paper when no Theme is saved and the system is light", () => {
 		const { menu, radio } = setup();
-		menu.open();
+		menu.open(BUGS);
 		expect(radio("paper").checked).toBe(true);
 	});
 
 	it("switches the page Theme, reports the setting, and sends the analytics event", () => {
 		page.dataset.theme = "paper";
 		const { menu, radio, changes, events } = setup();
-		menu.open();
+		menu.open(BUGS);
 		radio("board").click();
 		expect(page.dataset.theme).toBe("board");
 		expect(changes.at(-1)).toEqual({ ...DEFAULT_SETTINGS, theme: "board" });
@@ -92,7 +95,7 @@ describe("Pause Menu", () => {
 	it.each(["paper", "board"])("shows Dungeon in %s and switches to it", async (from) => {
 		page.dataset.theme = from;
 		const { menu, radio, changes, events, themeChanges } = setup();
-		menu.open();
+		menu.open(BUGS);
 		radio("dungeon").click();
 		expect(page.dataset.theme).toBe("dungeon");
 		expect(changes.at(-1)).toEqual({ ...DEFAULT_SETTINGS, theme: "dungeon" });
@@ -100,7 +103,7 @@ describe("Pause Menu", () => {
 		expect(themeChanges).toEqual(["dungeon"]);
 
 		menu.close();
-		menu.open();
+		menu.open(BUGS);
 		expect(radio("dungeon").checked).toBe(true);
 	});
 
@@ -111,7 +114,7 @@ describe("Pause Menu", () => {
 			settings: { ...DEFAULT_SETTINGS, theme: "board" },
 			onThemeChange: () => Promise.reject(new Error("HTTP 404")),
 		});
-		menu.open();
+		menu.open(BUGS);
 		expect(message()?.hidden).toBe(true);
 
 		radio("dungeon").click();
@@ -128,7 +131,7 @@ describe("Pause Menu", () => {
 	it("goes back to the system look when no Theme was saved before the failed load", async () => {
 		quietErrors();
 		const { menu, radio, changes } = setup({ onThemeChange: () => Promise.reject(new Error("offline")) });
-		menu.open();
+		menu.open(BUGS);
 		radio("dungeon").click();
 		await settle();
 
@@ -149,7 +152,7 @@ describe("Pause Menu", () => {
 						})
 					: Promise.resolve(),
 		});
-		menu.open();
+		menu.open(BUGS);
 		radio("dungeon").click();
 		radio("paper").click();
 		failDungeon(new Error("late"));
@@ -164,6 +167,41 @@ describe("Pause Menu", () => {
 		expect(message()?.hidden).toBe(false);
 		radio("board").click();
 		expect(message()?.hidden).toBe(true);
+	});
+
+	it("shows the Bugs fixed as ticked boxes and N of M", () => {
+		const { menu } = setup();
+		menu.open({ fixed: 3, total: 7 });
+		const tally = document.querySelector<HTMLElement>(".pause-menu__bugs");
+		expect(tally?.hidden).toBe(false);
+		expect(tally?.getAttribute("aria-label")).toBe("Bugs fixed: 3 of 7");
+		const boxes = [...document.querySelectorAll(".pause-menu__tally > span")];
+		expect(boxes).toHaveLength(7);
+		expect(boxes.map((box) => box.classList.contains("is-done"))).toEqual([
+			true,
+			true,
+			true,
+			false,
+			false,
+			false,
+			false,
+		]);
+		expect(document.querySelector(".pause-menu__tally b")?.textContent).toBe("3 of 7");
+	});
+
+	it("shows the Bugs fixed at the time it opens", () => {
+		const { menu } = setup();
+		menu.open({ fixed: 1, total: 7 });
+		menu.close();
+		menu.open({ fixed: 7, total: 7 });
+		expect(document.querySelectorAll(".pause-menu__tally > span.is-done")).toHaveLength(7);
+		expect(document.querySelector(".pause-menu__tally b")?.textContent).toBe("7 of 7");
+	});
+
+	it("shows no Bugs fixed field when the Level has no Bugs", () => {
+		const { menu } = setup();
+		menu.open({ fixed: 0, total: 0 });
+		expect(document.querySelector<HTMLElement>(".pause-menu__bugs")?.hidden).toBe(true);
 	});
 
 	it("names the checkboxes by their setting only", () => {

@@ -43,6 +43,10 @@ Pull requests:
 - `scripts/dungeon-art.ts`: the same for the dungeon art set, into `public/dungeon/`, with its modules under `scripts/dungeon-art/` (`stone.ts` draws the cut stone that the textures and the banners share; `tiles.ts` draws the pulp and weave tiles of the Dungeon HTML look into `tiles/`, which `src/theme.css` uses). The drawings port the mock's `.impeccable/mocks/ui-studio/parts/dungeon-frame.js`. Run `node scripts/dungeon-art.ts` after a change; `scripts/dungeon-art.test.ts` checks the committed files.
 - The Theme setting: the visitor picks a Theme with the Theme item of the Title Screen (it cycles Paper, Board, Dungeon) or the Theme switch of the Pause Menu. Both save `theme` in the settings (`src/game/settings.ts`, `localStorage` key `portfolio.settings.v1`) and set `data-theme` on the root at once. The Theme head script (`src/theme-script.ts`) reads the saved Theme before the first paint and sets `data-theme` on the root. The `theme-script` plugin in `vite.config.ts` puts it into both pages, at the `<!--theme-script-->` mark (in `index.html`, and written by `buildSkipView`), and fails the build when a page has no mark. Its accepted ids are built from `THEMES` (ADR 0003), and it reads the key `SETTINGS_STORAGE_KEY` of `src/game/settings.ts`.
 
+## Pause Menu look
+
+`src/game/pause-menu.ts` builds one markup for every Theme. Paper and Board show it as the board panel; Dungeon restyles the same elements as the Adventure Sheet in the last section of `src/game/pause-menu.css` (boxed fields with their names on the box edge, tick boxes, ink focus rings). `.pause-menu__fields` is `display: contents` outside Dungeon, so the Paper and Board layout does not change. The shell opens the menu with the Bugs fixed and the Bug total from `game.state()` (`pauseMenu.open({ fixed, total })`); the Bugs fixed field (only in Dungeon) ticks one box per fixed Bug and is hidden when the Level has no Bugs.
+
 ## Agent skills
 
 ### Issue tracker

@@ -22,8 +22,15 @@ export interface PauseMenuOptions {
 	onThemeChange(theme: Theme): Promise<void>;
 }
 
+/** The Bugs fixed and the Bug total of the Level, as the Game core reports them. */
+export interface BugsFixed {
+	fixed: number;
+	total: number;
+}
+
 export interface PauseMenu {
-	open(): void;
+	/** Opens the menu with the Bugs fixed so far: the Dungeon look ticks one box per fixed Bug. */
+	open(bugs: BugsFixed): void;
 	close(): void;
 	isOpen(): boolean;
 	/** Shows settings that changed outside the menu (the M key changes the sound setting). */
@@ -31,9 +38,11 @@ export interface PauseMenu {
 }
 
 /**
- * The Pause Menu: an HTML overlay above the canvas, a board panel in every Theme. The toggles are
- * DIP switches and the Theme is a three-position slide switch (Paper, Board, Dungeon), all drawn
- * over native inputs (checkboxes and one radio group), so they keep their roles, states, and keyboard use.
+ * The Pause Menu: an HTML overlay above the canvas. In Paper and Board it is a board panel: the
+ * toggles are DIP switches and the Theme is a three-position slide switch (Paper, Board, Dungeon).
+ * In Dungeon the same markup is the Adventure Sheet: boxed fields with tick boxes, and a Bugs fixed
+ * field (only in Dungeon) with one tick box per Bug. All controls are native inputs (checkboxes and
+ * one radio group), so they keep their roles, states, and keyboard use in every Theme.
  * The Theme switch is the same saved `theme` setting as the Theme item of the Title Screen: it
  * switches `data-theme` on the page root at once and reports the change; the caller saves it and
  * changes the game art (`onThemeChange`). A failed change sets the Theme back.
@@ -49,43 +58,52 @@ export function createPauseMenu(options: PauseMenuOptions): PauseMenu {
 	root.setAttribute("aria-modal", "true");
 	root.setAttribute("aria-labelledby", "pause-menu-title");
 	root.innerHTML = `
-		<div class="pause-menu__panel board-surface board-surface--quiet">
+		<div class="pause-menu__panel board-surface board-surface--quiet dungeon-pulp">
 			<h2 class="pause-menu__title" id="pause-menu-title">Paused</h2>
-			<button class="pause-menu__item pause-menu__resume" type="button">Resume</button>
+			<p class="pause-menu__sub only-dungeon">Adventure Sheet</p>
+			<button class="pause-menu__item pause-menu__resume" type="button">Resume <small class="only-dungeon">back to the keep</small></button>
 			<hr class="pause-menu__sep" />
-			<label class="pause-menu__row">
-				<span>Mouse sensitivity</span>
-				<span class="pause-menu__control">
-					<input class="pause-menu__range" name="mouseSensitivity" type="range" min="${min}" max="${max}" step="${step}" />
-					<output></output>
-				</span>
-			</label>
-			<label class="pause-menu__row">
-				<span>Invert mouse</span>
-				<span class="pause-menu__control pause-menu__silk">
-					<input class="pause-menu__dip" name="invertMouse" type="checkbox" />
-					<span class="pause-menu__legend" aria-hidden="true"></span>
-				</span>
-			</label>
-			<label class="pause-menu__row">
-				<span>Sound <kbd>M</kbd></span>
-				<span class="pause-menu__control pause-menu__silk">
-					<input class="pause-menu__dip" name="sound" type="checkbox" />
-					<span class="pause-menu__legend" aria-hidden="true"></span>
-				</span>
-			</label>
-			<div class="pause-menu__row">
-				<span id="pause-menu-theme">Theme</span>
-				<span class="pause-menu__control pause-menu__silk pause-menu__slide" role="radiogroup" aria-labelledby="pause-menu-theme">
-					${THEMES.map(
-						(theme) =>
-							`<label class="pause-menu__position"><input name="theme" type="radio" value="${theme}" /><span>${THEME_LABELS[theme]}</span></label>`,
-					).join("")}
-				</span>
+			<div class="pause-menu__fields">
+				<label class="pause-menu__row pause-menu__row--wide">
+					<span class="pause-menu__name">Mouse sensitivity</span>
+					<span class="pause-menu__control">
+						<input class="pause-menu__range" name="mouseSensitivity" type="range" min="${min}" max="${max}" step="${step}" />
+						<output></output>
+					</span>
+				</label>
+				<label class="pause-menu__row">
+					<span class="pause-menu__name"><span class="pause-menu__full-name">Invert mouse</span><span class="only-dungeon" aria-hidden="true">Mouse</span></span>
+					<span class="pause-menu__control pause-menu__silk">
+						<input class="pause-menu__dip" name="invertMouse" type="checkbox" />
+						<span class="pause-menu__legend" aria-hidden="true"></span>
+						<span class="only-dungeon" aria-hidden="true">Invert</span>
+					</span>
+				</label>
+				<label class="pause-menu__row">
+					<span class="pause-menu__name">Sound <kbd>M</kbd></span>
+					<span class="pause-menu__control pause-menu__silk">
+						<input class="pause-menu__dip" name="sound" type="checkbox" />
+						<span class="pause-menu__legend" aria-hidden="true"></span>
+						<span class="only-dungeon" aria-hidden="true">On</span>
+					</span>
+				</label>
+				<div class="pause-menu__row pause-menu__row--wide">
+					<span class="pause-menu__name" id="pause-menu-theme">Theme</span>
+					<span class="pause-menu__control pause-menu__silk pause-menu__slide" role="radiogroup" aria-labelledby="pause-menu-theme">
+						${THEMES.map(
+							(theme) =>
+								`<label class="pause-menu__position"><input name="theme" type="radio" value="${theme}" /><span>${THEME_LABELS[theme]}</span></label>`,
+						).join("")}
+					</span>
+				</div>
+				<p class="pause-menu__error" role="alert" hidden></p>
+				<div class="pause-menu__row pause-menu__row--wide pause-menu__bugs only-dungeon" role="group">
+					<span class="pause-menu__name">Bugs fixed</span>
+					<span class="pause-menu__tally" aria-hidden="true"></span>
+				</div>
 			</div>
-			<p class="pause-menu__error" role="alert" hidden></p>
 			<hr class="pause-menu__sep" />
-			<a class="pause-menu__item" href="${SKIP_VIEW_URL}">Skip View</a>
+			<a class="pause-menu__item" href="${SKIP_VIEW_URL}">Skip View <small class="only-dungeon">read without playing</small></a>
 			<p class="pause-menu__hint">Read the portfolio without playing.</p>
 		</div>`;
 
@@ -96,6 +114,22 @@ export function createPauseMenu(options: PauseMenuOptions): PauseMenu {
 	const sound = query<HTMLInputElement>(root, 'input[name="sound"]');
 	const themes = [...root.querySelectorAll<HTMLInputElement>('input[name="theme"]')];
 	const themeError = query<HTMLParagraphElement>(root, ".pause-menu__error");
+	const bugsField = query<HTMLDivElement>(root, ".pause-menu__bugs");
+	const tally = query<HTMLSpanElement>(root, ".pause-menu__tally");
+
+	/** One tick box per Bug, ticked when it is fixed, then "N of M". No Bugs: no field. */
+	const showBugs = ({ fixed, total }: BugsFixed) => {
+		bugsField.hidden = total === 0;
+		bugsField.setAttribute("aria-label", `Bugs fixed: ${fixed} of ${total}`);
+		const boxes = Array.from({ length: total }, (_, index) => {
+			const box = document.createElement("span");
+			if (index < fixed) box.className = "is-done";
+			return box;
+		});
+		const count = document.createElement("b");
+		count.textContent = `${fixed} of ${total}`;
+		tally.replaceChildren(...boxes, count);
+	};
 
 	// The Theme shown is data-theme on the page root. With none, the CSS follows the system
 	// setting (light gives Paper, dark gives Board), so the switch follows it too.
@@ -162,9 +196,10 @@ export function createPauseMenu(options: PauseMenuOptions): PauseMenu {
 	options.parent.append(root);
 
 	return {
-		open() {
+		open(bugs) {
 			// The Title Screen may have changed the Theme since this menu was made.
 			showSettings();
+			showBugs(bugs);
 			themeError.hidden = true;
 			root.hidden = false;
 			resume.focus();
