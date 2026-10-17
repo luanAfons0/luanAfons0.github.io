@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dungeon Theme</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400..800;1,400..800&family=Alegreya+SC:wght@500;700&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap" rel="stylesheet" />
+<style>
+/* ---------- Tokens ---------- */
+:root {
+	--cover: #1d4a33;
+	--cover-2: #173d2a;
+	--cover-ink: #0f2a1c;
+	--page: #e0d9c5;
+	--page-2: #d4ccb5;
+	--ink: #171717;
+	--ink-2: #4a463d;
+	--rule: #b3a98f;
+	--scrim: rgb(10 9 8 / 0.62);
+	--fell: "IM Fell English", "Iowan Old Style", Georgia, serif;
+	--fell-sc: "IM Fell English SC", "IM Fell English", Georgia, serif;
+	--body: "Alegreya", "Iowan Old Style", Georgia, serif;
+	--sc: "Alegreya SC", "Alegreya", Georgia, serif;
+	--mock-bar: #23261f;
+	color-scheme: light;
+	/* Pulp: a fixed, seeded speck pattern. In the build it is a generated PNG. */
+	--pulp: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0.29 0 0 0 0 0.25 0 0 0 0 0.18 0 0 0 7 -4.6'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+	--weave: repeating-linear-gradient(0deg, transparent 0 2px, rgb(15 42 28 / 0.35) 2px 3px), repeating-linear-gradient(90deg, transparent 0 2px, rgb(15 42 28 / 0.25) 2px 3px);
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+	background: #141611;
+	color: var(--ink);
+	font: 16px/1.5 var(--body);
+	font-variant-numeric: lining-nums;
+	min-height: 100dvh;
+}
+::selection { background: var(--ink); color: var(--page); }
+
+/* ---------- Mock chrome (not part of the design) ---------- */
+.mock-bar {
+	position: sticky; top: 0; z-index: 10;
+	display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center;
+	padding: 10px 16px;
+	background: var(--mock-bar);
+	border-bottom: 1px solid #383c33;
+	font: 13px/1 system-ui, sans-serif;
+	color: #c9cdc3;
+}
+.mock-bar__group { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+.mock-bar__label { margin-right: 4px; color: #8f9488; }
+.mock-bar button {
+	padding: 6px 10px; border: 1px solid #474b41; border-radius: 4px;
+	background: #1c1f19; color: #e0e3da; font: inherit; cursor: pointer;
+}
+.mock-bar button[aria-pressed="true"] { background: var(--page); color: var(--ink); border-color: var(--page); }
+.mock-bar button:focus-visible { outline: 2px solid var(--page); outline-offset: 2px; }
+.mock-note { margin-left: auto; color: #8f9488; }
+
+.stage-wrap { display: grid; place-items: center; padding: 24px 16px 48px; }
+.stage {
+	position: relative;
+	width: min(100%, 1280px, calc((100dvh - 120px) * 16 / 9));
+	aspect-ratio: 16 / 9;
+	overflow: hidden;
+	container-type: inline-size;
+	box-shadow: 0 18px 50px rgb(0 0 0 / 0.45);
+}
+.stage--scroll { aspect-ratio: auto; height: min(78dvh, 820px); overflow-y: auto; }
+.screen { display: none; position: absolute; inset: 0; }
+.stage--scroll .screen { position: static; min-height: 100%; }
+.screen.is-active { display: block; }
+
+/* ---------- Shared print pieces ---------- */
+.pulp { background-color: var(--page); background-image: var(--pulp); }
+.cover { background-color: var(--cover); background-image: var(--weave); }
+kbd {
+	display: inline-block; min-width: 1.7em; padding: 0.1em 0.35em 0;
+	border: 1px solid var(--ink); border-bottom-width: 2px; border-radius: 2px;
+	font: 500 0.82em/1.2 var(--sc); text-align: center; color: var(--ink); background: var(--page);
+}
+.sample-tag { font: italic 400 0.85em/1 var(--body); color: var(--ink-2); }
+/* The manicule: the printer's pointing hand, drawn once as SVG, marks the selected choice. */
+.hand { width: 1.9em; height: 1em; flex: none; fill: var(--ink); visibility: hidden; }
+a, button { -webkit-tap-highlight-color: transparent; }
+
+/* ---------- TITLE SCREEN: an open gamebook on its green cover ---------- */
+.book {
+	--f: max(10px, 1.18cqi);
+	position: absolute; inset: 0;
+	display: grid; place-items: center;
+	font-size: var(--f);
+}
+.spread {
+	position: relative;
+	display: grid; grid-template-columns: 1fr 1fr;
+	width: 92%; height: 90%;
+	box-shadow: 0 1.2em 2.6em rgb(6 18 11 / 0.55), 0 0.2em 0.4em rgb(6 18 11 / 0.4);
+}
+/* Page edges: the stacked leaves at each outer side. */
+.spread::before, .spread::after {
+	content: ""; position: absolute; top: 0.35em; bottom: 0.35em; width: 0.5em;
+	background: repeating-linear-gradient(90deg, var(--page-2) 0 1px, var(--rule) 1px 2px);
+}
+.spread::before { left: -0.5em; }
+.spread::after { right: -0.5em; }
+.leaf { position: relative; padding: 2.6em 3em 2.2em; display: flex; flex-direction: column; min-height: 0; }
+/* The fold: the paper curves into the spine, so it darkens there. */
+.leaf--l { box-shadow: inset -2.2em 0 2em -1.6em rgb(74 70 61 / 0.45); }
+.leaf--r { box-shadow: inset 2.2em 0 2em -1.6em rgb(74 70 61 / 0.45); padding-left: 3.6em; }
+.runhead {
+	display: flex; justify-content: space-between; align-items: baseline;
+	margin: 0 0 1.4em; padding-bottom: 0.35em; border-bottom: 1px solid var(--ink);
+	font: 400 0.95em/1 var(--fell-sc); letter-spacing: 0.06em; color: var(--ink-2);
+}
+.folio { margin-top: auto; padding-top: 0.8em; text-align: center; font: italic 400 0.95em/1 var(--fell); color: var(--ink-2); }
+
+.plate { margin: 0; border: 2px solid var(--ink); padding: 0.35em; background: var(--page); }
+.plate canvas { display: block; width: 100%; aspect-ratio: 4 / 3; image-rendering: auto; }
+.rules { margin-top: 1.3em; }
+.rules h2 { margin: 0 0 0.5em; font: 400 1.25em/1 var(--fell-sc); letter-spacing: 0.04em; }
+.rules dl { display: grid; grid-template-columns: auto 1fr auto 1fr; gap: 0.45em 0.8em; margin: 0; align-items: baseline; }
+.rules dt { white-space: nowrap; }
+.rules dd { margin: 0; font-size: 1.05em; }
+
+.book h1 {
+	margin: 0; font: 400 5.4em/0.9 var(--fell); letter-spacing: -0.015em; color: var(--ink);
+}
+.lede { margin: 0.55em 0 0; max-width: 30ch; font: italic 400 1.5em/1.3 var(--body); }
+.sheet { margin: 1.5em 0 0; }
+.sheet__stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8em; }
+.stat { border: 2px solid var(--ink); padding: 0.45em 0.6em 0.5em; display: flex; justify-content: space-between; align-items: baseline; gap: 0.5em; }
+.stat dt { font: 500 1.05em/1 var(--sc); letter-spacing: 0.03em; }
+.stat dd { margin: 0; font: 700 2.2em/0.9 var(--body); }
+.sheet__notes { margin: 0.7em 0 0; padding: 0; list-style: none; font-size: 1.12em; line-height: 1.4; }
+.sheet__notes li { display: flex; gap: 0.6em; }
+.sheet__notes li::before { content: ""; flex: none; width: 0.5em; height: 0.5em; margin-top: 0.45em; border: 1px solid var(--ink); }
+
+.choices { margin: 1.6em 0 0; }
+.choices h2 { margin: 0 0 0.4em; font: italic 400 1.2em/1.2 var(--body); color: var(--ink-2); }
+.choices ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.3em; }
+.choice-row { display: flex; align-items: center; gap: 0.5em; margin-left: -2.4em; }
+.choice {
+	flex: 1; display: flex; align-items: baseline; gap: 0.6em;
+	padding: 0.42em 0.7em 0.38em; margin: 0;
+	border: 0; background: transparent; color: var(--ink); text-decoration: none; text-align: left;
+	font: 700 1.5em/1 var(--sc); letter-spacing: 0.02em; cursor: pointer;
+}
+.choice__to { margin-left: auto; font: italic 400 0.72em/1 var(--body); letter-spacing: 0; color: var(--ink-2); }
+.choice__lead { flex: 1; align-self: center; height: 0; border-bottom: 2px dotted var(--rule); min-width: 1em; }
+.choice-row:has(.is-selected) .hand { visibility: visible; }
+.choice.is-selected { background: var(--ink); color: var(--page); }
+.choice.is-selected .choice__to { color: var(--page); }
+.choice.is-selected .choice__lead { border-color: rgb(224 217 197 / 0.4); }
+.choice:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.choice:active { translate: 0 1px; }
+.choice--small { font-size: 1.15em; }
+.book__foot { margin-top: auto; padding-top: 0.9em; font-size: 1.02em; color: var(--ink-2); display: flex; justify-content: space-between; gap: 1em; }
+
+/* Loading: a die rolls in steps. Error: a blocked-way note. */
+.roll { display: flex; align-items: center; gap: 0.9em; margin: 1.3em 0 0; font: italic 400 1.25em/1.2 var(--body); }
+.die { position: relative; width: 2.4em; height: 2.4em; flex: none; border: 2px solid var(--ink); border-radius: 2px; background: var(--page); }
+.die i { position: absolute; width: 0.42em; height: 0.42em; border-radius: 50%; background: var(--ink); opacity: 0; }
+.die i:nth-child(1) { left: 0.3em; top: 0.3em; } .die i:nth-child(2) { right: 0.3em; top: 0.3em; }
+.die i:nth-child(3) { left: 0.3em; top: calc(50% - 0.21em); } .die i:nth-child(4) { right: 0.3em; top: calc(50% - 0.21em); }
+.die i:nth-child(5) { left: 0.3em; bottom: 0.3em; } .die i:nth-child(6) { right: 0.3em; bottom: 0.3em; }
+.die i:nth-child(7) { left: calc(50% - 0.21em); top: calc(50% - 0.21em); }
+.die[data-face="1"] i:nth-child(7), .die[data-face="2"] i:is(:nth-child(1), :nth-child(6)),
+.die[data-face="3"] i:is(:nth-child(1), :nth-child(7), :nth-child(6)), .die[data-face="4"] i:is(:nth-child(1), :nth-child(2), :nth-child(5), :nth-child(6)),
+.die[data-face="5"] i:is(:nth-child(1), :nth-child(2), :nth-child(5), :nth-child(6), :nth-child(7)), .die[data-face="6"] i:not(:nth-child(7)) { opacity: 1; }
+.blocked { margin: 1.3em 0 0; padding: 0.7em 0.9em; border: 2px solid var(--ink); background: var(--page-2); font-size: 1.12em; line-height: 1.4; max-width: 44ch; }
+.blocked strong { font: 400 1.25em/1 var(--fell); margin-right: 0.3em; }
+
+/* NEW GAME: the ink plate grows to the window, then the game takes its place. */
+.dive { position: absolute; inset: 0; z-index: 5; pointer-events: none; background: var(--ink) center / cover no-repeat; clip-path: inset(var(--t) var(--r) var(--b) var(--l)); image-rendering: auto; }
+.dive.is-open { clip-path: inset(0 0 0 0); transition: clip-path 460ms cubic-bezier(0.77, 0, 0.175, 1); }
+
+/* ---------- GAME ---------- */
+.game { position: absolute; inset: 0; background: #0a0908; }
+.game canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+.dim { position: absolute; inset: 0; background: var(--scrim); display: grid; place-items: center; padding: 2cqi; }
+
+/* ---------- PAUSE MENU: the Adventure Sheet ---------- */
+.adv {
+	--f: max(11px, 1.12cqi);
+	font-size: var(--f);
+	width: min(36em, 100%); padding: 1.6em 1.8em 1.4em;
+	border: 2px solid var(--ink); outline: 1px solid var(--ink); outline-offset: -0.45em;
+	box-shadow: 0 14px 40px rgb(0 0 0 / 0.5);
+}
+.adv h2 { margin: 0; font: 400 2.6em/1 var(--fell); text-align: center; }
+.adv__sub { margin: 0.2em 0 1em; text-align: center; font: italic 400 1.1em/1 var(--body); color: var(--ink-2); }
+.adv__btn {
+	display: flex; width: 100%; justify-content: space-between; align-items: baseline;
+	padding: 0.5em 0.75em 0.45em; border: 2px solid var(--ink); background: transparent; color: var(--ink);
+	font: 700 1.25em/1 var(--sc); text-decoration: none; cursor: pointer;
+}
+.adv__btn:focus-visible { background: var(--ink); color: var(--page); outline: none; }
+.adv__btn:focus-visible { box-shadow: 0 0 0 2px var(--page), 0 0 0 4px var(--ink); }
+.adv__btn:active { translate: 0 1px; }
+.adv__btn small { font: italic 400 0.7em/1 var(--body); }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7em; margin: 1em 0; }
+.field { position: relative; margin: 0; padding: 1.15em 0.75em 0.6em; border: 1px solid var(--ink); min-width: 0; }
+.field--wide { grid-column: 1 / -1; }
+.field > legend, .field > .field__name {
+	position: absolute; top: -0.65em; left: 0.6em; padding: 0 0.35em; background: var(--page);
+	font: 500 1em/1.2 var(--sc); letter-spacing: 0.03em;
+}
+.tick { display: inline-flex; align-items: center; gap: 0.5em; font-size: 1.12em; cursor: pointer; }
+.tick + .tick { margin-left: 1.1em; }
+.tick input { appearance: none; margin: 0; width: 1.05em; height: 1.05em; border: 2px solid var(--ink); background: var(--page); display: grid; place-items: center; cursor: pointer; }
+.tick input[type="radio"] { border-radius: 50%; }
+.tick input:checked { background: var(--ink); box-shadow: inset 0 0 0 2px var(--page); }
+.tick input:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.range { display: flex; align-items: center; gap: 0.8em; }
+.range input { flex: 1; appearance: none; height: 2px; background: var(--ink); margin: 0; }
+.range input::-webkit-slider-thumb { appearance: none; width: 0.85em; height: 1.3em; background: var(--ink); border: 2px solid var(--page); outline: 1px solid var(--ink); cursor: pointer; }
+.range input::-moz-range-thumb { width: 0.85em; height: 1.3em; background: var(--ink); border: 2px solid var(--page); border-radius: 0; cursor: pointer; }
+.range input:active::-webkit-slider-thumb { background: var(--page); border-color: var(--ink); }
+.range input:active::-moz-range-thumb { background: var(--page); border-color: var(--ink); }
+.range input:focus-visible { outline: 2px solid var(--ink); outline-offset: 6px; }
+.range output { font: 700 1.3em/1 var(--body); min-width: 1.6em; text-align: right; }
+.tally { display: flex; gap: 0.35em; align-items: center; }
+.tally span { width: 1.3em; height: 1.3em; border: 2px solid var(--ink); }
+.tally span.is-done { background: linear-gradient(45deg, transparent 44%, var(--ink) 44% 56%, transparent 56%), linear-gradient(-45deg, transparent 44%, var(--ink) 44% 56%, transparent 56%); }
+.tally b { margin-left: auto; font: 700 1.25em/1 var(--body); }
+.adv__hint { margin: 0.45em 0 0; font: italic 400 1.05em/1.3 var(--body); color: var(--ink-2); text-align: center; }
+
+/* ---------- EXHIBIT PANEL: one numbered section ---------- */
+.section {
+	--f: clamp(11px, min(1.2cqi, 2.1cqh), 20px);
+	font-size: var(--f);
+	width: min(46em, 100%); max-height: 100%; overflow: auto;
+	padding: 1.8em 2.6em 1.5em;
+	box-shadow: 0 18px 50px rgb(0 0 0 / 0.55);
+}
+.section__num { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 0.8em; margin: 0; }
+.section__num::before, .section__num::after { content: ""; height: 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); padding-top: 2px; }
+.section__num b { font: 800 3.2em/0.9 var(--body); letter-spacing: 0.02em; }
+.section__kind { margin: 0.15em 0 0; text-align: center; font: italic 400 1.15em/1 var(--body); color: var(--ink-2); }
+.section h2 { margin: 0.7em 0 0; font: 400 2.6em/1 var(--fell); }
+.section__summary { margin: 0.35em 0 0; font: italic 400 1.4em/1.35 var(--body); max-width: 44ch; }
+.section__details { margin: 0.8em 0 0; font-size: 1.12em; line-height: 1.55; max-width: 62ch; }
+.section__details + .section__details { margin-top: 0.5em; text-indent: 1.4em; }
+.section h3 { margin: 1.1em 0 0.35em; font: 500 1.1em/1 var(--sc); letter-spacing: 0.03em; }
+.section ul { margin: 0; padding: 0; list-style: none; }
+.section a, .sv a.ink-link {
+	color: var(--ink); font-weight: 600; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 0.22em;
+}
+.section a:focus-visible, .sv a.ink-link:focus-visible { background: var(--ink); color: var(--page); text-decoration-color: var(--ink); outline: none; }
+.section__foot { display: flex; justify-content: space-between; align-items: center; margin-top: 1.4em; padding-top: 0.8em; border-top: 1px solid var(--ink); }
+.btn {
+	display: inline-flex; align-items: center; gap: 0.6em; padding: 0.45em 0.8em 0.4em;
+	border: 2px solid var(--ink); background: transparent; color: var(--ink); font: 700 1.1em/1 var(--sc); cursor: pointer;
+}
+.btn:focus-visible { background: var(--ink); color: var(--page); outline: none; }
+.btn:focus-visible kbd { background: var(--ink); color: var(--page); border-color: var(--page); }
+.btn:active { translate: 0 1px; }
+
+/* ---------- RESUME PROMPT ---------- */
+.resume { position: absolute; inset: 0; display: grid; place-items: center; width: 100%; border: 0; padding: 0; background: rgb(10 9 8 / 0.5); cursor: pointer; }
+.resume span { --f: max(11px, 1.2cqi); font: 700 calc(var(--f) * 1.5)/1 var(--sc); padding: 0.75em 1.1em 0.7em; border: 2px solid var(--ink); outline: 1px solid var(--ink); outline-offset: -0.4em; color: var(--ink); }
+.resume:hover span, .resume:focus-visible span { background: var(--ink); color: var(--page); outline-color: var(--page); }
+.resume:focus-visible { outline: none; }
+
+/* ---------- SKIP VIEW: the whole book ---------- */
+.sv { min-height: 100%; padding: 32px 16px 48px; }
+.sv__page { max-width: 46rem; margin: 0 auto; padding: 40px 48px 32px; box-shadow: 0 10px 30px rgb(6 18 11 / 0.5); }
+.sv__back { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 20px; color: var(--page); font: 500 16px/1 var(--sc); text-decoration: none; }
+.sv__back svg { width: 16px; height: 16px; fill: currentColor; }
+.sv__back:hover, .sv__back:focus-visible { text-decoration: underline; text-underline-offset: 0.25em; outline: none; }
+.sv .runhead { font-size: 15px; }
+.sv h1 { margin: 0; font: 400 clamp(2.75rem, 8vw, 4.5rem)/0.92 var(--fell); }
+.sv__lede { margin: 12px 0 0; font: italic 400 1.25rem/1.35 var(--body); max-width: 40ch; }
+.sv__toc { margin: 28px 0 8px; }
+.sv__toc h2 { margin: 0 0 6px; font: 400 1.35rem/1 var(--fell-sc); letter-spacing: 0.04em; }
+.sv__toc ol { margin: 0; padding: 0; list-style: none; }
+.sv__toc a { display: flex; gap: 8px; align-items: baseline; padding: 4px 0; color: var(--ink); text-decoration: none; font-size: 1.1rem; }
+.sv__toc a::after { content: ""; order: 1; flex: 1; border-bottom: 2px dotted var(--rule); }
+.sv__toc a span:last-child { order: 2; font: 700 1.1rem/1 var(--body); }
+.sv__toc a:focus-visible span:first-child { background: var(--ink); color: var(--page); outline: none; }
+.sv__toc a:focus-visible { outline: none; }
+.sv-room { margin-top: 36px; }
+.sv-room > h2 { margin: 0; padding-bottom: 6px; border-bottom: 1px solid var(--ink); font: 400 2rem/1 var(--fell); }
+.sv-ex { margin-top: 26px; }
+.sv-ex .section__num b { font-size: 2.25rem; }
+.sv-ex .section__kind { font-size: 1rem; }
+.sv-ex h3 { margin: 10px 0 0; font: 400 1.75rem/1.05 var(--fell); }
+.sv-ex__summary { margin: 4px 0 0; font: italic 400 1.15rem/1.4 var(--body); }
+.sv-ex p { max-width: 62ch; }
+.sv-ex ul { display: flex; gap: 18px; margin: 6px 0 0; padding: 0; list-style: none; }
+.sv__end { margin: 40px 0 0; text-align: center; font: italic 400 1.1rem/1 var(--fell); color: var(--ink-2); }
+@media (max-width: 560px) {
+	.sv { padding: 16px 0 32px; }
+	.sv__back { display: none; }
+	.sv__page { padding: 28px 16px 24px; box-shadow: none; }
+}
+
+/* Hover only where a real pointer hovers; a tap on a phone must not leave a link inverted. */
+@media (hover: hover) and (pointer: fine) {
+	.adv__btn:hover, .btn:hover { background: var(--ink); color: var(--page); }
+	.btn:hover kbd { background: var(--ink); color: var(--page); border-color: var(--page); }
+	.section a:hover, .sv a.ink-link:hover, .sv__toc a:hover span:first-child { background: var(--ink); color: var(--page); text-decoration-color: var(--ink); }
+}
+
+/* ---------- Motion (off under reduced motion) ---------- */
+@media (prefers-reduced-motion: no-preference) {
+	.screen.is-active .adv, .screen.is-active .section { animation: rise 140ms cubic-bezier(0.23, 1, 0.32, 1) both; }
+}
+@keyframes rise { from { opacity: 0; translate: 0 10px; } }
+</style>
+</head>
+<body>
+
+<!-- Mock chrome: switches screen and Title Screen state. Not part of the design. -->
+<div class="mock-bar" role="toolbar" aria-label="Mock controls">
+	<div class="mock-bar__group" data-group="screen">
+		<span class="mock-bar__label">Screen</span>
+		<button type="button" data-set-screen="title" aria-pressed="true">Title Screen</button>
+		<button type="button" data-set-screen="game" aria-pressed="false">Game</button>
+		<button type="button" data-set-screen="pause" aria-pressed="false">Pause Menu</button>
+		<button type="button" data-set-screen="exhibit" aria-pressed="false">Exhibit Panel</button>
+		<button type="button" data-set-screen="resume" aria-pressed="false">Resume</button>
+		<button type="button" data-set-screen="skip" aria-pressed="false">Skip View</button>
+	</div>
+	<div class="mock-bar__group" data-group="state">
+		<span class="mock-bar__label">Title state</span>
+		<button type="button" data-set-state="idle" aria-pressed="true">Idle</button>
+		<button type="button" data-set-state="loading" aria-pressed="false">Loading</button>
+		<button type="button" data-set-state="error" aria-pressed="false">Error</button>
+	</div>
+	<span class="mock-note">Dungeon Theme only; Paper and Board do not change. Sample Exhibits. Phones get the Skip View; other screens show scaled down.</span>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+	<!-- The manicule, on a 19x10 grid: a cuff, a fist, and one finger that points right. -->
+	<symbol id="hand" viewBox="0 0 19 10"><path d="M0 2h3v6H0zM4 1h2v1h7v1h5v1h1v1h-1v1h-6v1h1v1h-1v1H5V8H4z"/><path fill="#e0d9c5" d="M6 3h1v1H6zM6 6h5v1H6z" opacity=".55"/></symbol>
+	<!-- A back arrow on an 8x8 grid. -->
+	<symbol id="back" viewBox="0 0 8 8"><path d="M3 1h1v1h1v1h3v2H5v1H4v1H3V6H2V5H1V3h1V2h1z"/></symbol>
+</svg>
+
+<div class="stage-wrap">
+<div class="stage" id="stage">
+	<div class="dive" hidden></div>
+
+	<!-- ============ TITLE SCREEN ============ -->
+	<section class="screen is-active" data-screen="title" aria-label="Title Screen">
+		<div class="book cover">
+			<div class="spread">
+				<div class="leaf leaf--l pulp">
+					<div class="runhead" aria-hidden="true"><span>The Keep</span><span>Plate I</span></div>
+					<figure class="plate"><canvas width="320" height="240" data-ink-plate role="img" aria-label="An ink drawing of a stone corridor lit by a torch, with a small slime on the floor."></canvas></figure>
+					<section class="rules" aria-labelledby="rules-h" data-state-show="idle">
+						<h2 id="rules-h">How to Play</h2>
+						<dl>
+							<dt><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dt><dd>Move</dd>
+							<dt><kbd>E</kbd></dt><dd>Use</dd>
+							<dt><kbd>Mouse</kbd></dt><dd>Look</dd>
+							<dt><kbd>Click</kbd></dt><dd>Fix a Bug</dd>
+							<dt><kbd>Esc</kbd></dt><dd>Pause</dd>
+							<dt><kbd>M</kbd></dt><dd>Mute</dd>
+						</dl>
+					</section>
+					<div class="roll" data-state-show="loading" role="progressbar" aria-label="Loading the game" hidden>
+						<span class="die" data-face="3" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+						<span>Loading the game.</span>
+					</div>
+					<p class="blocked" data-state-show="error" role="alert" hidden><strong>The way is blocked.</strong> The game could not load. Check your connection, then choose NEW GAME to reload the page. Or choose SKIP.</p>
+					<p class="folio" aria-hidden="true">ii</p>
+				</div>
+				<div class="leaf leaf--r pulp">
+					<div class="runhead" aria-hidden="true"><span>Background</span><span>Luan Afonso</span></div>
+					<h1>Luan Afonso</h1>
+					<p class="lede">Software engineer. This portfolio is a small first-person game that runs in your browser.</p>
+					<section class="sheet" aria-labelledby="sheet-h">
+						<h2 id="sheet-h" class="visually-hidden" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Features</h2>
+						<dl class="sheet__stats">
+							<div class="stat"><dt>Rooms</dt><dd>3</dd></div>
+							<div class="stat"><dt>Exhibits</dt><dd>4</dd></div>
+							<div class="stat"><dt>Bugs</dt><dd>7</dd></div>
+						</dl>
+						<ul class="sheet__notes">
+							<li>A raycasting engine I wrote from scratch in TypeScript</li>
+							<li>Skip View: every project, job, and skill on one page</li>
+						</ul>
+					</section>
+
+					<nav class="choices" aria-label="Title Screen">
+						<h2>Now choose:</h2>
+						<ul>
+							<li class="choice-row"><svg class="hand" aria-hidden="true"><use href="#hand"/></svg><button class="choice is-selected" type="button" data-menu-item="new-game">New Game <span class="choice__lead" aria-hidden="true"></span><span class="choice__to">turn to 1</span></button></li>
+							<li class="choice-row"><svg class="hand" aria-hidden="true"><use href="#hand"/></svg><a class="choice" href="#skip" data-menu-item="skip">Skip <span class="choice__lead" aria-hidden="true"></span><span class="choice__to">read every page</span></a></li>
+							<li class="choice-row"><svg class="hand" aria-hidden="true"><use href="#hand"/></svg><button class="choice choice--small" type="button" data-menu-item="theme">Theme: Dungeon <span class="choice__lead" aria-hidden="true"></span><span class="choice__to">Paper, Board, Dungeon</span></button></li>
+						</ul>
+					</nav>
+					<p class="book__foot"><span><kbd>Up</kbd> <kbd>Down</kbd> to choose, <kbd>Enter</kbd> to select</span><span class="folio" style="margin:0;padding:0">iii</span></p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- ============ GAME ============ -->
+	<section class="screen" data-screen="game" aria-label="Game">
+		<div class="game"><canvas width="640" height="360" data-game-canvas aria-label="Game view"></canvas></div>
+	</section>
+
+	<!-- ============ PAUSE MENU ============ -->
+	<section class="screen" data-screen="pause" aria-label="Pause Menu">
+		<div class="game"><canvas width="640" height="360" data-game-canvas aria-hidden="true"></canvas></div>
+		<div class="dim">
+			<div class="adv pulp" role="dialog" aria-modal="true" aria-labelledby="pm-title">
+				<h2 id="pm-title">Paused</h2>
+				<p class="adv__sub">Adventure Sheet</p>
+				<button class="adv__btn" type="button">Resume <small>back to the keep</small></button>
+				<div class="fields">
+					<label class="field field--wide"><span class="field__name">Mouse sensitivity</span><span class="range"><input type="range" min="0.2" max="3" step="0.1" value="1.2" oninput="this.nextElementSibling.value=(+this.value).toFixed(1)" /><output>1.2</output></span></label>
+					<div class="field"><span class="field__name">Mouse</span><label class="tick"><input type="checkbox" />Invert</label></div>
+					<div class="field"><span class="field__name">Sound <kbd>M</kbd></span><label class="tick"><input type="checkbox" checked />On</label></div>
+					<fieldset class="field field--wide"><legend>Theme</legend><label class="tick"><input type="radio" name="theme" value="paper" />Paper</label><label class="tick"><input type="radio" name="theme" value="board" />Board</label><label class="tick"><input type="radio" name="theme" value="dungeon" checked />Dungeon</label></fieldset>
+					<div class="field field--wide" role="group" aria-label="Bugs fixed: 3 of 7"><span class="field__name">Bugs fixed</span><span class="tally" aria-hidden="true"><span class="is-done"></span><span class="is-done"></span><span class="is-done"></span><span></span><span></span><span></span><span></span><b>3 of 7</b></span></div>
+				</div>
+				<a class="adv__btn" href="#skip">Skip View <small>read without playing</small></a>
+			</div>
+		</div>
+	</section>
+
+	<!-- ============ EXHIBIT PANEL ============ -->
+	<section class="screen" data-screen="exhibit" aria-label="Exhibit Panel">
+		<div class="game"><canvas width="640" height="360" data-game-canvas aria-hidden="true"></canvas></div>
+		<div class="dim">
+			<article class="section pulp" role="dialog" aria-labelledby="ep-title">
+				<p class="section__num" role="img" aria-label="Project U1"><b>U1</b></p>
+				<p class="section__kind" aria-hidden="true">Project</p>
+				<h2 id="ep-title">This portfolio</h2>
+				<p class="section__summary">A Doom-inspired first-person game in the browser that presents my work.</p>
+				<p class="section__details">A raycasting renderer written from scratch in TypeScript. It draws textured walls, posters, and a status bar into a 640x360 framebuffer at 60 FPS.</p>
+				<p class="section__details">The Level is drawn in the Tiled map editor. All Exhibit content comes from one typed source, and the tests fail when the Level and the content do not match.</p>
+				<h3>Links</h3>
+				<ul><li><a href="https://github.com/luanAfons0/portfolio">Source code</a></li></ul>
+				<footer class="section__foot"><span class="sample-tag">Sample content</span><button class="btn" type="button">Close <kbd>Esc</kbd></button></footer>
+			</article>
+		</div>
+	</section>
+
+	<!-- ============ RESUME PROMPT ============ -->
+	<section class="screen" data-screen="resume" aria-label="Resume prompt">
+		<div class="game"><canvas width="640" height="360" data-game-canvas aria-hidden="true"></canvas></div>
+		<button class="resume" type="button"><span class="pulp">Click to resume</span></button>
+	</section>
+
+	<!-- ============ SKIP VIEW ============ -->
+	<section class="screen" data-screen="skip" aria-label="Skip View">
+		<div class="sv cover">
+			<a class="sv__back" href="#title"><svg aria-hidden="true"><use href="#back"/></svg>Back to the Title Screen</a>
+			<div class="sv__page pulp">
+				<div class="runhead" aria-hidden="true"><span>Every page</span><span>Luan Afonso</span></div>
+				<h1>Luan Afonso</h1>
+				<p class="sv__lede">My portfolio: every Exhibit from the game, Room by Room. <span class="sample-tag">Sample content</span></p>
+				<nav class="sv__toc" aria-labelledby="toc-h"><h2 id="toc-h">Rooms</h2>
+					<ol><li><a href="#d-lobby"><span>Lobby</span><span>U1, J1</span></a></li><li><a href="#d-workshop"><span>Workshop</span><span>R1</span></a></li><li><a href="#d-archive"><span>Archive</span><span>Q1</span></a></li></ol>
+				</nav>
+				<section class="sv-room" id="d-lobby" aria-labelledby="d-lobby-h"><h2 id="d-lobby-h">Lobby</h2>
+					<article class="sv-ex"><p class="section__num" role="img" aria-label="Project U1"><b>U1</b></p><p class="section__kind" aria-hidden="true">Project</p><h3>This portfolio</h3><p class="sv-ex__summary">A Doom-inspired first-person game in the browser that presents my work.</p><p>A raycasting renderer written from scratch in TypeScript. It draws textured walls, posters, and a status bar into a 640x360 framebuffer at 60 FPS.</p><ul><li><a class="ink-link" href="https://github.com/luanAfons0/portfolio">Source code</a></li></ul></article>
+					<article class="sv-ex"><p class="section__num" role="img" aria-label="Contact J1"><b>J1</b></p><p class="section__kind" aria-hidden="true">Contact</p><h3>Contact</h3><p class="sv-ex__summary">Want to talk? Find me on GitHub.</p><p>I read every message.</p><ul><li><a class="ink-link" href="https://github.com/luanAfons0">GitHub</a></li></ul></article>
+				</section>
+				<section class="sv-room" id="d-workshop" aria-labelledby="d-workshop-h"><h2 id="d-workshop-h">Workshop</h2>
+					<article class="sv-ex"><p class="section__num" role="img" aria-label="Skill R1"><b>R1</b></p><p class="section__kind" aria-hidden="true">Skill</p><h3>TypeScript</h3><p class="sv-ex__summary">Strict TypeScript for browsers and Node.</p><p>Typed domain models, test-first development, and small dependency-free modules.</p><ul><li><a class="ink-link" href="https://www.typescriptlang.org/">TypeScript</a></li></ul></article>
+				</section>
+				<section class="sv-room" id="d-archive" aria-labelledby="d-archive-h"><h2 id="d-archive-h">Archive</h2>
+					<article class="sv-ex"><p class="section__num" role="img" aria-label="Job Q1"><b>Q1</b></p><p class="section__kind" aria-hidden="true">Job</p><h3>Software Engineer at Sample Company</h3><p class="sv-ex__summary">Sample job. The real work history comes later.</p><p>Built and ran web services for a sample product.</p></article>
+				</section>
+				<p class="sv__end" aria-hidden="true">The end of the book.</p>
+			</div>
+		</div>
+	</section>
+
+</div>
+</div>
+
+<script>
+/*GAME_FRAME_JS*/
+</script>
+<script>
+(() => {
+	const stage = document.getElementById("stage");
+	const press = (group, value, attr) => {
+		for (const b of document.querySelectorAll(`[data-group="${group}"] button`)) b.setAttribute("aria-pressed", String(b.getAttribute(attr) === value));
+	};
+	const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+
+	// The ink plate on the Title Screen: the same corridor as the game, printed in one ink.
+	const plate = document.querySelector("[data-ink-plate]");
+	if (plate && typeof window.renderInkPlate === "function") window.renderInkPlate(plate);
+
+	// Game frame: render once per canvas; animate only the visible Game screen.
+	let stopAnim = null;
+	const paintGame = (screen) => {
+		if (stopAnim) { stopAnim(); stopAnim = null; }
+		if (typeof window.renderGameFrame !== "function") return;
+		for (const c of screen.querySelectorAll("[data-game-canvas]")) {
+			const stop = window.renderGameFrame(c, { animate: screen.dataset.screen === "game" });
+			if (typeof stop === "function") stopAnim = stop;
+		}
+	};
+	const setScreen = (name) => {
+		for (const s of stage.querySelectorAll(".screen")) s.classList.toggle("is-active", s.dataset.screen === name);
+		stage.classList.toggle("stage--scroll", name === "skip");
+		stage.scrollTop = 0;
+		press("screen", name, "data-set-screen");
+		paintGame(stage.querySelector(`.screen[data-screen="${name}"]`));
+	};
+
+	// Loading: the die shows a new face each step, in order, like a roll.
+	const die = document.querySelector(".die");
+	let rollTimer = 0;
+	const setState = (state) => {
+		for (const el of document.querySelectorAll("[data-state-show]")) el.hidden = el.dataset.stateShow !== state;
+		press("state", state, "data-set-state");
+		clearInterval(rollTimer);
+		if (state === "loading" && !reduce.matches) {
+			const faces = [3, 6, 1, 5, 2, 4];
+			let i = 0;
+			rollTimer = setInterval(() => { die.dataset.face = String(faces[i++ % faces.length]); }, 140);
+		}
+	};
+
+	document.addEventListener("click", (e) => {
+		const t = e.target.closest("[data-set-screen],[data-set-state]");
+		if (t?.dataset.setScreen) setScreen(t.dataset.setScreen);
+		if (t?.dataset.setState) setState(t.dataset.setState);
+		const link = e.target.closest('a[href="#skip"],a[href="#title"]');
+		if (link) { e.preventDefault(); setScreen(link.getAttribute("href").slice(1)); }
+	});
+
+	// Title Screen menu: arrows move the selection; hover and focus select, like the real one.
+	for (const nav of document.querySelectorAll('[data-screen="title"] nav')) {
+		const items = [...nav.querySelectorAll("[data-menu-item]")];
+		const select = (item) => { for (const i of items) i.classList.toggle("is-selected", i === item); };
+		for (const item of items) { item.addEventListener("mouseenter", () => select(item)); item.addEventListener("focus", () => select(item)); }
+		nav.addEventListener("keydown", (e) => {
+			if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+			e.preventDefault();
+			const i = items.findIndex((x) => x.classList.contains("is-selected"));
+			const next = items[(i + (e.key === "ArrowDown" ? 1 : items.length - 1)) % items.length];
+			select(next); next.focus();
+		});
+	}
+
+	// NEW GAME: the ink plate grows to the window, then the game takes its place.
+	const dive = stage.querySelector(".dive");
+	document.addEventListener("click", (e) => {
+		if (!e.target.closest('[data-screen="title"] [data-menu-item="new-game"]')) return;
+		if (reduce.matches || !plate) return setScreen("game");
+		const st = stage.getBoundingClientRect(), r = plate.getBoundingClientRect();
+		dive.style.backgroundImage = `url(${plate.toDataURL()})`;
+		dive.style.setProperty("--t", `${r.top - st.top}px`); dive.style.setProperty("--l", `${r.left - st.left}px`);
+		dive.style.setProperty("--r", `${st.right - r.right}px`); dive.style.setProperty("--b", `${st.bottom - r.bottom}px`);
+		dive.classList.remove("is-open"); dive.hidden = false;
+		requestAnimationFrame(() => requestAnimationFrame(() => dive.classList.add("is-open")));
+		dive.addEventListener("transitionend", () => { setScreen("game"); dive.hidden = true; dive.classList.remove("is-open"); }, { once: true });
+	});
+	setState("idle");
+})();
+</script>
+</body>
+</html>

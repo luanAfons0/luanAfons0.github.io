@@ -38,6 +38,132 @@
         ],
         "createdAt": "2026-10-16T21:17:13.414Z",
         "reason": "agent triage: approved design mock, not source; findings are one-line labels at line-height 1 and full-bleed screens or the chip body flagged as cramped containers"
+      },
+      {
+        "rule": "clipped-overflow-container",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/ui-studio/parts/dungeon-screens.html"
+        ],
+        "createdAt": "2026-10-17T03:10:20.898Z",
+        "reason": "agent triage: Dungeon Theme design mock, not source; DESIGN.md still records only the machine world and is extended at finish; stage clip and mock bar are mock chrome; stripes are the page leaves and bookcloth weave; tight leading is one-line labels"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/ui-studio/parts/dungeon-screens.html"
+        ],
+        "createdAt": "2026-10-17T03:10:20.910Z",
+        "reason": "agent triage: Dungeon Theme design mock, not source; DESIGN.md still records only the machine world and is extended at finish; stage clip and mock bar are mock chrome; stripes are the page leaves and bookcloth weave; tight leading is one-line labels"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/ui-studio/parts/dungeon-screens.html"
+        ],
+        "createdAt": "2026-10-17T03:10:20.923Z",
+        "reason": "agent triage: Dungeon Theme design mock, not source; DESIGN.md still records only the machine world and is extended at finish; stage clip and mock bar are mock chrome; stripes are the page leaves and bookcloth weave; tight leading is one-line labels"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/ui-studio/parts/dungeon-screens.html"
+        ],
+        "createdAt": "2026-10-17T03:10:20.934Z",
+        "reason": "agent triage: Dungeon Theme design mock, not source; DESIGN.md still records only the machine world and is extended at finish; stage clip and mock bar are mock chrome; stripes are the page leaves and bookcloth weave; tight leading is one-line labels"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/ui-studio/parts/dungeon-screens.html"
+        ],
+        "createdAt": "2026-10-17T03:10:20.946Z",
+        "reason": "agent triage: Dungeon Theme design mock, not source; DESIGN.md still records only the machine world and is extended at finish; stage clip and mock bar are mock chrome; stripes are the page leaves and bookcloth weave; tight leading is one-line labels"
+      },
+      {
+        "rule": "tight-leading",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/ui-studio/parts/dungeon-screens.html"
+        ],
+        "createdAt": "2026-10-17T03:10:20.959Z",
+        "reason": "agent triage: Dungeon Theme design mock, not source; DESIGN.md still records only the machine world and is extended at finish; stage clip and mock bar are mock chrome; stripes are the page leaves and bookcloth weave; tight leading is one-line labels"
+      },
+      {
+        "rule": "repeating-stripes-gradient",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/ui-studio/parts/dungeon-screens.html"
+        ],
+        "createdAt": "2026-10-17T03:10:20.971Z",
+        "reason": "agent triage: Dungeon Theme design mock, not source; DESIGN.md still records only the machine world and is extended at finish; stage clip and mock bar are mock chrome; stripes are the page leaves and bookcloth weave; tight leading is one-line labels"
+      },
+      {
+        "rule": "clipped-overflow-container",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/ui-studio/dungeon.html"
+        ],
+        "createdAt": "2026-10-17T03:10:20.985Z",
+        "reason": "agent triage: Dungeon Theme design mock, not source; DESIGN.md still records only the machine world and is extended at finish; stage clip and mock bar are mock chrome; stripes are the page leaves and bookcloth weave; tight leading is one-line labels"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/ui-studio/dungeon.html"
+        ],
+        "createdAt": "2026-10-17T03:10:20.998Z",
+        "reason": "agent triage: Dungeon Theme design mock, not source; DESIGN.md still records only the machine world and is extended at finish; stage clip and mock bar are mock chrome; stripes are the page leaves and bookcloth weave; tight leading is one-line labels"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/ui-studio/dungeon.html"
+        ],
+        "createdAt": "2026-10-17T03:10:21.011Z",
+        "reason": "agent triage: Dungeon Theme design mock, not source; DESIGN.md still records only the machine world and is extended at finish; stage clip and mock bar are mock chrome; stripes are the page leaves and bookcloth weave; tight leading is one-line labels"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/ui-studio/dungeon.html"
+        ],
+        "createdAt": "2026-10-17T03:10:21.023Z",
+        "reason": "agent triage: Dungeon Theme design mock, not source; DESIGN.md still records only the machine world and is extended at finish; stage clip and mock bar are mock chrome; stripes are the page leaves and bookcloth weave; tight leading is one-line labels"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/ui-studio/dungeon.html"
+        ],
+        "createdAt": "2026-10-17T03:10:21.035Z",
+        "reason": "agent triage: Dungeon Theme design mock, not source; DESIGN.md still records only the machine world and is extended at finish; stage clip and mock bar are mock chrome; stripes are the page leaves and bookcloth weave; tight leading is one-line labels"
+      },
+      {
+        "rule": "tight-leading",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/ui-studio/dungeon.html"
+        ],
+        "createdAt": "2026-10-17T03:10:21.048Z",
+        "reason": "agent triage: Dungeon Theme design mock, not source; DESIGN.md still records only the machine world and is extended at finish; stage clip and mock bar are mock chrome; stripes are the page leaves and bookcloth weave; tight leading is one-line labels"
+      },
+      {
+        "rule": "repeating-stripes-gradient",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/ui-studio/dungeon.html"
+        ],
+        "createdAt": "2026-10-17T03:10:21.062Z",
+        "reason": "agent triage: Dungeon Theme design mock, not source; DESIGN.md still records only the machine world and is extended at finish; stage clip and mock bar are mock chrome; stripes are the page leaves and bookcloth weave; tight leading is one-line labels"
       }
     ]
   }
