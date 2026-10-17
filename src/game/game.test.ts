@@ -24,7 +24,16 @@ import {
 	tiledLevel,
 	tiledRoom,
 } from "./test-support/tiled-level";
-import { type ArtSet, MACHINE_ART_SET, posterPath, SOUND_EVENTS, TEXTURE_ROLES } from "./theme";
+import {
+	type ArtSet,
+	artSetOf,
+	DUNGEON_ART_SET,
+	MACHINE_ART_SET,
+	posterPath,
+	SOUND_EVENTS,
+	TEXTURE_ROLES,
+	THEMES,
+} from "./theme";
 
 const IDLE: InputSnapshot = { forward: 0, strafe: 0, turn: 0, look: 0 };
 const FORWARD: InputSnapshot = { ...IDLE, forward: 1 };
@@ -374,9 +383,23 @@ describe("Art set", () => {
 		return { ...MACHINE_ART_SET, [key]: map };
 	}
 
-	it("creates the Game core with the real sample Level and the machine art set", () => {
-		const game = createGame({ level: sampleLevel, content: EXHIBITS, artSet: MACHINE_ART_SET });
+	it.each(THEMES)("creates the Game core with the real sample Level and the art set of the %s Theme", (theme) => {
+		const artSet = artSetOf(theme);
+		const image = { texture: solidTexture(GREEN), left: 2, top: 4 };
+		const sprites = Object.fromEntries(bugFrameNames(artSet).map((name) => [name, image]));
+		const posters = Object.fromEntries(EXHIBITS.map(({ id }) => [id, solidTexture(GREEN)]));
+
+		const game = createGame({ level: sampleLevel, content: EXHIBITS, artSet, sprites, posters });
+
 		expect(game.state().room).toBe("Lobby");
+	});
+
+	it("maps Paper and Board (and no saved Theme) to the machine art set, and Dungeon to the dungeon art set", () => {
+		expect(artSetOf("paper")).toBe(MACHINE_ART_SET);
+		expect(artSetOf("board")).toBe(MACHINE_ART_SET);
+		expect(artSetOf(undefined)).toBe(MACHINE_ART_SET);
+		expect(artSetOf("dungeon")).toBe(DUNGEON_ART_SET);
+		expect(DUNGEON_ART_SET.name).toBe("dungeon");
 	});
 
 	it("has the real sample Level name texture roles only", () => {
@@ -449,27 +472,30 @@ describe("Art set", () => {
 		expect(bugFrameNames(artSet)).toEqual(["W1", "W2", "F1", "DONE"]);
 	});
 
-	it("names only committed files: textures, Bug frames with anchors, posters, and sounds", () => {
-		const committed = Object.keys(import.meta.glob(["/public/**/*.png", "/public/**/*.wav", "/public/**/*.json"]));
-		const { folders } = MACHINE_ART_SET;
-		const allOffsets = import.meta.glob<Record<string, unknown>>("/public/**/offsets.json", {
-			eager: true,
-			import: "default",
-		});
-		const offsets = allOffsets[`/public/${folders.sprites}/offsets.json`] ?? {};
+	it.each([MACHINE_ART_SET, DUNGEON_ART_SET])(
+		"names only committed files in the $name art set: textures, Bug frames with anchors, posters, and sounds",
+		(artSet) => {
+			const committed = Object.keys(import.meta.glob(["/public/**/*.png", "/public/**/*.wav", "/public/**/*.json"]));
+			const { folders } = artSet;
+			const allOffsets = import.meta.glob<Record<string, unknown>>("/public/**/offsets.json", {
+				eager: true,
+				import: "default",
+			});
+			const offsets = allOffsets[`/public/${folders.sprites}/offsets.json`] ?? {};
 
-		for (const role of TEXTURE_ROLES) {
-			expect(committed).toContain(`/public/${folders.textures}/${MACHINE_ART_SET.textures[role]}.png`);
-		}
-		for (const name of bugFrameNames(MACHINE_ART_SET)) {
-			expect(committed).toContain(`/public/${folders.sprites}/${name}.png`);
-			expect(offsets[name]).toEqual({ left: expect.any(Number), top: expect.any(Number) });
-		}
-		for (const { id } of EXHIBITS) expect(committed).toContain(`/public/${posterPath(MACHINE_ART_SET, id)}`);
-		for (const event of SOUND_EVENTS) {
-			expect(committed).toContain(`/public/${folders.sounds}/${MACHINE_ART_SET.sounds[event]}.wav`);
-		}
-	});
+			for (const role of TEXTURE_ROLES) {
+				expect(committed).toContain(`/public/${folders.textures}/${artSet.textures[role]}.png`);
+			}
+			for (const name of bugFrameNames(artSet)) {
+				expect(committed).toContain(`/public/${folders.sprites}/${name}.png`);
+				expect(offsets[name]).toEqual({ left: expect.any(Number), top: expect.any(Number) });
+			}
+			for (const { id } of EXHIBITS) expect(committed).toContain(`/public/${posterPath(artSet, id)}`);
+			for (const event of SOUND_EVENTS) {
+				expect(committed).toContain(`/public/${folders.sounds}/${artSet.sounds[event]}.wav`);
+			}
+		},
+	);
 });
 
 describe("Rooms", () => {

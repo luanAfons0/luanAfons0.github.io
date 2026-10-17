@@ -5,7 +5,7 @@
  * click or key press. Nothing is created or loaded before that: the Title Screen stays light.
  */
 
-import { type ArtSet, MACHINE_ART_SET, type SoundEvent } from "../game/theme";
+import type { ArtSet, SoundEvent } from "../game/theme";
 
 export type { SoundEvent } from "../game/theme";
 
@@ -23,10 +23,12 @@ export interface Audio {
 }
 
 /**
- * The Audio, with the sound of each event at `<soundsUrl>/<file>.wav`, where `sounds` names the
- * file (default: the machine art set).
+ * The Audio of an art set: the sound of each event is `<baseUrl><sounds folder>/<file>.wav`, where
+ * the art set names the folder and the file. `baseUrl` is the base path of the site, such as `/portfolio/`.
  */
-export function createAudio(soundsUrl: string, sounds: ArtSet["sounds"] = MACHINE_ART_SET.sounds): Audio {
+export function createAudio(baseUrl: string, artSet: Pick<ArtSet, "folders" | "sounds">): Audio {
+	const soundsUrl = `${baseUrl}${artSet.folders.sounds}`;
+	const { sounds } = artSet;
 	let context: AudioContext | undefined;
 	let output: GainNode | undefined;
 	let muted = false;

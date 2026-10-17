@@ -87,6 +87,11 @@
 	color-scheme: light;
 }
 
+/* The Dungeon Theme has its own game art, but no HTML look yet: its HTML surfaces show Paper. */
+:root[data-theme="dungeon"] {
+	color-scheme: light;
+}
+
 :root[data-theme="board"] {
 	color-scheme: dark;
 }
@@ -94,7 +99,8 @@
 /* One look at a time. CSS has no "or" between a selector and a media query, so the system case
    (no data-theme) has its own rules. */
 :root[data-theme="board"] .only-paper,
-:root[data-theme="paper"] .only-board {
+:root[data-theme="paper"] .only-board,
+:root[data-theme="dungeon"] .only-board {
 	display: none;
 }
 

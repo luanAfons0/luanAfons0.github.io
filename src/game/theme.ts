@@ -3,7 +3,7 @@
  * A Theme is an art set (what the game draws and plays) plus a look for the HTML surfaces.
  * This module has no imports, so the Title Screen can use it without game code.
  */
-export const THEMES = ["paper", "board"] as const;
+export const THEMES = ["paper", "board", "dungeon"] as const;
 
 export type Theme = (typeof THEMES)[number];
 
@@ -11,6 +11,7 @@ export type Theme = (typeof THEMES)[number];
 export const THEME_LABELS: Readonly<Record<Theme, string>> = {
 	paper: "Paper",
 	board: "Board",
+	dungeon: "Dungeon",
 };
 
 export function isTheme(value: unknown): value is Theme {
@@ -124,6 +125,60 @@ export const MACHINE_ART_SET: ArtSet = {
 		outline: [58, 64, 69],
 	},
 };
+
+/**
+ * The dungeon art set, of the Dungeon Theme: a torch-lit stone keep. Its wall textures, Slime Bug
+ * frames, banner posters, and sounds all come from `scripts/dungeon-art.ts`.
+ */
+export const DUNGEON_ART_SET: ArtSet = {
+	name: "dungeon",
+	folders: {
+		textures: "dungeon/textures",
+		sprites: "dungeon/sprites",
+		posters: "dungeon/posters",
+		sounds: "dungeon/sounds",
+	},
+	textures: {
+		"wall-a": "stone-a",
+		"wall-b": "stone-b",
+		feature: "torch",
+		storage: "shelf",
+		door: "door",
+		"door-track": "door-track",
+	},
+	// A Slime: two frames walk (squash and stretch). When fixed, it flashes, breaks into drops, and
+	// fades into an ink tick box; then the "cleared" mark (the ticked box) holds for three more.
+	bugWalkFrames: ["slime-walk-1", "slime-walk-2"],
+	bugFixFrames: ["slime-fix-1", "slime-fix-2", "slime-fix-3", "slime-cleared", "slime-cleared", "slime-cleared"],
+	sounds: { shot: "shot", "door-open": "door-open" },
+	ceiling: [14, 13, 12],
+	floor: [34, 32, 29],
+	// A pulp paper bar with ink lines and labels; the hint and the crosshair are paper with an ink outline.
+	hud: {
+		value: [23, 23, 23],
+		label: [74, 70, 61],
+		hint: [224, 217, 197],
+		hintOutline: [23, 23, 23],
+		crosshair: [224, 217, 197],
+		bar: [224, 217, 197],
+		outline: [23, 23, 23],
+	},
+};
+
+/** The art set of each Theme. Paper and Board are two looks of one machine art set. */
+const THEME_ART_SETS: Readonly<Record<Theme, ArtSet>> = {
+	paper: MACHINE_ART_SET,
+	board: MACHINE_ART_SET,
+	dungeon: DUNGEON_ART_SET,
+};
+
+/**
+ * The art set of a Theme: the only place a caller gets an art set. With no Theme, the system
+ * setting chooses Paper or Board, which both use the machine art set.
+ */
+export function artSetOf(theme: Theme | undefined): ArtSet {
+	return THEME_ART_SETS[theme ?? "paper"];
+}
 
 /** The poster of an Exhibit in an art set: a PNG path relative to `public/`, named by the Exhibit id. */
 export function posterPath(artSet: Pick<ArtSet, "folders">, exhibitId: string): string {
