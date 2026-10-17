@@ -13,6 +13,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { bugs } from "./dungeon-art/bugs.ts";
 import type { GeneratedFile } from "./dungeon-art/files.ts";
+import { plate } from "./dungeon-art/plate.ts";
 import { posters } from "./dungeon-art/posters.ts";
 import { sounds } from "./dungeon-art/sounds.ts";
 import { textures } from "./dungeon-art/textures.ts";
@@ -22,7 +23,7 @@ import { tiles } from "./dungeon-art/tiles.ts";
 export const DUNGEON_ART_FOLDER = "public/dungeon";
 
 /** The asset kinds, in the order they are written. */
-const KINDS: readonly (() => GeneratedFile[])[] = [textures, bugs, () => posters(), sounds, tiles];
+const KINDS: readonly (() => GeneratedFile[])[] = [textures, bugs, () => posters(), sounds, tiles, plate];
 
 /** Writes every file of the dungeon art set into `outDir`. Returns their paths inside `outDir`, sorted. */
 export function generateDungeonArt(outDir: string): string[] {
