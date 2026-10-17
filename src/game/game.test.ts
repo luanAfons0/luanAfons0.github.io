@@ -586,6 +586,12 @@ describe("Art set", () => {
 			expect(lit(pixelAt(dungeon, SCREEN_WIDTH / 2, HORIZON))).toBe("r");
 			expect(lit(pixelAt(dungeon, wall.x, wall.y))).toBe("g");
 			expect(shadesOf(DUNGEON_ART_SET.floor).has(pixelAt(dungeon, floor.x, floor.y))).toBe(true);
+			// The status bar is filled with the bar color of the art set.
+			const barPixels = (frame: Framebuffer, artSet: ArtSet) =>
+				frame.pixels.subarray(VIEW_HEIGHT * SCREEN_WIDTH).filter((pixel) => pixel === rgb(...artSet.hud.bar)).length;
+			expect(barPixels(machine, MACHINE_ART_SET)).toBeGreaterThan(SCREEN_WIDTH * 10);
+			expect(barPixels(dungeon, DUNGEON_ART_SET)).toBeGreaterThan(SCREEN_WIDTH * 10);
+			expect(barPixels(dungeon, MACHINE_ART_SET)).toBe(0);
 		});
 
 		it.each([
