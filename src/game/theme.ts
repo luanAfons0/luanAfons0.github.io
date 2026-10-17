@@ -21,7 +21,22 @@ export function isTheme(value: unknown): value is Theme {
 export type Rgb = readonly [red: number, green: number, blue: number];
 
 /** The sound events of the Game core. */
-export type SoundEvent = "shot" | "door-open";
+export const SOUND_EVENTS = ["shot", "door-open"] as const;
+
+export type SoundEvent = (typeof SOUND_EVENTS)[number];
+
+/**
+ * The texture roles: the textures a Level names, which belong to no one art set. Each art set
+ * maps every role to a file of its own: two plain walls, a feature wall (such as a chip or a torch),
+ * a storage wall (such as a rack or a shelf), the door, and the door track (the side walls of a door cell).
+ */
+export const TEXTURE_ROLES = ["wall-a", "wall-b", "feature", "storage", "door", "door-track"] as const;
+
+export type TextureRole = (typeof TEXTURE_ROLES)[number];
+
+export function isTextureRole(value: unknown): value is TextureRole {
+	return typeof value === "string" && (TEXTURE_ROLES as readonly string[]).includes(value);
+}
 
 /** The colors of the HUD: the crosshair, the status bar, and the hint above it. */
 export interface HudColors {
@@ -41,7 +56,7 @@ export interface HudColors {
 }
 
 /** The kinds of files an art set has, each in its own folder. */
-export type AssetKind = "textures" | "sprites" | "sounds";
+export type AssetKind = "textures" | "sprites" | "posters" | "sounds";
 
 /**
  * An art set: everything the game draws and plays. The Level, the Bugs, the HUD, and the Audio
@@ -52,12 +67,13 @@ export interface ArtSet {
 	/** A short name for error messages. */
 	name: string;
 	/**
-	 * The folder under `public/` of each kind of file: `<textures>/<name>.png`, `<sprites>/<name>.png`
-	 * with their anchors in `<sprites>/offsets.json`, and `<sounds>/<file>.wav`.
+	 * The folder under `public/` of each kind of file: `<textures>/<file>.png`, `<sprites>/<name>.png`
+	 * with their anchors in `<sprites>/offsets.json`, `<posters>/<Exhibit id>.png` (see `posterPath`),
+	 * and `<sounds>/<file>.wav`.
 	 */
 	folders: Readonly<Record<AssetKind, string>>;
-	/** The wall, door, and door track textures a Level may name. */
-	textures: readonly string[];
+	/** The PNG file (with no extension) in the textures folder of each texture role. */
+	textures: Readonly<Record<TextureRole, string>>;
 	/** The frames of a walking Bug, in order. A Level with Bugs needs at least one. */
 	bugWalkFrames: readonly string[];
 	/** The frames of a Bug being fixed, in order; repeat a frame to hold it. A Level with Bugs needs at least one. */
@@ -72,12 +88,24 @@ export interface ArtSet {
 
 /**
  * The machine art set, which the Paper and Board Themes share: a circuit board. Its wall textures,
- * Bug frames, and sounds all come from `scripts/machine-art.ts`.
+ * Bug frames, posters, and sounds all come from `scripts/machine-art.ts`.
  */
 export const MACHINE_ART_SET: ArtSet = {
 	name: "machine",
-	folders: { textures: "machine/textures", sprites: "machine/sprites", sounds: "machine/sounds" },
-	textures: ["board-a", "board-b", "chip", "rack", "door", "door-track"],
+	folders: {
+		textures: "machine/textures",
+		sprites: "machine/sprites",
+		posters: "machine/posters",
+		sounds: "machine/sounds",
+	},
+	textures: {
+		"wall-a": "board-a",
+		"wall-b": "board-b",
+		feature: "chip",
+		storage: "rack",
+		door: "door",
+		"door-track": "door-track",
+	},
 	// A beetle: two frames walk. When fixed, three frames flash it and fade it into a silkscreen box,
 	// then the "patched" mark (the box with a check) holds for three more.
 	bugWalkFrames: ["beetle-walk-1", "beetle-walk-2"],
@@ -96,3 +124,8 @@ export const MACHINE_ART_SET: ArtSet = {
 		outline: [58, 64, 69],
 	},
 };
+
+/** The poster of an Exhibit in an art set: a PNG path relative to `public/`, named by the Exhibit id. */
+export function posterPath(artSet: Pick<ArtSet, "folders">, exhibitId: string): string {
+	return `${artSet.folders.posters}/${exhibitId}.png`;
+}

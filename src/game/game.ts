@@ -12,7 +12,7 @@ import { assertHudCanDraw, createHud, type HudView, STATUS_BAR_HEIGHT } from "./
 import { type Level, loadLevel, roomAt } from "./level";
 import { createPosterFace } from "./poster";
 import { DEFAULT_SETTINGS, type Settings } from "./settings";
-import { type ArtSet, MACHINE_ART_SET, type SoundEvent } from "./theme";
+import { type ArtSet, isTextureRole, MACHINE_ART_SET, SOUND_EVENTS, type SoundEvent, TEXTURE_ROLES } from "./theme";
 import { TICKS_PER_SECOND } from "./ticks";
 
 export { bugFrameNames } from "./bugs";
@@ -63,14 +63,18 @@ export interface GameOptions {
 	/** Parsed Tiled JSON for the Level. */
 	level: unknown;
 	/**
-	 * The art set the Level, the Bugs, and the HUD use. When it is given, creating the Game core
-	 * fails if the Level names a texture the art set does not have, or has Bugs and the art set has
-	 * no Bug walk or fix frame. Leave it out only in tests that name their own textures: the Bugs
-	 * and the HUD then use MACHINE_ART_SET, and the Level textures are not checked.
+	 * The art set the Level, the Bugs, the posters, and the HUD use. When it is given, creating the
+	 * Game core fails with an error that names the art set and the missing item if the art set has no
+	 * file for a texture role or no sound for a sound event, and it fails if the Level names a texture
+	 * that is not a texture role. Leave it out only in tests that name their own textures: the Bugs,
+	 * the posters, and the HUD then use MACHINE_ART_SET, and the Level textures are not checked.
+	 * With or without it, a Level with Bugs needs a Bug walk and fix frame, and given `sprites` and
+	 * `posters` must hold every Bug frame and every poster.
 	 */
 	artSet?: ArtSet;
 	/**
-	 * Decoded textures by name. It must hold every wall, door, and track texture the Level names (see `levelTextureNames`).
+	 * Decoded textures by the name the Level uses (with an art set, the texture role). It must hold
+	 * every wall, door, and track texture the Level names (see `levelTextureNames`).
 	 * Leave it out only when the walls do not matter (as in movement tests): walls then draw magenta.
 	 */
 	textures?: Readonly<Record<string, Texture>>;
@@ -80,7 +84,8 @@ export interface GameOptions {
 	 */
 	content?: readonly Exhibit[];
 	/**
-	 * Decoded poster images by Exhibit id. It must hold the poster of every Exhibit.
+	 * Decoded poster images by Exhibit id, from the posters folder of the art set (see `posterPath`).
+	 * It must hold the poster of every Exhibit.
 	 * Leave it out only when posters do not matter: the walls then show no posters.
 	 */
 	posters?: Readonly<Record<string, Texture>>;
@@ -162,7 +167,7 @@ export interface Game {
 
 export function createGame(options: GameOptions): Game {
 	const level: Level = loadLevel(options.level);
-	if (options.artSet) checkLevelTextures(level, options.artSet);
+	if (options.artSet) checkArtSet(level, options.artSet);
 	const art = options.artSet ?? MACHINE_ART_SET;
 	checkContent(level.exhibits, options.content ?? []);
 	const player: PlayerState = { ...level.playerStart };
@@ -195,7 +200,7 @@ export function createGame(options: GameOptions): Game {
 		width: SCREEN_WIDTH,
 		height: SCREEN_HEIGHT,
 		wallTextures,
-		faceTextures: posterFacesFor(level, wallTextures, options.posters),
+		faceTextures: posterFacesFor(level, wallTextures, options.posters, art),
 		trackTextures: texturesFor(level.doorTracks, options.textures),
 		ceilingColor: rgb(...art.ceiling),
 		floorColor: rgb(...art.floor),
@@ -326,13 +331,33 @@ function textureNamesOf({ wallTextures, doorTracks }: Level): string[] {
 	return [...new Set(names)].sort();
 }
 
-/** Fails with an error that names the first texture the Level uses and the art set does not have. */
-function checkLevelTextures(level: Level, artSet: ArtSet): void {
-	for (const name of textureNamesOf(level)) {
-		if (!artSet.textures.includes(name)) {
-			throw new Error(`The Level uses texture "${name}", but art set "${artSet.name}" has no texture with that name.`);
+/**
+ * Fails with an error that names the first missing item: a texture role or a sound event the art
+ * set has no file for, or a texture the Level names that is not a texture role.
+ */
+function checkArtSet(level: Level, artSet: ArtSet): void {
+	for (const role of TEXTURE_ROLES) {
+		if (!hasFile(artSet.textures, role)) {
+			throw new Error(`Art set "${artSet.name}" has no texture file for the texture role "${role}".`);
 		}
 	}
+	for (const event of SOUND_EVENTS) {
+		if (!hasFile(artSet.sounds, event)) {
+			throw new Error(`Art set "${artSet.name}" has no sound file for the sound event "${event}".`);
+		}
+	}
+	for (const name of textureNamesOf(level)) {
+		if (!isTextureRole(name)) {
+			throw new Error(
+				`The Level uses texture "${name}", which is not a texture role. Use one of: ${TEXTURE_ROLES.join(", ")}.`,
+			);
+		}
+	}
+}
+
+/** True when the map names a file for the key. An art set built at run time can lack a key its type requires. */
+function hasFile(files: Readonly<Record<string, string | undefined>>, key: string): boolean {
+	return Object.hasOwn(files, key) && typeof files[key] === "string" && files[key] !== "";
 }
 
 /** The poster face texture of each placed Exhibit, by `faceKey`. */
@@ -340,12 +365,13 @@ function posterFacesFor(
 	level: Level,
 	wallTextures: readonly (Texture | undefined)[],
 	posters: GameOptions["posters"],
+	art: Pick<ArtSet, "name">,
 ): Map<number, Texture> | undefined {
 	if (!posters) return undefined;
 	const faces = new Map<number, Texture>();
 	for (const { id, x, y, face } of level.exhibits) {
 		const poster = posters[id];
-		if (!poster) throw new Error(`Exhibit "${id}" has no poster image.`);
+		if (!poster) throw new Error(`Art set "${art.name}" has no poster image for Exhibit "${id}".`);
 		const wall = wallTextures[cellAt(level.walls, x, y)];
 		faces.set(faceKey(level.walls, x, y, face), createPosterFace(wall, poster, x, y, face));
 	}

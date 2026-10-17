@@ -91,7 +91,7 @@ export function createBugs(
 	}
 	const frame = (name: string): SpriteImage => {
 		const image = images[name];
-		if (!image) throw new Error(`The Bug needs sprite "${name}", but no sprite has that name.`);
+		if (!image) throw new Error(`Art set "${art.name}" has no image for the Bug frame "${name}".`);
 		return image;
 	};
 	const walkImages = art.bugWalkFrames.map(frame);

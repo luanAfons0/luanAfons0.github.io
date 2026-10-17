@@ -1,6 +1,6 @@
 /**
- * The wall textures: 64x64, one tile high. The Level tileset names them by file name, and the
- * art set in `src/game/theme.ts` lists the same names.
+ * The wall textures: 64x64, one tile high. The Level names texture roles, and the machine art set
+ * in `src/game/theme.ts` maps each role to one of these file names.
  */
 import { type GeneratedFile, pngFile } from "./files.ts";
 import * as c from "./palette.ts";
@@ -9,7 +9,7 @@ import { createPixmap, disc, fillRect, outlineRect, type Pixmap, path, plot, see
 const SIZE = 64;
 const LAST = SIZE - 1;
 
-/** Each texture by name. Add a texture here, then add its name to the art set. */
+/** Each texture by file name. Add a texture here, then map its texture role to it in the art set. */
 const TEXTURES: Readonly<Record<string, () => Pixmap>> = {
 	"board-a": boardA,
 	"board-b": boardB,

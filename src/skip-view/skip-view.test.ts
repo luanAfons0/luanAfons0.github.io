@@ -19,7 +19,6 @@ function exhibit(id: string, overrides: Partial<Exhibit> = {}): Exhibit {
 		summary: `Summary of ${id}`,
 		details: [`Details of ${id}`],
 		links: [{ label: `Source of ${id}`, url: `https://example.com/${id}` }],
-		poster: `posters/${id}.png`,
 		...overrides,
 	};
 }

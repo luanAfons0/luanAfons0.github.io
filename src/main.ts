@@ -20,7 +20,7 @@ import sampleLevel from "./game/levels/sample.json";
 import { createPauseMenu } from "./game/pause-menu";
 import { createResumePrompt } from "./game/resume-prompt";
 import { loadSettings, saveSettings } from "./game/settings";
-import { MACHINE_ART_SET } from "./game/theme";
+import { MACHINE_ART_SET, posterPath, type TextureRole } from "./game/theme";
 
 // The browser shell: it owns the canvas, the clock, the keyboard, the mouse, and the overlays.
 // Everything it does is manual-test only; the Game core has the tests.
@@ -28,19 +28,24 @@ import { MACHINE_ART_SET } from "./game/theme";
 // assets load then too: the import is ready when the game can start. startGame() runs the game.
 
 // Decode every wall texture, Bug sprite, and Exhibit poster once, before the first frame.
-// The wall and sprite PNGs are in the art set folders under public/, the posters at the paths the Content names.
+// All of them are in the art set folders under public/. The Level names texture roles, and the art
+// set maps each role to its file. The poster of an Exhibit is named by its id.
 const artSet = MACHINE_ART_SET;
 const texturesUrl = `${import.meta.env.BASE_URL}${artSet.folders.textures}`;
 const spritesUrl = `${import.meta.env.BASE_URL}${artSet.folders.sprites}`;
 const [textureEntries, spriteEntries, posterEntries] = await Promise.all([
 	Promise.all(
-		levelTextureNames(sampleLevel).map(
-			async (name) => [name, await loadTexture(`${texturesUrl}/${name}.png`)] as const,
-		),
+		levelTextureNames(sampleLevel).map(async (role) => {
+			const file = artSet.textures[role as TextureRole];
+			if (!file) throw new Error(`Art set "${artSet.name}" has no texture file for the texture role "${role}".`);
+			return [role, await loadTexture(`${texturesUrl}/${file}.png`)] as const;
+		}),
 	),
 	loadSprites(bugFrameNames(artSet)),
 	Promise.all(
-		EXHIBITS.map(async ({ id, poster }) => [id, await loadTexture(`${import.meta.env.BASE_URL}${poster}`)] as const),
+		EXHIBITS.map(
+			async ({ id }) => [id, await loadTexture(`${import.meta.env.BASE_URL}${posterPath(artSet, id)}`)] as const,
+		),
 	),
 ]);
 
