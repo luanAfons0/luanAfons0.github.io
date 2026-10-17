@@ -1,0 +1,637 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-17T00:48:07.233Z",
+  "title": "Design System: Luan Afonso, portfolio",
+  "extensions": {
+    "colorMeta": {
+      "paper": {
+        "role": "neutral",
+        "displayName": "Datasheet Paper",
+        "canonical": "#f2f3f0",
+        "oklch": "oklch(96.3% 0.004 121.6)",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#242422",
+          "#3f403e",
+          "#5d5e5b",
+          "#80817e",
+          "#a4a5a2",
+          "#cacbc8",
+          "#eeefec"
+        ]
+      },
+      "paper-2": {
+        "role": "neutral",
+        "displayName": "Paper Shade",
+        "canonical": "#e7e9e4",
+        "oklch": "oklch(93.1% 0.007 124.5)",
+        "tonalRamp": [
+          "#0a0c09",
+          "#232521",
+          "#3f403c",
+          "#5d5e5a",
+          "#7f817c",
+          "#a3a5a1",
+          "#c9cbc6",
+          "#edefea"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Black Ink",
+        "canonical": "#16181a",
+        "oklch": "oklch(20.8% 0.005 248.1)",
+        "tonalRamp": [
+          "#0a0b0d",
+          "#222426",
+          "#3e4042",
+          "#5b5e60",
+          "#7e8083",
+          "#a2a5a8",
+          "#c8cbce",
+          "#eceff2"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Grey Ink",
+        "canonical": "#4b5155",
+        "oklch": "oklch(43.1% 0.010 236.8)",
+        "tonalRamp": [
+          "#070c0f",
+          "#202528",
+          "#3b4144",
+          "#585f63",
+          "#7b8186",
+          "#9fa6aa",
+          "#c5ccd0",
+          "#e8f0f5"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#c8ccc5",
+        "oklch": "oklch(84.0% 0.011 131.4)",
+        "tonalRamp": [
+          "#0a0c08",
+          "#222520",
+          "#3e413b",
+          "#5b5f59",
+          "#7e827b",
+          "#a2a69f",
+          "#c8ccc5",
+          "#ecf0e9"
+        ]
+      },
+      "board": {
+        "role": "neutral",
+        "displayName": "Solder Mask",
+        "canonical": "#0f1214",
+        "oklch": "oklch(18.0% 0.006 237.0)",
+        "tonalRamp": [
+          "#090c0d",
+          "#212527",
+          "#3d4043",
+          "#5a5e61",
+          "#7d8183",
+          "#a1a5a8",
+          "#c7cbce",
+          "#ebeff2"
+        ]
+      },
+      "board-2": {
+        "role": "neutral",
+        "displayName": "Mask Shade",
+        "canonical": "#161a1d",
+        "oklch": "oklch(21.5% 0.008 240.3)",
+        "tonalRamp": [
+          "#080c0e",
+          "#202528",
+          "#3c4044",
+          "#595e62",
+          "#7c8185",
+          "#a0a5a9",
+          "#c6cbd0",
+          "#eaeff4"
+        ]
+      },
+      "mask-trace": {
+        "role": "neutral",
+        "displayName": "Trace Under Mask",
+        "canonical": "#1f262a",
+        "oklch": "oklch(26.3% 0.013 233.0)",
+        "tonalRamp": [
+          "#060c10",
+          "#1e2529",
+          "#394145",
+          "#575f64",
+          "#798287",
+          "#9da6ab",
+          "#c3ccd1",
+          "#e7f0f6"
+        ]
+      },
+      "silk": {
+        "role": "neutral",
+        "displayName": "Silkscreen",
+        "canonical": "#e9ebe6",
+        "oklch": "oklch(93.7% 0.007 124.5)",
+        "tonalRamp": [
+          "#0a0c09",
+          "#232521",
+          "#3f403c",
+          "#5d5e5a",
+          "#7f817c",
+          "#a3a5a1",
+          "#c9cbc6",
+          "#edefea"
+        ]
+      },
+      "silk-2": {
+        "role": "neutral",
+        "displayName": "Silkscreen Grey",
+        "canonical": "#9aa1a5",
+        "oklch": "oklch(70.5% 0.010 232.4)",
+        "tonalRamp": [
+          "#070c0f",
+          "#1f2528",
+          "#3b4144",
+          "#585f62",
+          "#7b8185",
+          "#9fa6aa",
+          "#c4ccd0",
+          "#e8f0f4"
+        ]
+      },
+      "silk-3": {
+        "role": "neutral",
+        "displayName": "Silkscreen Faint",
+        "canonical": "#3a4045",
+        "oklch": "oklch(36.8% 0.012 243.1)",
+        "tonalRamp": [
+          "#070c10",
+          "#1f2529",
+          "#3b4146",
+          "#585f64",
+          "#7a8187",
+          "#9fa6ac",
+          "#c4ccd2",
+          "#e8f0f6"
+        ]
+      },
+      "pad": {
+        "role": "neutral",
+        "displayName": "Tinned Pad",
+        "canonical": "#aeb3b6",
+        "oklch": "oklch(76.4% 0.007 233.7)",
+        "tonalRamp": [
+          "#080c0e",
+          "#212527",
+          "#3c4043",
+          "#5a5e61",
+          "#7c8184",
+          "#a0a5a8",
+          "#c6cbce",
+          "#eaeff2"
+        ]
+      },
+      "copper": {
+        "role": "primary",
+        "displayName": "Copper",
+        "canonical": "#c06a36",
+        "oklch": "oklch(61.3% 0.128 49.6)",
+        "tonalRamp": [
+          "#180600",
+          "#3d1801",
+          "#672c01",
+          "#944303",
+          "#bc6632",
+          "#e48b58",
+          "#feb892",
+          "#feeadf"
+        ]
+      },
+      "copper-hot": {
+        "role": "primary",
+        "displayName": "Hot Copper",
+        "canonical": "#e08a4f",
+        "oklch": "oklch(71.2% 0.129 53.5)",
+        "tonalRamp": [
+          "#170600",
+          "#3b1900",
+          "#642f00",
+          "#904600",
+          "#ba682a",
+          "#e38c51",
+          "#ffb98c",
+          "#ffeadd"
+        ]
+      },
+      "scrim": {
+        "role": "neutral",
+        "displayName": "Scrim",
+        "canonical": "#070909",
+        "oklch": "oklch(13.7% 0.004 196.7)",
+        "tonalRamp": [
+          "#090c0c",
+          "#222525",
+          "#3d4040",
+          "#5b5e5e",
+          "#7e8181",
+          "#a2a5a5",
+          "#c8cbcb",
+          "#ecefef"
+        ]
+      },
+      "game-mask": {
+        "role": "neutral",
+        "displayName": "Game Mask",
+        "canonical": "#1a2024",
+        "oklch": "oklch(23.9% 0.012 237.2)",
+        "tonalRamp": [
+          "#070c10",
+          "#1f2529",
+          "#3a4145",
+          "#585f63",
+          "#7a8186",
+          "#9ea6ab",
+          "#c4ccd1",
+          "#e8f0f5"
+        ]
+      },
+      "game-trace": {
+        "role": "neutral",
+        "displayName": "Game Trace",
+        "canonical": "#2c363c",
+        "oklch": "oklch(32.6% 0.017 234.4)",
+        "tonalRamp": [
+          "#050c11",
+          "#1c262b",
+          "#374148",
+          "#555f66",
+          "#778289",
+          "#9ba7ae",
+          "#c0cdd4",
+          "#e4f1f9"
+        ]
+      },
+      "game-ceiling": {
+        "role": "neutral",
+        "displayName": "Ceiling",
+        "canonical": "#0b0d0f",
+        "oklch": "oklch(15.8% 0.005 248.2)",
+        "tonalRamp": [
+          "#090b0d",
+          "#222427",
+          "#3e4042",
+          "#5b5e61",
+          "#7e8083",
+          "#a2a5a8",
+          "#c8cbce",
+          "#eceff2"
+        ]
+      },
+      "game-floor": {
+        "role": "neutral",
+        "displayName": "Floor",
+        "canonical": "#161b1e",
+        "oklch": "oklch(21.8% 0.010 234.2)",
+        "tonalRamp": [
+          "#070c0f",
+          "#202528",
+          "#3b4144",
+          "#595f62",
+          "#7b8185",
+          "#9fa6aa",
+          "#c5ccd0",
+          "#e9f0f4"
+        ]
+      },
+      "beetle-sheen": {
+        "role": "tertiary",
+        "displayName": "Beetle Sheen",
+        "canonical": "#5f7a6a",
+        "oklch": "oklch(55.3% 0.040 158.8)",
+        "tonalRamp": [
+          "#000f06",
+          "#112a1d",
+          "#2d4638",
+          "#4a6555",
+          "#6c8878",
+          "#90ad9c",
+          "#b6d3c1",
+          "#d9f7e5"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The name on Paper: condensed heavy Archivo (font-stretch 72%)."
+      },
+      "display-silk": {
+        "displayName": "Display, Board",
+        "purpose": "The name on Board, in Silkscreen snapped down to a multiple of 8px."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Exhibit titles on Paper (Exhibit Panel uses 800 at 2.6em, stretch 78%)."
+      },
+      "headline-silk": {
+        "displayName": "Headline, Board",
+        "purpose": "Exhibit titles on Board."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Datasheet section headings with a 1px rule under them."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Reading text, 62 to 65ch."
+      },
+      "lede": {
+        "displayName": "Lede",
+        "purpose": "The description under the name and the Exhibit summary, 30 to 46ch."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Menu items, Part labels, part numbers, buttons, pin names."
+      },
+      "label-small": {
+        "displayName": "Label small",
+        "purpose": "Key caps."
+      }
+    },
+    "shadows": [
+      {
+        "name": "sheet-over-game-paper",
+        "value": "0 18px 50px rgb(0 0 0 / 0.55)",
+        "purpose": "The Exhibit Panel in Paper."
+      },
+      {
+        "name": "sheet-over-game-board",
+        "value": "0 14px 40px rgb(0 0 0 / 0.5)",
+        "purpose": "The Exhibit Panel in Board and the Pause Menu."
+      },
+      {
+        "name": "scrim-overlay",
+        "value": "rgb(7 9 9 / 0.62)",
+        "purpose": "Dimmer behind the Exhibit Panel and the Pause Menu."
+      },
+      {
+        "name": "scrim-resume",
+        "value": "rgb(7 9 9 / 0.5)",
+        "purpose": "Dimmer behind the resume prompt."
+      }
+    ],
+    "motion": [
+      {
+        "name": "overlay-rise",
+        "value": "140ms cubic-bezier(0.23, 1, 0.32, 1)",
+        "purpose": "Exhibit Panel (12px) and Pause Menu (8px) rise on open; they close at once."
+      },
+      {
+        "name": "dive",
+        "value": "420ms cubic-bezier(0.77, 0, 0.175, 1)",
+        "purpose": "NEW GAME: a Solder Mask clip-path grows from the chip or pad to the window. Skipped with reduced motion."
+      },
+      {
+        "name": "clock-step",
+        "value": "0.5s steps(2) infinite",
+        "purpose": "Paper loading: the CLK wave marches."
+      },
+      {
+        "name": "led-step",
+        "value": "0.84s steps(1) infinite, 120ms stagger",
+        "purpose": "Board loading: LEDs light copper in steps."
+      },
+      {
+        "name": "press",
+        "value": "translate: 0 1px",
+        "purpose": "Every pressed control moves down 1px, with no transition."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "tall",
+        "value": "(max-aspect-ratio: 1 / 1)",
+        "purpose": "Title Screen ornament tier 1: one column, no chip outline, pad traces join a bus."
+      },
+      {
+        "name": "narrow",
+        "value": "600px",
+        "purpose": "Title Screen ornament tier 2: Paper drops pins 6 to 10."
+      },
+      {
+        "name": "phone",
+        "value": "35rem",
+        "purpose": "Skip View: 64px gutter, 16px gap."
+      },
+      {
+        "name": "touch-only",
+        "value": "(pointer: coarse) and (not (any-pointer: fine))",
+        "purpose": "Phones: redirected to the Skip View; the back link hides."
+      }
+    ],
+    "themes": [
+      {
+        "id": "paper",
+        "selector": ":root[data-theme=\"paper\"], or no data-theme with prefers-color-scheme: light",
+        "colorScheme": "light"
+      },
+      {
+        "id": "board",
+        "selector": ":root[data-theme=\"board\"], or no data-theme with prefers-color-scheme: dark",
+        "colorScheme": "dark"
+      }
+    ],
+    "artSet": {
+      "name": "machine",
+      "source": "scripts/machine-art.ts and scripts/machine-art/*.ts (fixed seeds, Node built-ins only)",
+      "output": "public/machine/",
+      "provenance": "PNG Software text chunk and WAV ISFT text name the generator",
+      "textures": [
+        "board-a",
+        "board-b",
+        "chip",
+        "rack",
+        "door",
+        "door-track"
+      ],
+      "bugWalkFrames": [
+        "beetle-walk-1",
+        "beetle-walk-2"
+      ],
+      "bugFixFrames": [
+        "beetle-fix-1",
+        "beetle-fix-2",
+        "beetle-fix-3",
+        "beetle-patched",
+        "beetle-patched",
+        "beetle-patched"
+      ],
+      "sounds": [
+        "shot",
+        "door-open"
+      ],
+      "hud": {
+        "value": "copper-hot",
+        "label": "silk-2",
+        "hint": "silk",
+        "hintOutline": "game-mask",
+        "crosshair": "silk",
+        "bar": "game-mask",
+        "outline": "silk-3"
+      },
+      "ceiling": "game-ceiling",
+      "floor": "game-floor"
+    }
+  },
+  "components": [
+    {
+      "name": "Part label, Paper",
+      "kind": "chip",
+      "refersTo": "part-label-paper",
+      "description": "The Exhibit's reference designator as an inked block on Paper.",
+      "html": "<span class=\"ds-part-paper\">U1</span>",
+      "css": ".ds-part-paper { display: inline-block; padding: 8px 12px 6px; background: var(--ink, #16181a); color: var(--paper, #f2f3f0); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; }"
+    },
+    {
+      "name": "Part label, Board",
+      "kind": "chip",
+      "refersTo": "part-label-board-open",
+      "description": "Board Part labels: silkscreen outline in lists, copper outline for the open Exhibit.",
+      "html": "<div class=\"ds-board\"><span class=\"ds-part-board\">R1</span><span class=\"ds-part-board ds-part-board--open\">U1</span></div>",
+      "css": ".ds-board { display: flex; gap: 16px; padding: 16px; background: var(--board, #0f1214); } .ds-part-board { padding: 8px 12px 6px; border: 2px solid var(--silk-2, #9aa1a5); color: var(--silk, #e9ebe6); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; } .ds-part-board--open { border-color: var(--copper, #c06a36); color: var(--copper-hot, #e08a4f); }"
+    },
+    {
+      "name": "Pin menu, Paper",
+      "kind": "nav",
+      "refersTo": "menu-pin-paper-selected",
+      "description": "Title Screen menu items as chip pins; the selected one is inked and its pin and trace turn copper.",
+      "html": "<div class=\"ds-pins\"><div class=\"ds-pin-row\"><button class=\"ds-pin-item is-selected\">NEW GAME</button><span class=\"ds-pin-num\">1</span><span class=\"ds-pin\"></span></div><div class=\"ds-pin-row\"><button class=\"ds-pin-item\">SKIP</button><span class=\"ds-pin-num\">2</span><span class=\"ds-pin\"></span></div><span class=\"ds-chip\"></span></div>",
+      "css": ".ds-pins { position: relative; display: grid; gap: 12px; width: max-content; padding: 16px 0 16px 16px; background: var(--paper, #f2f3f0); } .ds-pin-row { display: flex; align-items: center; justify-content: flex-end; gap: 10px; } .ds-pin-item { padding: 6px 10px; border: 0; background: none; color: var(--ink, #16181a); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; cursor: pointer; } .ds-pin-item.is-selected { background: var(--ink, #16181a); color: var(--paper, #f2f3f0); box-shadow: 12px 0 0 -10px var(--copper, #c06a36); } .ds-pin-item:hover { background: var(--ink, #16181a); color: var(--paper, #f2f3f0); } .ds-pin-item:focus-visible { outline: 2px solid var(--copper, #c06a36); outline-offset: 4px; } .ds-pin-item:active { translate: 0 1px; } .ds-pin-num { width: 16px; color: var(--ink-2, #4b5155); font: 400 8px / 1 \"Silkscreen\", ui-monospace, monospace; } .ds-pin { width: 20px; height: 12px; border-radius: 1px 0 0 1px; background: var(--pad, #aeb3b6); } .ds-pin-row:has(.is-selected) .ds-pin { background: var(--copper, #c06a36); }"
+    },
+    {
+      "name": "Pad menu, Board",
+      "kind": "nav",
+      "refersTo": "menu-pad-board-selected",
+      "description": "Title Screen menu items as pads joined by traces; only the selected pad, trace, and label are copper.",
+      "html": "<div class=\"ds-pads\"><button class=\"ds-pad-item is-selected\"><span class=\"ds-pad\"></span>NEW GAME</button><button class=\"ds-pad-item\"><span class=\"ds-pad\"></span>SKIP</button></div>",
+      "css": ".ds-pads { display: grid; gap: 16px; padding: 24px 24px 24px 56px; background: var(--board, #0f1214); } .ds-pad-item { display: inline-flex; align-items: center; padding: 0; border: 0; background: none; color: var(--silk, #e9ebe6); font: 400 24px / 1 \"Silkscreen\", ui-monospace, monospace; cursor: pointer; } .ds-pad { position: relative; width: 38px; height: 26px; margin-right: 26px; border-radius: 1px; background: var(--pad, #aeb3b6); } .ds-pad::before { content: \"\"; position: absolute; top: 50%; right: 100%; width: 32px; height: 3px; background: var(--silk-3, #3a4045); translate: 0 -50%; } .ds-pad-item.is-selected, .ds-pad-item:hover { color: var(--copper-hot, #e08a4f); } .ds-pad-item.is-selected .ds-pad, .ds-pad-item.is-selected .ds-pad::before, .ds-pad-item:hover .ds-pad, .ds-pad-item:hover .ds-pad::before { background: var(--copper, #c06a36); } .ds-pad-item:focus-visible { outline: 2px solid var(--copper-hot, #e08a4f); outline-offset: 4px; } .ds-pad-item:active { translate: 0 1px; }"
+    },
+    {
+      "name": "Button, Paper",
+      "kind": "button",
+      "refersTo": "button-paper",
+      "description": "An inked Silkscreen button, such as the Exhibit Panel close button on Paper.",
+      "html": "<button class=\"ds-btn-paper\">CLOSE (ESC)</button>",
+      "css": ".ds-btn-paper { padding: 0.55em 0.9em; border: 1px solid var(--ink, #16181a); background: var(--ink, #16181a); color: var(--paper, #f2f3f0); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; cursor: pointer; } .ds-btn-paper:hover { outline: 2px solid var(--copper, #c06a36); outline-offset: 2px; } .ds-btn-paper:focus-visible { outline: 2px solid var(--copper, #c06a36); outline-offset: 2px; } .ds-btn-paper:active { translate: 0 1px; }"
+    },
+    {
+      "name": "Button, Board",
+      "kind": "button",
+      "refersTo": "button-board",
+      "description": "A silkscreen outline that turns copper on hover and focus.",
+      "html": "<div class=\"ds-board-wrap\"><button class=\"ds-btn-board\">CLOSE (ESC)</button></div>",
+      "css": ".ds-board-wrap { padding: 16px; background: var(--board, #0f1214); } .ds-btn-board { padding: 0.55em 0.9em; border: 1px solid var(--silk-2, #9aa1a5); background: transparent; color: var(--silk, #e9ebe6); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; cursor: pointer; } .ds-btn-board:hover, .ds-btn-board:focus-visible { border-color: var(--copper-hot, #e08a4f); color: var(--copper-hot, #e08a4f); } .ds-btn-board:focus-visible { outline: 2px solid var(--copper-hot, #e08a4f); outline-offset: 2px; } .ds-btn-board:active { translate: 0 1px; }"
+    },
+    {
+      "name": "Link",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "Paper: ink text, copper underline, inverts on hover. Board: copper text, copper underline.",
+      "html": "<p class=\"ds-link-row\"><a class=\"ds-link\" href=\"#\">Source code</a></p><p class=\"ds-link-row ds-link-row--board\"><a class=\"ds-link ds-link--board\" href=\"#\">Source code</a></p>",
+      "css": ".ds-link-row { margin: 0; padding: 12px 16px; background: var(--paper, #f2f3f0); font: 400 16px / 1.5 \"Archivo\", system-ui, sans-serif; } .ds-link-row--board { background: var(--board, #0f1214); } .ds-link { color: var(--ink, #16181a); font-weight: 600; text-decoration: underline 2px var(--copper, #c06a36); text-underline-offset: 0.25em; } .ds-link:hover, .ds-link:focus-visible { background: var(--ink, #16181a); color: var(--paper, #f2f3f0); } .ds-link:focus-visible { outline: 2px solid var(--copper, #c06a36); outline-offset: 2px; } .ds-link--board { color: var(--copper-hot, #e08a4f); font-weight: 400; } .ds-link--board:hover, .ds-link--board:focus-visible { background: transparent; color: var(--silk, #e9ebe6); } .ds-link--board:focus-visible { outline-color: var(--copper-hot, #e08a4f); }"
+    },
+    {
+      "name": "Pause Menu item and DIP switch",
+      "kind": "input",
+      "refersTo": "pause-item",
+      "description": "Board controls: an outlined item whose pad turns copper, and a DIP switch whose lever is up and copper when on.",
+      "html": "<div class=\"ds-pause\"><button class=\"ds-pause-item\">RESUME</button><label class=\"ds-pause-row\">Sound <span class=\"ds-pause-ctl\"><input class=\"ds-dip\" type=\"checkbox\" checked><span class=\"ds-pause-silk\">ON</span></span></label></div>",
+      "css": ".ds-pause { display: grid; gap: 16px; width: 320px; padding: 28px 30px; border: 2px solid var(--silk-3, #3a4045); background: var(--board, #0f1214); color: var(--silk, #e9ebe6); font: 400 16px / 1.4 \"Archivo\", system-ui, sans-serif; } .ds-pause-item { display: flex; justify-content: space-between; align-items: center; padding: 0.7em 0.9em; border: 1px solid var(--silk-3, #3a4045); background: none; color: var(--silk, #e9ebe6); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; cursor: pointer; } .ds-pause-item::after { content: \"\"; width: 0.6em; height: 0.6em; background: var(--silk-3, #3a4045); } .ds-pause-item:hover, .ds-pause-item:focus-visible { border-color: var(--silk, #e9ebe6); } .ds-pause-item:hover::after, .ds-pause-item:focus-visible::after { background: var(--copper, #c06a36); } .ds-pause-item:active { translate: 0 1px; } .ds-pause-row { display: flex; justify-content: space-between; align-items: center; } .ds-pause-ctl { display: flex; align-items: center; gap: 0.6em; } .ds-pause-silk { color: var(--silk-2, #9aa1a5); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; } .ds-dip { appearance: none; position: relative; width: 1.5em; height: 2.4em; margin: 0; border: 1px solid var(--silk-2, #9aa1a5); background: var(--board-2, #161a1d); cursor: pointer; } .ds-dip::before { content: \"\"; position: absolute; left: 2px; right: 2px; bottom: 2px; height: calc(50% - 3px); background: var(--silk-2, #9aa1a5); } .ds-dip:checked::before { top: 2px; bottom: auto; background: var(--copper, #c06a36); } .ds-pause-item:focus-visible, .ds-dip:focus-visible { outline: 2px solid var(--copper-hot, #e08a4f); outline-offset: 2px; }"
+    },
+    {
+      "name": "Datasheet header",
+      "kind": "card",
+      "refersTo": "part-label-paper",
+      "description": "The Paper header: part number block left, document note right, on a 3px ink rule.",
+      "html": "<header class=\"ds-sheet-head\"><span class=\"ds-sheet-part\">LA-1</span><span class=\"ds-sheet-note\">Portfolio, readable</span></header>",
+      "css": ".ds-sheet-head { display: flex; justify-content: space-between; align-items: stretch; gap: 16px; padding: 16px 16px 0; border-bottom: 3px solid var(--ink, #16181a); background: var(--paper, #f2f3f0); } .ds-sheet-part { padding: 8px 12px 6px; background: var(--ink, #16181a); color: var(--paper, #f2f3f0); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; } .ds-sheet-note { align-self: end; padding-bottom: 6px; color: var(--ink-2, #4b5155); font: 400 0.875rem / 1.5 \"Archivo\", system-ui, sans-serif; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Datasheet and the Board",
+    "overview": "The portfolio is one electronic part seen two ways. Outside, it is the part's datasheet: cool paper, black ink, a part number (LA-1) in an inked block, rules under headers, a pin configuration figure, a table of contents with dotted leaders. Inside, it is the board the part sits on: matte-black solder mask, copper traces, white silkscreen print, tinned pads. The Title Screen, Exhibit Panel, and Skip View are reading surfaces and carry both looks through one markup; the game, the Pause Menu, and the resume prompt are always the board.\n\nThe two looks are the two Themes. **Paper** is the datasheet; **Board** is the circuit board. A saved Theme sets `data-theme` on the root; with none, `prefers-color-scheme` picks (light gives Paper, dark gives Board). Every color on an HTML surface comes from a look token that resolves with `light-dark()`, so one stylesheet serves both. The machine art set (wall textures, Bug frames, posters, sounds, HUD colors) is shared by both Themes and is drawn by a seeded generator, `scripts/machine-art.ts`, not by hand.\n\nThe system is dense, flat, and literal. Ornament is taken from real parts and boards, never invented: pin-1 notches, square pads, reference designators, keep-out areas, LED rows, timing diagrams. Copper is scarce and means one thing. Pixel type and pixel art appear only at whole-pixel sizes. State changes are steps, not glows.",
+    "keyCharacteristics": [
+      "Two Themes, one markup: Paper (datasheet) and Board (circuit board), chosen by `data-theme` or the system setting.",
+      "Archivo (variable width) for reading; Silkscreen for labels, pins, Part labels, and pixel UI.",
+      "Copper marks only the live or selected thing.",
+      "Every Exhibit carries one Part label (U1, J1, R1, Q1) that is the same on the wall poster, in the Exhibit Panel, and in the Skip View.",
+      "Square corners (0 to 2px), hairline and 2 to 3px rules, no gradients.",
+      "All game art is procedural, seeded, and names its generator as provenance."
+    ],
+    "rules": [
+      {
+        "name": "The Copper Means Live Rule",
+        "body": "Copper marks only what is live or selected: the selected menu item and its pin or pad, active links, \"on\" switches, the slider thumb, lit LEDs, focus rings, signal traces, the open Exhibit's Part label, and the HUD readouts. Everything else is ink, paper, board, or silkscreen.",
+        "section": "colors"
+      },
+      {
+        "name": "The No Copper Ink Rule",
+        "body": "Copper text fails contrast on Paper. On Paper, copper is a trace, pin, underline, or focus ring; the text it marks stays ink. Use the look tokens `--live-text` (text) and `--live-trace` (lines), never raw copper for text.",
+        "section": "colors"
+      },
+      {
+        "name": "The Look Token Rule",
+        "body": "HTML surfaces use the look tokens (`--surface`, `--surface-2`, `--text`, `--text-2`, `--line`, `--line-2`, `--live-text`, `--live-trace`, `--focus`), which resolve per Theme with `light-dark()`. A surface that is Board in both Themes sets `color-scheme: dark` on itself or uses the palette tokens directly.",
+        "section": "colors"
+      },
+      {
+        "name": "The Whole Pixel Rule",
+        "body": "Silkscreen is drawn on an 8px grid. Every Silkscreen size is a whole multiple of 8px, never below 8px. A size that scales is snapped with `max(8px, round(nearest, <size>, 8px))`, or `round(down, ...)` when it must not overflow. A fixed size is written as a multiple of 8px (16px, 24px, 32px).",
+        "section": "typography"
+      },
+      {
+        "name": "The Two Faces Rule",
+        "body": "Archivo reads; Silkscreen labels. Body text, ledes, and long sentences are never Silkscreen. Silkscreen carries names and titles only on Board, where they are print on the board.",
+        "section": "typography"
+      },
+      {
+        "name": "The Declared Tier Rule",
+        "body": "At narrow sizes, ornament drops in declared steps and content keeps its size. The Title Screen has two tiers: at an aspect ratio of 1:1 or taller it goes to one column, drops the chip outline, and joins the pad traces to a vertical bus; below 600px wide, Paper drops pins 6 to 10 and lists their controls in text instead.",
+        "section": "layout"
+      },
+      {
+        "name": "The Keep-Out Rule",
+        "body": "Board traces never run under text. Text sits on a keep-out (a solid `--surface` area with a silkscreen edge) or on the quiet board tile, whose traces are close to the mask color. The busy tile is for open background only.",
+        "section": "layout"
+      },
+      {
+        "name": "The Flat Page Rule",
+        "body": "Pages are flat. A shadow belongs only to an overlay that pauses the game.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** use the look tokens on HTML surfaces and let `light-dark()` pick the Theme; keep the saved-Theme block and the system-setting block of a surface identical.",
+      "**Do** give every Exhibit one Part label and show the same label on the poster, the Exhibit Panel, and the Skip View.",
+      "**Do** snap every Silkscreen size to a multiple of 8px, with `round()` when the size scales.",
+      "**Do** make select, press, and fix step changes: a color swap, a 1px press, frame steps (`steps()`), a \"patched\" mark.",
+      "**Do** put text on a keep-out or on the quiet board tile, never on the busy trace tile.",
+      "**Do** draw new game art in `scripts/machine-art/` with a fixed seed, and let the file name the generator.",
+      "**Do** take ornament from real datasheets and boards: pin numbers, notches, pads, designators, dotted leaders, LEDs, timing diagrams."
+    ],
+    "donts": [
+      "**Don't** set copper text on Paper; use an ink label with a copper underline or trace.",
+      "**Don't** use copper for anything that is not live or selected.",
+      "**Don't** use soft glows, blurs, or gradients for state.",
+      "**Don't** set body text or long sentences in Silkscreen.",
+      "**Don't** round corners past 2px.",
+      "**Don't** shrink content at narrow sizes; drop ornament in declared steps instead.",
+      "**Don't** add shadows to anything on a page; only overlays over the paused game cast one."
+    ]
+  }
+}
