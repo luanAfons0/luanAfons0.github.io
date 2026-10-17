@@ -21,6 +21,7 @@ import {
 	TEST_TRACK_TEXTURE,
 	TEST_WALL_TEXTURE,
 	tiledBug,
+	tiledExhibit,
 	tiledLevel,
 	tiledRoom,
 } from "./test-support/tiled-level";
@@ -496,6 +497,115 @@ describe("Art set", () => {
 			}
 		},
 	);
+
+	describe("change during play", () => {
+		const SHOOT: InputSnapshot = { ...IDLE, shoot: true };
+		const exhibitId = (EXHIBITS[0] as (typeof EXHIBITS)[number]).id;
+		// A corridor: the player starts at x 1.5 and faces east. A Bug stays in a closet at x 2.5, a
+		// door is the cell x 3, and the end wall (x 8) has an Exhibit.
+		const corridor = tiledLevel({
+			rows: ["#########", "#P.D....#", "#########"],
+			wallTextures: { "#": "wall-a" },
+			doorTiles: { D: { texture: "door", track: "door-track" } },
+			extraObjects: [
+				tiledRoom("Lobby", { x: 1, y: 1, width: 7, height: 1 }),
+				tiledRoom("Closet", { x: 2.4, y: 1.4, width: 0.2, height: 0.2 }),
+				tiledBug({ x: 2.5, y: 1.5 }),
+				tiledExhibit(exhibitId, { x: 8, y: 1 }, "west"),
+			],
+		});
+		const content = EXHIBITS.filter(({ id }) => id === exhibitId);
+
+		/** A Bug-sized sprite of one color, anchored at its bottom middle. */
+		function spriteOf(color: number) {
+			const rgba = new Uint8Array(30 * 39 * 4);
+			new Uint32Array(rgba.buffer).fill(color);
+			return { texture: createTexture(30, 39, rgba), left: 15, top: 35 };
+		}
+
+		/** The decoded art of an art set: every texture and poster in one color, every Bug frame in another. */
+		function artOf(artSet: ArtSet, wall: number, bug: number) {
+			return {
+				artSet,
+				textures: Object.fromEntries(TEXTURE_ROLES.map((role) => [role, solidTexture(wall)])),
+				sprites: Object.fromEntries(bugFrameNames(artSet).map((name) => [name, spriteOf(bug)])),
+				posters: Object.fromEntries(EXHIBITS.map(({ id }) => [id, solidTexture(wall)])),
+			};
+		}
+
+		/** The color channels a pixel lights, as "r", "g", and "b". */
+		function lit(pixel: number): string {
+			return channels(pixel)
+				.map((value, i) => (value > 0 ? "rgb"[i] : ""))
+				.join("");
+		}
+
+		function render(game: Game): Framebuffer {
+			const frame = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+			game.render(frame);
+			return frame;
+		}
+
+		/** Fixes the Bug, opens the door, walks to the end wall, and opens its Exhibit. */
+		function play(game: Game): void {
+			game.step(SHOOT);
+			stepTicks(game, FORWARD, 30);
+			game.step(USE);
+			stepTicks(game, IDLE, 60);
+			for (let tick = 0; tick < 300 && game.state().exhibitInFocus === null; tick++) game.step(FORWARD);
+			game.step(USE);
+		}
+
+		it("keeps the player, the Bugs fixed, the doors, and the open Exhibit", () => {
+			const game = createGame({ level: corridor, content, ...artOf(MACHINE_ART_SET, RED, BLUE) });
+			play(game);
+			const before = game.state();
+			expect(before).toMatchObject({ bugsFixed: 1, openExhibit: exhibitId, paused: true });
+			expect(before.doors[0]?.state).toBe("open");
+
+			game.changeArtSet(artOf(DUNGEON_ART_SET, GREEN, WHITE));
+
+			expect(game.state()).toEqual(before);
+			game.closeExhibit();
+			game.step(IDLE);
+			expect(game.state().paused).toBe(false);
+		});
+
+		it("draws the walls, the Bug frames, and the floor of the new art set", () => {
+			const game = createGame({ level: corridor, content, ...artOf(MACHINE_ART_SET, RED, BLUE) });
+			const wall = { x: SCREEN_WIDTH / 2 + 200, y: HORIZON - 40 };
+			const floor = { x: SCREEN_WIDTH / 2, y: VIEW_HEIGHT - 2 };
+			const machine = render(game);
+			expect(lit(pixelAt(machine, SCREEN_WIDTH / 2, HORIZON))).toBe("b");
+			expect(lit(pixelAt(machine, wall.x, wall.y))).toBe("r");
+			expect(shadesOf(MACHINE_ART_SET.floor).has(pixelAt(machine, floor.x, floor.y))).toBe(true);
+
+			game.changeArtSet(artOf(DUNGEON_ART_SET, GREEN, RED));
+
+			const dungeon = render(game);
+			expect(lit(pixelAt(dungeon, SCREEN_WIDTH / 2, HORIZON))).toBe("r");
+			expect(lit(pixelAt(dungeon, wall.x, wall.y))).toBe("g");
+			expect(shadesOf(DUNGEON_ART_SET.floor).has(pixelAt(dungeon, floor.x, floor.y))).toBe(true);
+		});
+
+		it.each([
+			["a texture role", { artSet: without("textures", "storage") }, /art set "machine".*texture role "storage"/i],
+			["a sound event", { artSet: without("sounds", "shot") }, /art set "machine".*sound event "shot"/i],
+			["a Bug frame image", { sprites: {} }, /art set "dungeon".*Bug frame/i],
+			["a poster", { posters: {} }, /art set "dungeon".*poster image for Exhibit/i],
+			["a texture the Level uses", { textures: {} }, /texture "wall-a"/],
+		])("fails on an art set with no %s, and keeps the old art set", (_, broken, error) => {
+			const game = createGame({ level: corridor, content, ...artOf(MACHINE_ART_SET, RED, BLUE) });
+			play(game);
+			const before = game.state();
+			const machine = render(game);
+
+			expect(() => game.changeArtSet({ ...artOf(DUNGEON_ART_SET, GREEN, WHITE), ...broken })).toThrow(error);
+
+			expect(game.state()).toEqual(before);
+			expect(render(game).pixels).toEqual(machine.pixels);
+		});
+	});
 });
 
 describe("Rooms", () => {

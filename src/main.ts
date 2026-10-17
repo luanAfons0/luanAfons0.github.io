@@ -20,13 +20,13 @@ import sampleLevel from "./game/levels/sample.json";
 import { createPauseMenu } from "./game/pause-menu";
 import { createResumePrompt } from "./game/resume-prompt";
 import { loadSettings, saveSettings } from "./game/settings";
-import { type ArtSet, posterPath, type TextureRole } from "./game/theme";
+import { type ArtSet, artSetOf, posterPath, type TextureRole } from "./game/theme";
 
 // The browser shell: it owns the canvas, the clock, the keyboard, the mouse, and the overlays.
 // Everything it does is manual-test only; the Game core has the tests.
 // The Title Screen loads this module with a dynamic import (on hover or focus of NEW GAME), then
 // loadArt() loads the art of the shown Theme, so both are ready when the game can start.
-// startGame() runs the game.
+// startGame() runs the game. A Theme switch in the Pause Menu changes the art set during play.
 
 /** The decoded art of one art set: wall textures by texture role, Bug sprites, and Exhibit posters. */
 interface GameArt {
@@ -94,9 +94,9 @@ const OVERLAYS = ".exhibit-panel, .pause-menu, .resume-prompt";
  * `loadArt` loaded. The Title Screen calls it after NEW GAME, with the Audio it started in the NEW
  * GAME user gesture. Without an Audio, the game is silent.
  */
-export function startGame(artSet: ArtSet, audio?: Audio): void {
-	const art = loadedArt.get(artSet);
-	if (!art) throw new Error(`The art of the "${artSet.name}" art set is not loaded: call loadArt() first.`);
+export function startGame(startArtSet: ArtSet, audio?: Audio): void {
+	const art = loadedArt.get(startArtSet);
+	if (!art) throw new Error(`The art of the "${startArtSet.name}" art set is not loaded: call loadArt() first.`);
 	const canvas = document.querySelector<HTMLCanvasElement>("#screen");
 	const context = canvas?.getContext("2d");
 	if (!canvas || !context) throw new Error("The page has no #screen canvas with a 2D context.");
@@ -110,7 +110,7 @@ export function startGame(artSet: ArtSet, audio?: Audio): void {
 	const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 	const game = createGame({
 		level: sampleLevel,
-		artSet,
+		artSet: startArtSet,
 		content: EXHIBITS,
 		track,
 		sound: (event) => audio?.play(event),
@@ -124,6 +124,28 @@ export function startGame(artSet: ArtSet, audio?: Audio): void {
 		},
 	});
 	reducedMotion.addEventListener("change", (event) => game.updateSettings({ reducedMotion: event.matches }));
+
+	/** The art set the game draws with, and the art set of the last Theme the player chose. */
+	let shownArtSet = startArtSet;
+	let wantedArtSet = startArtSet;
+
+	/**
+	 * The Pause Menu Theme switch. Paper and Board share one art set, so a switch between them
+	 * changes nothing here. Another art set is loaded first (once, then from the cache), and the
+	 * current art stays until then. A failed load or check rejects, and the Pause Menu sets the Theme back.
+	 */
+	async function changeArtSet(next: ArtSet): Promise<void> {
+		wantedArtSet = next;
+		if (next === shownArtSet) return;
+		await loadArt(next);
+		// The player chose another Theme while this art loaded.
+		if (wantedArtSet !== next) return;
+		const nextArt = loadedArt.get(next);
+		if (!nextArt) throw new Error(`The art of the "${next.name}" art set is not loaded.`);
+		game.changeArtSet({ artSet: next, ...nextArt });
+		shownArtSet = next;
+		audio?.changeArtSet(next);
+	}
 
 	// Keys pressed in an overlay are for the overlay: the arrow keys scroll the Exhibit Panel, and
 	// Enter or Space press a button.
@@ -143,6 +165,7 @@ export function startGame(artSet: ArtSet, audio?: Audio): void {
 		settings,
 		onResume: resume,
 		track,
+		onThemeChange: (theme) => changeArtSet(artSetOf(theme)),
 		onSettingsChange(changed) {
 			Object.assign(settings, changed);
 			game.updateSettings({ mouseSensitivity: changed.mouseSensitivity, invertMouse: changed.invertMouse });

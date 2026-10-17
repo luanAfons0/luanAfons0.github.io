@@ -69,21 +69,26 @@ export interface Bugs {
 	shoot(walls: Grid, x: number, y: number, angle: number): boolean;
 	/** One sprite per Bug, reused every frame. Draw the first `updateSprites()` of them. */
 	readonly sprites: ReadonlyArray<Sprite>;
+	/** Draws every Bug with other frames from the next `updateSprites()` on. Positions, fixes, and animation times stay. */
+	useFrames(frames: BugFrames): void;
 	/** Moves each Bug sprite to its Bug and picks its animation frame. Returns how many to draw. Allocates nothing. */
 	updateSprites(): number;
 	state(): BugState[];
 }
 
+/** The pictures of a Bug: its walk frames and its fix frames, in order. */
+export interface BugFrames {
+	walk: readonly SpriteImage[];
+	fix: readonly SpriteImage[];
+}
+
 /**
- * The Bugs of the spawns, drawn with the frames of `art`. `images` must hold every name in
- * `bugFrameNames(art)`. With spawns, the art set needs at least one walk frame and one fix frame.
+ * The frames of `art`, looked up in `images`, which must hold every name in `bugFrameNames(art)`.
+ * A Level with Bugs needs at least one walk frame and one fix frame. It fails with an error that
+ * names the art set and the missing item.
  */
-export function createBugs(
-	spawns: readonly BugSpawn[],
-	images: Readonly<Record<string, SpriteImage>>,
-	art: BugArt,
-): Bugs {
-	if (spawns.length > 0) {
+export function bugFramesOf(hasBugs: boolean, images: Readonly<Record<string, SpriteImage>>, art: BugArt): BugFrames {
+	if (hasBugs) {
 		if (art.bugWalkFrames.length === 0)
 			throw new Error(`The Level has Bugs, but art set "${art.name}" has no Bug walk frame.`);
 		if (art.bugFixFrames.length === 0)
@@ -94,8 +99,13 @@ export function createBugs(
 		if (!image) throw new Error(`Art set "${art.name}" has no image for the Bug frame "${name}".`);
 		return image;
 	};
-	const walkImages = art.bugWalkFrames.map(frame);
-	const fixImages = art.bugFixFrames.map(frame);
+	return { walk: art.bugWalkFrames.map(frame), fix: art.bugFixFrames.map(frame) };
+}
+
+/** The Bugs of the spawns, drawn with `frames` (see `bugFramesOf`) until `useFrames` changes them. */
+export function createBugs(spawns: readonly BugSpawn[], frames: BugFrames): Bugs {
+	let walkImages = frames.walk;
+	let fixImages = frames.fix;
 	const random = createRandom(WANDER_SEED);
 	const bugs: Bug[] = spawns.map((spawn) => ({
 		x: spawn.x,
@@ -113,6 +123,10 @@ export function createBugs(
 	return {
 		total: bugs.length,
 		sprites,
+		useFrames(next) {
+			walkImages = next.walk;
+			fixImages = next.fix;
+		},
 		updateSprites() {
 			let count = 0;
 			for (const bug of bugs) {

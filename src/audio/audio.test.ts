@@ -73,3 +73,109 @@ describe("Audio sounds", () => {
 		expect(fetch.mock.calls.map(([url]) => url)).toEqual(urls);
 	});
 });
+
+describe("Audio art set change", () => {
+	/** The URL of each buffer played, in order. Each fake WAV holds its own URL. */
+	const played: string[] = [];
+	let gain: { value: number } = { value: 1 };
+
+	class NamingAudioContext {
+		state = "running";
+		destination = {};
+		createGain() {
+			gain = { value: 1 };
+			return { gain, connect: () => {} };
+		}
+		decodeAudioData(bytes: ArrayBuffer) {
+			return Promise.resolve({ url: new TextDecoder().decode(bytes) });
+		}
+		createBufferSource() {
+			const source = {
+				buffer: undefined as { url: string } | undefined,
+				connect: () => {},
+				start: () => played.push(source.buffer?.url ?? "none"),
+			};
+			return source;
+		}
+	}
+
+	function stubWebAudio() {
+		played.length = 0;
+		vi.stubGlobal("AudioContext", NamingAudioContext);
+		const fetch = vi.fn((url: string) => Promise.resolve(new Response(new TextEncoder().encode(url))));
+		vi.stubGlobal("fetch", fetch);
+		return fetch;
+	}
+
+	/** Lets the fake fetches and decodes finish. */
+	const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+	it("loads the sounds of the new art set, then plays them", async () => {
+		const fetch = stubWebAudio();
+		const audio = createAudio("/", MACHINE_ART_SET);
+		audio.start();
+		await settle();
+		audio.play("shot");
+
+		audio.changeArtSet(DUNGEON_ART_SET);
+		expect(fetch.mock.calls.map(([url]) => url)).toContain("/dungeon/sounds/door-open.wav");
+		await settle();
+		audio.play("shot");
+
+		expect(played).toEqual(["/machine/sounds/shot.wav", "/dungeon/sounds/shot.wav"]);
+	});
+
+	it("plays the old sounds until the new ones are loaded", async () => {
+		stubWebAudio();
+		const audio = createAudio("/", MACHINE_ART_SET);
+		audio.start();
+		await settle();
+
+		audio.changeArtSet(DUNGEON_ART_SET);
+		audio.play("shot");
+
+		expect(played).toEqual(["/machine/sounds/shot.wav"]);
+	});
+
+	it("loads nothing before start, and then loads the sounds of the last art set", async () => {
+		const fetch = stubWebAudio();
+		const audio = createAudio("/", MACHINE_ART_SET);
+		audio.changeArtSet(DUNGEON_ART_SET);
+		expect(fetch).not.toHaveBeenCalled();
+
+		audio.start();
+		await settle();
+		audio.play("door-open");
+
+		expect(played).toEqual(["/dungeon/sounds/door-open.wav"]);
+	});
+
+	it("plays the art set chosen last when an older load ends later", async () => {
+		stubWebAudio();
+		const audio = createAudio("/", MACHINE_ART_SET);
+		audio.start();
+		audio.changeArtSet(DUNGEON_ART_SET);
+		audio.changeArtSet(MACHINE_ART_SET);
+		await settle();
+		audio.play("shot");
+
+		expect(played).toEqual(["/machine/sounds/shot.wav"]);
+	});
+
+	it("keeps mute through the change", async () => {
+		stubWebAudio();
+		const audio = createAudio("/", MACHINE_ART_SET);
+		audio.start();
+		audio.setMuted(true);
+
+		audio.changeArtSet(DUNGEON_ART_SET);
+		await settle();
+		audio.play("shot");
+
+		expect(played).toEqual([]);
+		expect(gain.value).toBe(0);
+		audio.setMuted(false);
+		audio.play("shot");
+		expect(played).toEqual(["/dungeon/sounds/shot.wav"]);
+	});
+});
