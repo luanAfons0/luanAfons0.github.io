@@ -1,7 +1,9 @@
 /**
  * Draws and synthesizes the dungeon art set procedurally and writes it under `public/dungeon/`. It
- * uses only Node built-ins and fixed seeds, so every run gives byte-identical files. The files are
- * committed, so the build needs no generation step. Each file names this script as its provenance.
+ * uses only Node built-ins and fixed seeds, so every run gives the same images, sounds, and texts
+ * (another zlib can compress a PNG to other bytes, so the tests compare PNGs by image data and
+ * text). The files are committed, so the build needs no generation step. Each PNG and WAV names
+ * this script as its provenance.
  *
  * Usage (Node 24 or later runs TypeScript directly):
  *   node scripts/dungeon-art.ts [output folder]
