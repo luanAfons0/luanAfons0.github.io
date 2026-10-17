@@ -1,24 +1,28 @@
 /*
- * The Themes of the HTML surfaces (see GLOSSARY.md): Paper (a datasheet: cool paper, black ink) and
- * Board (a circuit board: solder mask, silkscreen, copper). Every page and overlay uses this sheet:
+ * The Themes of the HTML surfaces (see GLOSSARY.md): Paper (a datasheet: cool paper, black ink),
+ * Board (a circuit board: solder mask, silkscreen, copper), and Dungeon (a solo adventure gamebook:
+ * black ink on pulp pages, on a deep green cloth cover). Every page and overlay uses this sheet:
  * the Title Screen, the Pause Menu, the Exhibit Panel, the resume prompt, and the Skip View.
  *
  * How a look is chosen:
- * - data-theme="paper" or data-theme="board" on the root: the saved Theme (the Theme head script of
- *   each page sets it before the first paint, and the Theme item or switch changes it).
- * - No data-theme: the system setting. Light gives Paper, dark gives Board.
+ * - data-theme="paper", "board", or "dungeon" on the root: the saved Theme (the Theme head script
+ *   of each page sets it before the first paint, and the Theme item or switch changes it).
+ * - No data-theme: the system setting. Light gives Paper, dark gives Board. Dungeon has no system
+ *   trigger.
  *
- * The look sets `color-scheme` on the root (light for Paper, dark for Board), so the look tokens
- * below pick their value with light-dark(). A surface that is Board in both Themes (the Pause Menu,
- * the resume prompt) sets `color-scheme: dark` on itself, or uses the palette tokens directly.
- * The .only-paper and .only-board classes hide an element in the other look.
+ * The look sets `color-scheme` on the root (light for Paper and Dungeon, dark for Board), so the
+ * look tokens below pick their value with light-dark(). A surface that is Board in both machine
+ * Themes (the Pause Menu, the resume prompt) sets `color-scheme: dark` on itself, or uses the
+ * palette tokens directly. The .only-paper, .only-board, and .only-dungeon classes show an element
+ * in one look only.
  *
  * Copper marks only live or selected things. Copper text fails contrast on paper: on Paper, copper
  * is for traces, pins, underlines, and focus rings, never for text.
  */
 
 /* Archivo (variable width 62% to 125%, weight 100 to 900) and Silkscreen, both under the SIL Open
-   Font License (OFL.txt next to each file). Latin subsets from Fontsource. */
+   Font License (OFL.txt next to each file). Latin subsets from Fontsource. The Dungeon faces are
+   further down. */
 @font-face {
 	font-family: "Archivo";
 	font-style: normal;
@@ -34,6 +38,67 @@
 	font-weight: 400;
 	font-display: swap;
 	src: url("/fonts/silkscreen/silkscreen-latin-400-normal.woff2") format("woff2");
+}
+
+/* The Dungeon faces: IM Fell English (roman and italic) and IM Fell English SC for titles and
+   running heads, Alegreya (variable weight 400 to 900, roman and italic) for reading text and every
+   numeral, and Alegreya SC (500 and 700) for labels. All under the SIL Open Font License (OFL.txt
+   next to each file). Latin subsets from Fontsource. A browser fetches a face only when an element
+   it renders uses it, and only Dungeon rules name these faces, so Paper and Board fetch none. */
+@font-face {
+	font-family: "IM Fell English";
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url("/fonts/im-fell-english/im-fell-english-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: "IM Fell English";
+	font-style: italic;
+	font-weight: 400;
+	font-display: swap;
+	src: url("/fonts/im-fell-english/im-fell-english-latin-400-italic.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: "IM Fell English SC";
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url("/fonts/im-fell-english-sc/im-fell-english-sc-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: "Alegreya";
+	font-style: normal;
+	font-weight: 400 900;
+	font-display: swap;
+	src: url("/fonts/alegreya/alegreya-latin-wght-normal.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: "Alegreya";
+	font-style: italic;
+	font-weight: 400 900;
+	font-display: swap;
+	src: url("/fonts/alegreya/alegreya-latin-wght-italic.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: "Alegreya SC";
+	font-style: normal;
+	font-weight: 500;
+	font-display: swap;
+	src: url("/fonts/alegreya-sc/alegreya-sc-latin-500-normal.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: "Alegreya SC";
+	font-style: normal;
+	font-weight: 700;
+	font-display: swap;
+	src: url("/fonts/alegreya-sc/alegreya-sc-latin-700-normal.woff2") format("woff2");
 }
 
 :root {
@@ -54,15 +119,38 @@
 	/* The palette. Copper: live and selected things. */
 	--copper: #c06a36;
 	--copper-hot: #e08a4f;
+	/* The palette. Dungeon: one black ink on pulp pages, on a deep green cloth cover. No copper, no
+	   glow: a live or selected thing is inked (an ink block with page text). Only Dungeon rules use
+	   these. */
+	--dungeon-cover: #1d4a33;
+	--dungeon-cover-2: #173d2a;
+	--dungeon-cover-ink: #0f2a1c;
+	--dungeon-page: #e0d9c5;
+	--dungeon-page-2: #d4ccb5;
+	--dungeon-ink: #171717;
+	--dungeon-ink-2: #4a463d;
+	--dungeon-rule: #b3a98f;
+	--dungeon-scrim: rgb(10 9 8 / 0.62);
 
 	/* The faces. Archivo for reading text and headings, Silkscreen for labels, pins, and pixel UI. */
 	--font-sans: "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 	--font-silk: "Silkscreen", ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+	/* The Dungeon faces. IM Fell for titles, IM Fell SC for running heads, Alegreya for reading text
+	   and every numeral (the old-style "1" of IM Fell reads as "I" in "U1"), Alegreya SC for labels. */
+	--font-fell: "IM Fell English", "Iowan Old Style", Georgia, serif;
+	--font-fell-sc: "IM Fell English SC", "IM Fell English", Georgia, serif;
+	--font-book: "Alegreya", "Iowan Old Style", Georgia, serif;
+	--font-book-sc: "Alegreya SC", "Alegreya", Georgia, serif;
 
 	/* The board surface: solder mask with traces under the mask, as a tile. The quiet one is for
 	   surfaces that carry text. */
 	--board-traces: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' shape-rendering='crispEdges'%3E%3Cg fill='none' stroke='%231f262a' stroke-width='3'%3E%3Cpath d='M0 40h70l30 30h60l20-20h60'/%3E%3Cpath d='M0 150h40l40-40h50v90l40 40'/%3E%3Cpath d='M120 0v30l20 20v40'/%3E%3Cpath d='M200 240v-60l-30-30h-40'/%3E%3Cpath d='M240 110h-30l-20 20v40'/%3E%3C/g%3E%3Cg fill='%23070909' stroke='%232a3035' stroke-width='3'%3E%3Ccircle cx='160' cy='70' r='5'/%3E%3Ccircle cx='130' cy='110' r='5'/%3E%3Ccircle cx='140' cy='90' r='5'/%3E%3Ccircle cx='190' cy='170' r='5'/%3E%3Ccircle cx='130' cy='150' r='5'/%3E%3C/g%3E%3C/svg%3E");
 	--board-traces-quiet: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' shape-rendering='crispEdges'%3E%3Cg fill='none' stroke='%23161b1e' stroke-width='3'%3E%3Cpath d='M0 40h70l30 30h60l20-20h60'/%3E%3Cpath d='M0 150h40l40-40h50v90l40 40'/%3E%3Cpath d='M120 0v30l20 20v40'/%3E%3Cpath d='M200 240v-60l-30-30h-40'/%3E%3Cpath d='M240 110h-30l-20 20v40'/%3E%3C/g%3E%3C/svg%3E");
+	/* The Dungeon page tiles, drawn by scripts/dungeon-art.ts: pulp specks for the pages, and the
+	   cloth weave for the cover. Use them through .dungeon-pulp and .dungeon-cover, so that only the
+	   Dungeon look fetches them. */
+	--dungeon-pulp: url("/dungeon/tiles/pulp.png");
+	--dungeon-weave: url("/dungeon/tiles/weave.png");
 
 	/* The look tokens: the Paper value first, the Board value second. */
 	--surface: light-dark(var(--paper), var(--board));
@@ -87,9 +175,26 @@
 	color-scheme: light;
 }
 
-/* The Dungeon Theme has its own game art, but no HTML look yet: its HTML surfaces show Paper. */
+/* Dungeon is one look, with no light and dark variants. The look tokens take its ink and pulp, so a
+   surface that has no Dungeon rules of its own yet shows ink on pulp, not Paper. */
 :root[data-theme="dungeon"] {
 	color-scheme: light;
+	--surface: var(--dungeon-page);
+	--surface-2: var(--dungeon-page-2);
+	--text: var(--dungeon-ink);
+	--text-2: var(--dungeon-ink-2);
+	--line: var(--dungeon-ink);
+	--line-2: var(--dungeon-rule);
+	--live-text: var(--dungeon-ink);
+	--live-trace: var(--dungeon-ink);
+	--focus: var(--dungeon-ink);
+}
+
+/* Every numeral in the Dungeon look is a lining figure: Alegreya's default old-style "1" reads as
+   "I" in "U1". It is set on every element, because the `font` shorthand resets it. */
+:root[data-theme="dungeon"],
+:root[data-theme="dungeon"] * {
+	font-variant-numeric: lining-nums;
 }
 
 :root[data-theme="board"] {
@@ -98,7 +203,9 @@
 
 /* One look at a time. CSS has no "or" between a selector and a media query, so the system case
    (no data-theme) has its own rules. */
+:root:not([data-theme="dungeon"]) .only-dungeon,
 :root[data-theme="board"] .only-paper,
+:root[data-theme="dungeon"] .only-paper,
 :root[data-theme="paper"] .only-board,
 :root[data-theme="dungeon"] .only-board {
 	display: none;
@@ -124,4 +231,16 @@
 
 .board-surface--quiet {
 	background-image: var(--board-traces-quiet);
+}
+
+/* The Dungeon page grounds. Each rule names the Dungeon look, so an element with the class fetches
+   no tile in Paper or Board. Pulp: a page. Cover: the green cloth around the pages. */
+:root[data-theme="dungeon"] .dungeon-pulp {
+	background-color: var(--dungeon-page);
+	background-image: var(--dungeon-pulp);
+}
+
+:root[data-theme="dungeon"] .dungeon-cover {
+	background-color: var(--dungeon-cover);
+	background-image: var(--dungeon-weave);
 }

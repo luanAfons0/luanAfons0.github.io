@@ -195,4 +195,13 @@ describe("dungeon page tiles", () => {
 		expect(plain.length).toBeGreaterThan(0);
 		for (const pixel of pixels) if (!plain.includes(pixel)) expect(darker(pixel.slice(0, 3), COVER)).toBe(true);
 	});
+
+	it("draws every tile the shared stylesheet uses", () => {
+		const { files } = generate();
+		const css = readFileSync(join(import.meta.dirname, "../src/theme.css"), "utf8");
+		const used = [...css.matchAll(/url\("\/dungeon\/([^"]+)"\)/g)].map(([, path]) => path);
+
+		expect(used).toEqual(expect.arrayContaining(["tiles/pulp.png", "tiles/weave.png"]));
+		for (const path of used) expect(files, path).toContain(path);
+	});
 });
