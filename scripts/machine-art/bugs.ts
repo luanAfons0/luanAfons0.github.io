@@ -6,9 +6,19 @@
  *
  * Sprite PNGs have no place for the anchor, so this module also writes `sprites/offsets.json`.
  */
+
+import {
+	createPixmap,
+	line,
+	outlineRect,
+	type Pixmap,
+	type Point,
+	path,
+	plot,
+	TRANSPARENT,
+} from "../art-kit/pixmap.ts";
 import { type GeneratedFile, pngFile } from "./files.ts";
 import * as c from "./palette.ts";
-import { createPixmap, line, outlineRect, type Pixmap, type Point, path, plot, TRANSPARENT } from "./pixmap.ts";
 
 const WIDTH = 32;
 const HEIGHT = 24;

@@ -2,9 +2,20 @@
  * The wall textures: 64x64, one tile high. The Level names texture roles, and the machine art set
  * in `src/game/theme.ts` maps each role to one of these file names.
  */
+
+import {
+	createPixmap,
+	disc,
+	fillRect,
+	outlineRect,
+	type Pixmap,
+	path,
+	plot,
+	seededRandom,
+	text,
+} from "../art-kit/pixmap.ts";
 import { type GeneratedFile, pngFile } from "./files.ts";
 import * as c from "./palette.ts";
-import { createPixmap, disc, fillRect, outlineRect, type Pixmap, path, plot, seededRandom, text } from "./pixmap.ts";
 
 const SIZE = 64;
 const LAST = SIZE - 1;

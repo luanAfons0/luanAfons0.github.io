@@ -8,9 +8,9 @@
  * its frame on a 64x64 wall (`src/game/poster.ts`), so every line stays.
  */
 import { EXHIBITS, type Exhibit, type ExhibitKind, partLabel } from "../../src/game/content.ts";
+import { createPixmap, fillRect, outlineRect, type Pixmap, path, plot, seededRandom, text } from "../art-kit/pixmap.ts";
 import { type GeneratedFile, pngFile } from "./files.ts";
 import * as c from "./palette.ts";
-import { createPixmap, fillRect, outlineRect, type Pixmap, path, plot, seededRandom, text } from "./pixmap.ts";
 
 const WIDTH = 36;
 const HEIGHT = 33;
