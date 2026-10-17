@@ -25,8 +25,8 @@ The short label of an Exhibit, such as U1, derived from its kind and its order a
 _Avoid_: ID, code
 
 **Bug**:
-A harmless enemy that the player can shoot. Each Bug the player shoots counts as fixed.
-_Avoid_: Enemy, monster, target
+A harmless enemy that the player can shoot. Each Bug the player shoots counts as fixed. In the Dungeon Theme a Bug looks like a green Slime, but it is still a Bug.
+_Avoid_: Enemy, monster, target, Slime (as the name of the thing)
 
 ## Screens
 
@@ -45,5 +45,5 @@ _Avoid_: Fallback page, list view, classic mode
 ## Looks
 
 **Theme**:
-The named look of the whole portfolio, such as Paper or Board. A Theme is an art set (the textures, Bug frames, sounds, and HUD colors the game uses) plus a look for the HTML screens.
+The named look of the whole portfolio: Paper, Board, or Dungeon. A Theme is an art set (the textures, Bug frames, sounds, and HUD colors the game uses) plus a look for the HTML screens; Paper and Board share the machine art set (a circuit board), and Dungeon has its own (a torch-lit stone keep, with the HTML screens as a gamebook).
 _Avoid_: Skin, mode

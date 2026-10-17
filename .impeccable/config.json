@@ -164,30 +164,6 @@
         ],
         "createdAt": "2026-10-17T03:10:21.062Z",
         "reason": "agent triage: Dungeon Theme design mock, not source; DESIGN.md still records only the machine world and is extended at finish; stage clip and mock bar are mock chrome; stripes are the page leaves and bookcloth weave; tight leading is one-line labels"
-      },
-      {
-        "rule": "design-system-font",
-        "value": "im fell english",
-        "createdAt": "2026-10-17T13:53:01.359Z",
-        "reason": "spec #31 and the approved mock dungeon.html name the Dungeon faces; DESIGN.md gets the Dungeon world at the finish review (#43)"
-      },
-      {
-        "rule": "design-system-font",
-        "value": "im fell english sc",
-        "createdAt": "2026-10-17T13:53:01.373Z",
-        "reason": "spec #31 and the approved mock dungeon.html name the Dungeon faces; DESIGN.md gets the Dungeon world at the finish review (#43)"
-      },
-      {
-        "rule": "design-system-font",
-        "value": "alegreya",
-        "createdAt": "2026-10-17T13:53:01.386Z",
-        "reason": "spec #31 and the approved mock dungeon.html name the Dungeon faces; DESIGN.md gets the Dungeon world at the finish review (#43)"
-      },
-      {
-        "rule": "design-system-font",
-        "value": "alegreya sc",
-        "createdAt": "2026-10-17T13:53:01.401Z",
-        "reason": "spec #31 and the approved mock dungeon.html name the Dungeon faces; DESIGN.md gets the Dungeon world at the finish review (#43)"
       }
     ]
   }

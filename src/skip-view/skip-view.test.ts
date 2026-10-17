@@ -162,7 +162,7 @@ describe("Skip View builder (Seam 2)", () => {
 		const doc = parse(buildSkipView({ content: [exhibit("orca")], level, base: BASE }));
 		expect(doc.querySelector(".skip-datasheet .skip-part-number")?.textContent).toBe("LA-1");
 		expect(doc.querySelector("h1")?.textContent).toBe("Luan Afonso");
-		expect(doc.querySelector(".skip-lede")?.textContent).toBe(
+		expect(doc.querySelector(".skip-lede")?.firstChild?.textContent?.trim()).toBe(
 			"My portfolio: every Exhibit from the game, Room by Room.",
 		);
 	});
@@ -186,6 +186,15 @@ describe("Skip View builder (Seam 2)", () => {
 			true,
 			"true",
 		]);
+	});
+
+	it("stamps the lede with Sample content in Dungeon only, as the Exhibit Panel does", () => {
+		const level = loadLevel(
+			tiledLevel({ rows: ROWS, extraObjects: [WEST, tiledExhibit("orca", { x: 4, y: 1 }, "west")] }),
+		);
+		const doc = parse(buildSkipView({ content: [exhibit("orca")], level, base: BASE }));
+		const stamp = doc.querySelector(".skip-lede > .only-dungeon:last-child");
+		expect([stamp?.textContent, stamp?.hasAttribute("aria-hidden")]).toEqual(["Sample content", false]);
 	});
 
 	it("links the site icon, so the browser does not ask for a missing favicon.ico", () => {
