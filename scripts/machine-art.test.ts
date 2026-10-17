@@ -1,8 +1,9 @@
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { inflateSync } from "node:zlib";
 import { afterAll, describe, expect, it } from "vitest";
+import { MACHINE_ART_SET } from "../src/game/theme.ts";
 import { generateMachineArt, MACHINE_ART_FOLDER } from "./machine-art.ts";
 
 const runs: string[] = [];
@@ -43,6 +44,13 @@ function sameContent(file: string, a: Buffer, b: Buffer): boolean {
 	return pngA.data.equals(pngB.data) && JSON.stringify(pngA.texts) === JSON.stringify(pngB.texts);
 }
 
+/** A folder of the art set (under `public/`) as a path inside the machine art folder. */
+function inMachineFolder(folder: string): string {
+	const inside = relative(MACHINE_ART_FOLDER, join("public", folder));
+	expect(inside.startsWith(".."), `${folder} is not in ${MACHINE_ART_FOLDER}`).toBe(false);
+	return inside;
+}
+
 describe("machine art generator", () => {
 	it("writes the four wall textures and the door track", () => {
 		const { files } = generate();
@@ -56,6 +64,19 @@ describe("machine art generator", () => {
 				"textures/door-track.png",
 			]),
 		);
+	});
+
+	it("writes every Bug frame of the art set into its sprites folder, each with an anchor", () => {
+		const { folder, files } = generate();
+		const sprites = inMachineFolder(MACHINE_ART_SET.folders.sprites);
+		const offsets = JSON.parse(readFileSync(join(folder, sprites, "offsets.json"), "utf8"));
+		const frames = [...MACHINE_ART_SET.bugWalkFrames, ...MACHINE_ART_SET.bugFixFrames];
+
+		expect(MACHINE_ART_SET.bugWalkFrames).toHaveLength(2);
+		for (const name of frames) {
+			expect(files).toContain(`${sprites}/${name}.png`);
+			expect(offsets[name]).toEqual({ left: expect.any(Number), top: expect.any(Number) });
+		}
 	});
 
 	it("gives byte-identical files when it runs twice", () => {

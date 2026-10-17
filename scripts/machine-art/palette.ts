@@ -36,3 +36,9 @@ export const SCREW = 0x3a4045;
 export const SCREW_SLOT = 0x15191c;
 /** The dark strip of a connector edge. */
 export const EDGE = 0x0c0f11;
+/** The beetle Bug: a dark carapace with a muted green sheen, grey legs and antennae. */
+export const BEETLE_OUTLINE = 0x161a17;
+export const BEETLE_SHELL = 0x2b2f2a;
+export const BEETLE_SHEEN = 0x5f7a6a;
+export const BEETLE_HEAD = 0x1e221f;
+export const BEETLE_LEG = 0x737d74;
