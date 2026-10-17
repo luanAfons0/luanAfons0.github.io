@@ -5,7 +5,7 @@ import { createKeyboardInput, type InputSnapshot, isTextEntry } from "./engine/i
 import { createFixedStepLoop } from "./engine/loop";
 import { createMouseLook } from "./engine/pointer-lock";
 import type { SpriteImage } from "./engine/renderer";
-import { loadTexture } from "./engine/texture";
+import { loadTexture, type Texture } from "./engine/texture";
 import { EXHIBITS } from "./game/content";
 import { createExhibitPanel } from "./game/exhibit-panel";
 import {
@@ -20,34 +20,69 @@ import sampleLevel from "./game/levels/sample.json";
 import { createPauseMenu } from "./game/pause-menu";
 import { createResumePrompt } from "./game/resume-prompt";
 import { loadSettings, saveSettings } from "./game/settings";
-import { MACHINE_ART_SET, posterPath, type TextureRole } from "./game/theme";
+import { type ArtSet, posterPath, type TextureRole } from "./game/theme";
 
 // The browser shell: it owns the canvas, the clock, the keyboard, the mouse, and the overlays.
 // Everything it does is manual-test only; the Game core has the tests.
-// The Title Screen loads this module with a dynamic import (on hover or focus of NEW GAME), so the
-// assets load then too: the import is ready when the game can start. startGame() runs the game.
+// The Title Screen loads this module with a dynamic import (on hover or focus of NEW GAME), then
+// loadArt() loads the art of the shown Theme, so both are ready when the game can start.
+// startGame() runs the game.
 
-// Decode every wall texture, Bug sprite, and Exhibit poster once, before the first frame.
-// All of them are in the art set folders under public/. The Level names texture roles, and the art
-// set maps each role to its file. The poster of an Exhibit is named by its id.
-const artSet = MACHINE_ART_SET;
-const texturesUrl = `${import.meta.env.BASE_URL}${artSet.folders.textures}`;
-const spritesUrl = `${import.meta.env.BASE_URL}${artSet.folders.sprites}`;
-const [textureEntries, spriteEntries, posterEntries] = await Promise.all([
-	Promise.all(
-		levelTextureNames(sampleLevel).map(async (role) => {
-			const file = artSet.textures[role as TextureRole];
-			if (!file) throw new Error(`Art set "${artSet.name}" has no texture file for the texture role "${role}".`);
-			return [role, await loadTexture(`${texturesUrl}/${file}.png`)] as const;
-		}),
-	),
-	loadSprites(bugFrameNames(artSet)),
-	Promise.all(
-		EXHIBITS.map(
-			async ({ id }) => [id, await loadTexture(`${import.meta.env.BASE_URL}${posterPath(artSet, id)}`)] as const,
+/** The decoded art of one art set: wall textures by texture role, Bug sprites, and Exhibit posters. */
+interface GameArt {
+	textures: Record<string, Texture>;
+	sprites: Record<string, SpriteImage>;
+	posters: Record<string, Texture>;
+}
+
+/** The art of each art set once it is loaded, and the load of each art set, so each loads once. */
+const loadedArt = new Map<ArtSet, GameArt>();
+const artLoads = new Map<ArtSet, Promise<void>>();
+
+/**
+ * Loads and decodes every wall texture, Bug sprite, and Exhibit poster of an art set, once, before
+ * the first frame. A failed load is forgotten, so the next call tries again.
+ */
+export function loadArt(artSet: ArtSet): Promise<void> {
+	let load = artLoads.get(artSet);
+	if (!load) {
+		load = fetchArt(artSet).then(
+			(art) => {
+				loadedArt.set(artSet, art);
+			},
+			(error: unknown) => {
+				artLoads.delete(artSet);
+				throw error;
+			},
+		);
+		artLoads.set(artSet, load);
+	}
+	return load;
+}
+
+/**
+ * The art of an art set. All files are in the art set folders under public/. The Level names
+ * texture roles, and the art set maps each role to its file. The poster of an Exhibit is named by its id.
+ */
+async function fetchArt(artSet: ArtSet): Promise<GameArt> {
+	const base = import.meta.env.BASE_URL;
+	const [textureEntries, spriteEntries, posterEntries] = await Promise.all([
+		Promise.all(
+			levelTextureNames(sampleLevel).map(async (role) => {
+				const file = artSet.textures[role as TextureRole];
+				if (!file) throw new Error(`Art set "${artSet.name}" has no texture file for the texture role "${role}".`);
+				return [role, await loadTexture(`${base}${artSet.folders.textures}/${file}.png`)] as const;
+			}),
 		),
-	),
-]);
+		loadSprites(`${base}${artSet.folders.sprites}`, bugFrameNames(artSet)),
+		Promise.all(EXHIBITS.map(async ({ id }) => [id, await loadTexture(`${base}${posterPath(artSet, id)}`)] as const)),
+	]);
+	return {
+		textures: Object.fromEntries(textureEntries),
+		sprites: Object.fromEntries(spriteEntries),
+		posters: Object.fromEntries(posterEntries),
+	};
+}
 
 /** The key that mutes and unmutes all sound. Keys are `KeyboardEvent.code` values. */
 const MUTE_KEY = "KeyM";
@@ -55,10 +90,13 @@ const MUTE_KEY = "KeyM";
 const OVERLAYS = ".exhibit-panel, .pause-menu, .resume-prompt";
 
 /**
- * Starts the game in the page's #screen canvas. The Title Screen calls it after NEW GAME, with the
- * Audio it started in the NEW GAME user gesture. Without an Audio, the game is silent.
+ * Starts the game in the page's #screen canvas, with the art set of the shown Theme, whose art
+ * `loadArt` loaded. The Title Screen calls it after NEW GAME, with the Audio it started in the NEW
+ * GAME user gesture. Without an Audio, the game is silent.
  */
-export function startGame(audio?: Audio): void {
+export function startGame(artSet: ArtSet, audio?: Audio): void {
+	const art = loadedArt.get(artSet);
+	if (!art) throw new Error(`The art of the "${artSet.name}" art set is not loaded: call loadArt() first.`);
 	const canvas = document.querySelector<HTMLCanvasElement>("#screen");
 	const context = canvas?.getContext("2d");
 	if (!canvas || !context) throw new Error("The page has no #screen canvas with a 2D context.");
@@ -76,9 +114,9 @@ export function startGame(audio?: Audio): void {
 		content: EXHIBITS,
 		track,
 		sound: (event) => audio?.play(event),
-		textures: Object.fromEntries(textureEntries),
-		sprites: Object.fromEntries(spriteEntries),
-		posters: Object.fromEntries(posterEntries),
+		textures: art.textures,
+		sprites: art.sprites,
+		posters: art.posters,
 		settings: {
 			mouseSensitivity: settings.mouseSensitivity,
 			invertMouse: settings.invertMouse,
@@ -224,7 +262,7 @@ export function startGame(audio?: Audio): void {
 }
 
 /** Sprite PNGs have no place for the anchor, so the anchors come from offsets.json in the sprites folder. */
-async function loadSprites(names: readonly string[]): Promise<(readonly [string, SpriteImage])[]> {
+async function loadSprites(spritesUrl: string, names: readonly string[]): Promise<(readonly [string, SpriteImage])[]> {
 	const response = await fetch(`${spritesUrl}/offsets.json`);
 	if (!response.ok) throw new Error(`Cannot load sprite offsets: HTTP ${response.status}.`);
 	const offsets = (await response.json()) as Record<string, { left: number; top: number } | undefined>;

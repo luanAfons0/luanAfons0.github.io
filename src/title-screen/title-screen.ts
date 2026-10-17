@@ -1,11 +1,14 @@
 import { type AnalyticsEvent, track as sendEvent } from "../analytics/analytics";
 import { loadSettings, saveSettings } from "../game/settings";
-import { isTheme, THEME_LABELS, type Theme } from "../game/theme";
+import { isTheme, THEME_LABELS, THEMES, type Theme } from "../game/theme";
 
 export interface TitleScreenOptions<Game> {
 	/** The document (or part of it) that holds the Title Screen markup from index.html. */
 	root: ParentNode;
-	/** Loads the game code. The Title Screen calls it at most once at a time, first on hover or focus of NEW GAME. */
+	/**
+	 * Loads the game code, ready for the shown Theme. The Title Screen calls it at most once at a time,
+	 * first on hover or focus of NEW GAME, and again after the visitor changes the Theme.
+	 */
 	loadGame(): Promise<Game>;
 	/**
 	 * Starts the game that loadGame() gave, after the Title Screen is hidden. When the game was ready
@@ -42,7 +45,7 @@ const MOVES: Record<string, number> = { ArrowUp: -1, ArrowDown: 1 };
 
 /**
  * The Title Screen: NEW GAME, SKIP, or Theme. It loads the game code only when the visitor points at or
- * focuses NEW GAME. The Theme item switches between Paper and Board at once and saves the choice.
+ * focuses NEW GAME. The Theme item cycles through the Themes (Paper, Board, Dungeon) at once and saves the choice.
  */
 export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): TitleScreen {
 	const track = options.track ?? sendEvent;
@@ -65,11 +68,14 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 	let loading: Promise<Game> | undefined;
 	let loaded: { game: Game } | undefined;
 	const preload = (): Promise<Game> => {
-		loading ??= options.loadGame().then((game) => {
-			loaded = { game };
+		if (loading) return loading;
+		const attempt: Promise<Game> = options.loadGame().then((game) => {
+			// A load from before a Theme change has the art of the old Theme: only the latest load counts.
+			if (loading === attempt) loaded = { game };
 			return game;
 		});
-		return loading;
+		loading = attempt;
+		return attempt;
 	};
 	// A hover that fails to load the game shows nothing yet: NEW GAME shows the error.
 	const preloadQuietly = () => {
@@ -95,7 +101,7 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 		dive.classList.remove("is-open");
 	};
 	/**
-	 * Grows the board-colored layer from `from` (the chip in Paper, the pad in Board) to the full
+	 * Grows the board-colored layer from `from` (the pad in Board, else the chip) to the full
 	 * screen. It resolves on the transition end, or after the fallback timeout when that never comes
 	 * (a hidden tab does not run frames).
 	 */
@@ -143,7 +149,7 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 			console.error(error);
 		}
 		const pending = preload();
-		const from = shownTheme() === "paper" ? chip : newGame.querySelector<HTMLElement>(".title-screen__pad");
+		const from = shownTheme() === "board" ? newGame.querySelector<HTMLElement>(".title-screen__pad") : chip;
 		if (!reducedMotion.matches && from) {
 			// The game starts when the dive ends, or at once if the game is not ready yet: then the bar shows.
 			pending.catch(fail);
@@ -183,13 +189,21 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 		themeName.textContent = THEME_LABELS[shownTheme()];
 	};
 	showThemeName();
-	/** Switches to the other Theme at once and saves it. The Theme item keeps the selection and the focus. */
+	/**
+	 * Switches to the next Theme (in `THEMES` order, wrapping) at once and saves it. The Theme item
+	 * keeps the selection and the focus. The game loaded so far has the art of the old Theme, so the
+	 * next hover, focus, or NEW GAME loads it again.
+	 */
 	const switchTheme = () => {
-		const theme: Theme = shownTheme() === "paper" ? "board" : "paper";
+		const theme = THEMES[(THEMES.indexOf(shownTheme()) + 1) % THEMES.length] as Theme;
 		page.dataset.theme = theme;
 		saveSettings({ ...loadSettings(), theme });
 		showThemeName();
 		track(`theme/${theme}`);
+		if (!starting) {
+			loading = undefined;
+			loaded = undefined;
+		}
 	};
 
 	const choose = () => {

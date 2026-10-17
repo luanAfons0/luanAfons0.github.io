@@ -454,10 +454,45 @@ describe("Theme", () => {
 
 		themeItem().click();
 
+		expect(shownTheme()).toBe("dungeon");
+		expect(loadSettings().theme).toBe("dungeon");
+		expect(themeLabel()).toBe("Theme: Dungeon");
+		expect(track).toHaveBeenLastCalledWith("theme/dungeon");
+
+		themeItem().click();
+
 		expect(shownTheme()).toBe("paper");
 		expect(loadSettings().theme).toBe("paper");
 		expect(themeLabel()).toBe("Theme: Paper");
 		expect(track).toHaveBeenLastCalledWith("theme/paper");
+	});
+
+	it("shows a saved Dungeon Theme on the Theme item", () => {
+		saveSettings({ ...DEFAULT_SETTINGS, theme: "dungeon" });
+		runHeadScript();
+		setUp();
+
+		expect(loadSettings().theme).toBe("dungeon");
+		expect(shownTheme()).toBe("dungeon");
+		expect(themeLabel()).toBe("Theme: Dungeon");
+	});
+
+	it("loads the game again after a Theme change, so the game gets the art of the new Theme", async () => {
+		const loads: ((game: string) => void)[] = [];
+		const load = vi.fn(() => new Promise<string>((resolve) => loads.push(resolve)));
+		const { startGame } = setUp({ loadGame: load });
+		newGame().dispatchEvent(new Event("pointerenter"));
+
+		themeItem().click();
+		themeItem().click();
+		loads[0]?.("paper game");
+		await Promise.resolve();
+		newGame().click();
+		loads[1]?.("dungeon game");
+		await vi.waitFor(() => expect(startGame).toHaveBeenCalled());
+
+		expect(load).toHaveBeenCalledTimes(2);
+		expect(startGame).toHaveBeenCalledExactlyOnceWith("dungeon game");
 	});
 
 	it("switches away from the system look on the first choice", () => {
@@ -466,7 +501,7 @@ describe("Theme", () => {
 
 		themeItem().click();
 
-		expect(shownTheme()).toBe("paper");
+		expect(shownTheme()).toBe("dungeon");
 		expect(load).not.toHaveBeenCalled();
 		expect(navigate).not.toHaveBeenCalled();
 	});
@@ -587,6 +622,16 @@ describe("NEW GAME dive", () => {
 
 		expect(dive()?.style.getPropertyValue("--dive-top")).toBe("40px");
 		expect(dive()?.style.getPropertyValue("--dive-left")).toBe("60px");
+	});
+
+	it("grows from the chip in Dungeon, which shows the Paper look of the HTML screens", async () => {
+		document.documentElement.dataset.theme = "dungeon";
+		const chip = document.querySelector<HTMLElement>("[data-chip]");
+		vi.spyOn(chip as HTMLElement, "getBoundingClientRect").mockReturnValue(rect(100, 300, 200, 150));
+		await click();
+
+		expect(dive()?.style.getPropertyValue("--dive-top")).toBe("100px");
+		expect(dive()?.style.getPropertyValue("--dive-left")).toBe("300px");
 	});
 
 	it("starts the game after the fallback timeout when transitionend never fires", async () => {
