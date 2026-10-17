@@ -1,6 +1,7 @@
 /*
  * "Click to resume": a button over the whole paused game, after Esc closes the Exhibit Panel.
- * A silkscreen label on a dimmed board, the same in both Themes (it never follows data-theme).
+ * Paper and Board: a silkscreen label on a dimmed board, the same in both. Dungeon: a pulp slip
+ * (its own section at the end of this file).
  */
 .resume-prompt {
 	position: fixed;
@@ -44,4 +45,43 @@
 	border-color: var(--copper-hot);
 	outline: 2px solid var(--copper-hot);
 	outline-offset: 2px;
+}
+
+/*
+ * ---------- Dungeon: a pulp slip ----------
+ * The label is a pulp slip (the .dungeon-pulp class) with a double ink rule: the border and an
+ * inset outline. It inverts to an ink block on hover (fine pointers only) and on focus, where an
+ * ink ring also shows. Size: 1.8% of the width of the 16:9 game picture, 16.5 px or more.
+ */
+:root[data-theme="dungeon"] .resume-prompt {
+	background: rgb(10 9 8 / 0.5);
+	color: var(--dungeon-ink);
+	color-scheme: light;
+}
+
+:root[data-theme="dungeon"] .resume-prompt__label,
+:root[data-theme="dungeon"] .resume-prompt:hover .resume-prompt__label {
+	padding: 0.75em 1.1em 0.7em;
+	border: 2px solid var(--dungeon-ink);
+	outline: 1px solid var(--dungeon-ink);
+	outline-offset: -0.4em;
+	color: var(--dungeon-ink);
+	font: 700 max(16.5px, min(1.8vw, 3.2vh)) / 1 var(--font-book-sc);
+}
+
+:root[data-theme="dungeon"] .resume-prompt:focus-visible .resume-prompt__label {
+	background: var(--dungeon-ink);
+	outline-color: var(--dungeon-page);
+	color: var(--dungeon-page);
+	box-shadow:
+		0 0 0 2px var(--dungeon-page),
+		0 0 0 4px var(--focus);
+}
+
+@media (hover: hover) and (pointer: fine) {
+	:root[data-theme="dungeon"] .resume-prompt:hover .resume-prompt__label {
+		background: var(--dungeon-ink);
+		outline-color: var(--dungeon-page);
+		color: var(--dungeon-page);
+	}
 }
