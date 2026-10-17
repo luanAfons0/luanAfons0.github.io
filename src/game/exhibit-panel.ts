@@ -19,8 +19,8 @@ export interface ExhibitPanel {
 
 /**
  * The Exhibit Panel: an HTML overlay above the canvas with the full details of one Exhibit, as real
- * text. One markup serves both Themes (exhibit-panel.css): a datasheet page in Paper, a board panel
- * in Board. It rises when it opens and closes at once.
+ * text. One markup serves every Theme (exhibit-panel.css): a datasheet page in Paper, a board panel
+ * in Board, a numbered gamebook section in Dungeon. It rises when it opens and closes at once.
  */
 export function createExhibitPanel(options: ExhibitPanelOptions): ExhibitPanel {
 	const content = options.content ?? EXHIBITS;
@@ -29,15 +29,17 @@ export function createExhibitPanel(options: ExhibitPanelOptions): ExhibitPanel {
 	root.setAttribute("role", "dialog");
 	root.setAttribute("aria-modal", "true");
 	root.setAttribute("aria-labelledby", "exhibit-panel-title");
-	const panel = element("article", "exhibit-panel__panel");
+	const panel = element("article", "exhibit-panel__panel dungeon-pulp");
 	panel.tabIndex = -1;
 	const body = element("div", "exhibit-panel__content");
 	const close = element("button", "exhibit-panel__close");
 	close.type = "button";
-	close.textContent = "Close (Esc)";
+	// Paper and Board draw the key cap as "(Esc)" (exhibit-panel.css).
+	close.append("Close ", element("kbd", "exhibit-panel__key", "Esc"));
 	close.addEventListener("click", () => options.onClose());
 	const foot = element("footer", "exhibit-panel__foot");
-	foot.append(close);
+	// The Content is still the sample Exhibits. Remove this note when the real Content replaces them.
+	foot.append(element("span", "exhibit-panel__sample only-dungeon", "Sample content"), close);
 	panel.append(body, foot);
 	root.append(panel);
 	options.parent.append(root);
@@ -68,7 +70,7 @@ function exhibitContent(exhibit: Exhibit, content: readonly Exhibit[]): HTMLElem
 	const body = element("div", "exhibit-panel__body");
 	body.append(title, element("p", "exhibit-panel__summary", exhibit.summary));
 	if (exhibit.details.length > 0) {
-		body.append(element("h3", "exhibit-panel__section", "Description"));
+		body.append(element("h3", "exhibit-panel__section exhibit-panel__section--description", "Description"));
 		for (const paragraph of exhibit.details) body.append(element("p", "exhibit-panel__details", paragraph));
 	}
 	if (exhibit.links.length > 0) {

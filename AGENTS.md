@@ -47,6 +47,10 @@ Pull requests:
 
 `index.html` has one markup for every Theme. In Dungeon it is an open gamebook: the `.only-dungeon` left page (`.title-screen__leaf`: running head, the ink plate, How to Play, folio) and the right page (the shared name, description, and menu items, plus Dungeon-only stat boxes, leaders, hints, and manicules). The rules are the last section of `src/title-screen/title-screen.css`. The loading die and the error stay in the menu figure in the markup; CSS anchor positioning (`--title-plate`) puts them under the plate in place of How to Play. The ink plate (`public/dungeon/title/ink-plate.png`, lazy `<img data-ink-plate>`) comes from `scripts/dungeon-art/plate.ts`, a port of the mock's `renderInkPlate`; the NEW GAME dive grows from it (the dive source of each Theme is `diveFrom` in `title-screen.ts`). `createTitleScreen` steps the die (`[data-die]`) every 140 ms while the loading state shows, except under reduced motion. `titleScreenPage` fills the stat boxes from the Level (`<!--level-rooms-->`, `<!--level-exhibits-->`, `<!--level-bugs-->`) and fails when a mark is missing.
 
+## Pause Menu look
+
+`src/game/pause-menu.ts` builds one markup for every Theme. Paper and Board show it as the board panel; Dungeon restyles the same elements as the Adventure Sheet in the last section of `src/game/pause-menu.css` (boxed fields with their names on the box edge, tick boxes, ink focus rings). `.pause-menu__fields` is `display: contents` outside Dungeon, so the Paper and Board layout does not change. The shell opens the menu with the Bugs fixed and the Bug total from `game.state()` (`pauseMenu.open({ fixed, total })`); the Bugs fixed field (only in Dungeon) ticks one box per fixed Bug and is hidden when the Level has no Bugs.
+
 ## Agent skills
 
 ### Issue tracker

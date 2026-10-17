@@ -1,8 +1,8 @@
 /*
- * The Pause Menu: a board panel over the paused game, the same in every Theme (it never follows
- * data-theme). It uses the palette tokens of src/theme.css, and sets `color-scheme: dark` so the
- * native parts of the inputs draw dark too. Copper marks only the live thing: the selected item,
- * an "on" switch, the slider thumb, and the focus ring.
+ * The Pause Menu: a board panel over the paused game, the same in Paper and Board. It uses the
+ * palette tokens of src/theme.css, and sets `color-scheme: dark` so the native parts of the inputs
+ * draw dark too. Copper marks only the live thing: the selected item, an "on" switch, the slider
+ * thumb, and the focus ring. The Dungeon look (the Adventure Sheet) is the last section.
  */
 .pause-menu {
 	position: fixed;
@@ -70,6 +70,11 @@
 
 .pause-menu__item:active {
 	translate: 0 1px;
+}
+
+/* The fields are one box in the Dungeon look only. */
+.pause-menu__fields {
+	display: contents;
 }
 
 .pause-menu__row {
@@ -294,5 +299,295 @@
 	from {
 		opacity: 0;
 		translate: 0 8px;
+	}
+}
+
+/*
+ * Dungeon: the Adventure Sheet, a pulp page with a double ink rule. Resume and Skip View are
+ * ink-outlined rows with an italic hint. Each setting is a box with its name on the box edge; the
+ * toggles and the Theme are tick boxes, and the Bugs fixed field ticks one box per fixed Bug. One
+ * ink, no copper: a live thing is inked (an ink block with page text). Every rule names the
+ * Dungeon look, so Paper and Board never change and fetch no Dungeon face or tile.
+ */
+:root[data-theme="dungeon"] .pause-menu {
+	--f: max(11px, min(1.12vw, 1.99vh));
+	background: var(--dungeon-scrim);
+	color: var(--dungeon-ink);
+	color-scheme: light;
+	font: 400 var(--f) / 1.5 var(--font-book);
+}
+
+:root[data-theme="dungeon"] .pause-menu__panel {
+	display: block;
+	width: min(36em, 100%);
+	padding: 1.6em 1.8em 1.4em;
+	border: 2px solid var(--dungeon-ink);
+	outline: 1px solid var(--dungeon-ink);
+	outline-offset: -0.45em;
+	background-size: auto;
+}
+
+:root[data-theme="dungeon"] .pause-menu__title {
+	font: 400 2.6em / 1 var(--font-fell);
+	text-align: center;
+}
+
+:root[data-theme="dungeon"] .pause-menu__sub {
+	margin: 0.2em 0 1em;
+	color: var(--dungeon-ink-2);
+	font: italic 400 1.1em / 1 var(--font-book);
+	text-align: center;
+}
+
+:root[data-theme="dungeon"] .pause-menu__sep,
+:root[data-theme="dungeon"] .pause-menu__hint,
+:root[data-theme="dungeon"] .pause-menu__legend,
+:root[data-theme="dungeon"] .pause-menu__item::after {
+	display: none;
+}
+
+:root[data-theme="dungeon"] .pause-menu__item {
+	box-sizing: border-box;
+	width: 100%;
+	align-items: baseline;
+	padding: 0.5em 0.75em 0.45em;
+	border: 2px solid var(--dungeon-ink);
+	color: var(--dungeon-ink);
+	font: 700 1.25em / 1 var(--font-book-sc);
+}
+
+:root[data-theme="dungeon"] .pause-menu__item small {
+	font: italic 400 0.7em / 1 var(--font-book);
+}
+
+:root[data-theme="dungeon"] .pause-menu__item:focus-visible {
+	background: var(--dungeon-ink);
+	color: var(--dungeon-page);
+	outline: none;
+	box-shadow:
+		0 0 0 2px var(--dungeon-page),
+		0 0 0 4px var(--dungeon-ink);
+}
+
+:root[data-theme="dungeon"] .pause-menu__fields {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0.7em;
+	margin: 1em 0;
+}
+
+/* A field: an ink box with its name on the top edge. */
+:root[data-theme="dungeon"] .pause-menu__row {
+	position: relative;
+	display: block;
+	min-width: 0;
+	padding: 1.15em 0.75em 0.6em;
+	border: 1px solid var(--dungeon-ink);
+}
+
+:root[data-theme="dungeon"] .pause-menu__row--wide {
+	grid-column: 1 / -1;
+}
+
+:root[data-theme="dungeon"] .pause-menu__bugs[hidden] {
+	display: none;
+}
+
+:root[data-theme="dungeon"] .pause-menu__name {
+	position: absolute;
+	top: -0.65em;
+	left: 0.6em;
+	padding: 0 0.35em;
+	background: var(--dungeon-page);
+	font: 500 1em / 1.2 var(--font-book-sc);
+	letter-spacing: 0.03em;
+}
+
+/* The box edge shows "Mouse" and the tick box "Invert"; a screen reader still hears "Invert mouse". */
+:root[data-theme="dungeon"] .pause-menu__full-name {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+:root[data-theme="dungeon"] .pause-menu kbd {
+	box-sizing: border-box;
+	min-width: 1.7em;
+	padding: 0.1em 0.35em 0;
+	border: 1px solid var(--dungeon-ink);
+	border-bottom-width: 2px;
+	background: var(--dungeon-page);
+	color: var(--dungeon-ink);
+	font: 500 0.82em / 1.2 var(--font-book-sc);
+}
+
+/* The mouse sensitivity: an ink thumb on an ink rule. It inverts while it is dragged. */
+:root[data-theme="dungeon"] .pause-menu__control {
+	gap: 0.8em;
+}
+
+:root[data-theme="dungeon"] .pause-menu__range {
+	flex: 1;
+	width: auto;
+}
+
+:root[data-theme="dungeon"] .pause-menu__range::-webkit-slider-runnable-track {
+	background: var(--dungeon-ink);
+}
+
+:root[data-theme="dungeon"] .pause-menu__range::-moz-range-track {
+	background: var(--dungeon-ink);
+}
+
+:root[data-theme="dungeon"] .pause-menu__range::-webkit-slider-thumb {
+	width: 0.85em;
+	height: 1.3em;
+	margin-top: calc(-0.65em - 1px);
+	background: var(--dungeon-ink);
+	border: 2px solid var(--dungeon-page);
+	border-radius: 0;
+	outline: 1px solid var(--dungeon-ink);
+}
+
+:root[data-theme="dungeon"] .pause-menu__range::-moz-range-thumb {
+	width: 0.85em;
+	height: 1.3em;
+	background: var(--dungeon-ink);
+	border: 2px solid var(--dungeon-page);
+	border-radius: 0;
+}
+
+:root[data-theme="dungeon"] .pause-menu__range:active::-webkit-slider-thumb {
+	background: var(--dungeon-page);
+	border-color: var(--dungeon-ink);
+}
+
+:root[data-theme="dungeon"] .pause-menu__range:active::-moz-range-thumb {
+	background: var(--dungeon-page);
+	border-color: var(--dungeon-ink);
+}
+
+:root[data-theme="dungeon"] .pause-menu__range:focus-visible {
+	outline: 2px solid var(--dungeon-ink);
+	outline-offset: 6px;
+}
+
+:root[data-theme="dungeon"] .pause-menu output {
+	min-width: 1.6em;
+	font: 700 1.3em / 1 var(--font-book);
+	/* The font shorthand resets the lining figures of src/theme.css. */
+	font-variant-numeric: lining-nums;
+}
+
+/* The tick boxes: Invert, Sound, and the three Theme radios. */
+:root[data-theme="dungeon"] .pause-menu__silk {
+	display: inline-flex;
+	gap: 0.5em;
+	color: var(--dungeon-ink);
+	font: 400 1.12em / 1.5 var(--font-book);
+	cursor: pointer;
+}
+
+:root[data-theme="dungeon"] .pause-menu__slide {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0 1.1em;
+}
+
+:root[data-theme="dungeon"] .pause-menu__position {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5em;
+}
+
+:root[data-theme="dungeon"] .pause-menu__dip,
+:root[data-theme="dungeon"] .pause-menu__position input {
+	width: 1.05em;
+	height: 1.05em;
+	background: var(--dungeon-page);
+	border: 2px solid var(--dungeon-ink);
+}
+
+:root[data-theme="dungeon"] .pause-menu__position input {
+	border-radius: 50%;
+}
+
+:root[data-theme="dungeon"] .pause-menu__dip::before,
+:root[data-theme="dungeon"] .pause-menu__position input:checked::before {
+	content: none;
+}
+
+:root[data-theme="dungeon"] .pause-menu__dip:checked,
+:root[data-theme="dungeon"] .pause-menu__position input:checked {
+	background: var(--dungeon-ink);
+	box-shadow: inset 0 0 0 2px var(--dungeon-page);
+}
+
+:root[data-theme="dungeon"] .pause-menu__position span {
+	color: var(--dungeon-ink);
+}
+
+:root[data-theme="dungeon"] .pause-menu__dip:focus-visible,
+:root[data-theme="dungeon"] .pause-menu__position input:focus-visible {
+	outline: 2px solid var(--dungeon-ink);
+}
+
+:root[data-theme="dungeon"] .pause-menu__error {
+	grid-column: 1 / -1;
+	margin: 0;
+	color: var(--dungeon-ink);
+	font: italic 400 1.05em / 1.3 var(--font-book);
+	text-align: center;
+}
+
+/* The Bugs fixed tally: one box per Bug, an ink X in each fixed one, then "N of M". */
+:root[data-theme="dungeon"] .pause-menu__tally {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.35em;
+	align-items: center;
+}
+
+:root[data-theme="dungeon"] .pause-menu__tally span {
+	box-sizing: border-box;
+	width: 1.3em;
+	height: 1.3em;
+	border: 2px solid var(--dungeon-ink);
+}
+
+:root[data-theme="dungeon"] .pause-menu__tally span.is-done {
+	background:
+		linear-gradient(45deg, transparent 44%, var(--dungeon-ink) 44% 56%, transparent 56%),
+		linear-gradient(-45deg, transparent 44%, var(--dungeon-ink) 44% 56%, transparent 56%);
+}
+
+:root[data-theme="dungeon"] .pause-menu__tally b {
+	margin-left: auto;
+	font: 700 1.25em / 1 var(--font-book);
+	font-variant-numeric: lining-nums;
+}
+
+/* Hover inverts only where a real pointer hovers; a tap must not leave a row inverted. */
+@media (hover: hover) and (pointer: fine) {
+	:root[data-theme="dungeon"] .pause-menu__item:hover {
+		background: var(--dungeon-ink);
+		color: var(--dungeon-page);
+	}
+}
+
+/* The sheet rises 10px when it opens and goes at once when it closes. */
+@media (prefers-reduced-motion: no-preference) {
+	:root[data-theme="dungeon"] .pause-menu:not([hidden]) .pause-menu__panel {
+		animation-name: pause-menu-rise-dungeon;
+	}
+}
+
+@keyframes pause-menu-rise-dungeon {
+	from {
+		opacity: 0;
+		translate: 0 10px;
 	}
 }
