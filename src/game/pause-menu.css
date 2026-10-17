@@ -478,8 +478,6 @@
 :root[data-theme="dungeon"] .pause-menu output {
 	min-width: 1.6em;
 	font: 700 1.3em / 1 var(--font-book);
-	/* The font shorthand resets the lining figures of src/theme.css. */
-	font-variant-numeric: lining-nums;
 }
 
 /* The tick boxes: Invert, Sound, and the three Theme radios. */
@@ -567,7 +565,6 @@
 :root[data-theme="dungeon"] .pause-menu__tally b {
 	margin-left: auto;
 	font: 700 1.25em / 1 var(--font-book);
-	font-variant-numeric: lining-nums;
 }
 
 /* Hover inverts only where a real pointer hovers; a tap must not leave a row inverted. */
