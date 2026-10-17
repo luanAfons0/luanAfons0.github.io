@@ -28,7 +28,7 @@ The game engine is the proof. The raycaster, the Level pipeline, and the content
 
 - TypeScript + Vite, no framework. 640x360 framebuffer raycaster (ADR 0001). Levels drawn in Tiled.
 - Gzipped JS budget of 100 KB. 60 FPS render target.
-- The Skip View is built at build time and has no script.
+- The Skip View is built at build time. Its only script is the Theme head script, which sets the saved Theme (ADR 0003); the page works fully without it.
 - Glossary terms are binding: Level, Room, Exhibit, Exhibit Panel, Bug, Title Screen, Pause Menu, Skip View (see `GLOSSARY.md`).
 - Keyboard navigation and `prefers-reduced-motion` must keep working.
 - Copy is in English.

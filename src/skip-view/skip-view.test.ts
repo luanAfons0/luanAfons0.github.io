@@ -5,6 +5,8 @@ import { describe, expect, it } from "vitest";
 import { EXHIBITS, type Exhibit } from "../game/content";
 import { loadLevel } from "../game/level";
 import { tiledExhibit, tiledLevel, tiledRoom } from "../game/test-support/tiled-level";
+import { THEMES } from "../game/theme";
+import { withThemeScript } from "../theme-script";
 import { skipViewPage } from "./page";
 import { buildSkipView } from "./skip-view";
 
@@ -105,7 +107,7 @@ describe("Skip View builder (Seam 2)", () => {
 		]);
 	});
 
-	it("is a whole static page with a link back to the Title Screen and no script", () => {
+	it("is a whole static page with a link back to the Title Screen and no script of its own", () => {
 		const level = loadLevel(
 			tiledLevel({ rows: ROWS, extraObjects: [WEST, tiledExhibit("orca", { x: 4, y: 1 }, "west")] }),
 		);
@@ -118,6 +120,7 @@ describe("Skip View builder (Seam 2)", () => {
 		const titleScreen = [...doc.querySelectorAll("a")].filter((a) => a.getAttribute("href") === BASE);
 		expect(titleScreen).toHaveLength(1);
 		expect(titleScreen[0]?.textContent).toMatch(/Title Screen/);
+		// The builder writes no script: the theme-script plugin puts in the only one (see "saved Theme").
 		expect(html).not.toMatch(/<script/i);
 		// The arrow is an authored pixel SVG, not a Unicode glyph.
 		expect(html).not.toContain("\u2190");
@@ -149,7 +152,7 @@ describe("Skip View builder (Seam 2)", () => {
 		);
 		const doc = parse(buildSkipView({ content: [exhibit("orca")], level, base: BASE }));
 		expect(doc.querySelector('meta[name="color-scheme"]')?.getAttribute("content")).toBe("light dark");
-		// No saved Theme here: the page has no script to set one.
+		// The script did not run (as when script is blocked): no data-theme, so the CSS follows the system.
 		expect(doc.documentElement.hasAttribute("data-theme")).toBe(false);
 	});
 
@@ -230,6 +233,54 @@ describe("Skip View builder (Seam 2)", () => {
 		expect(shown.sort()).toEqual(EXHIBITS.map((e) => e.title).sort());
 		const hrefs = [...doc.querySelectorAll("main a")].map((a) => a.getAttribute("href"));
 		for (const { url } of EXHIBITS.flatMap((e) => e.links)) expect(hrefs).toContain(url);
+	});
+
+	describe("saved Theme", () => {
+		/** The real Skip View as Vite builds it: the builder output, then the theme-script plugin. */
+		const page = withThemeScript(skipViewPage(BASE));
+		const head = page.slice(0, page.indexOf("</head>"));
+		const scripts = [...head.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((match) => match[1] ?? "");
+
+		/** Runs the head scripts with the given saved settings (null: none; an Error: blocked storage). Returns the data-theme they set. */
+		function shownTheme(saved: string | null | Error): string | undefined {
+			const dataset: { theme?: string } = {};
+			const localStorage = {
+				getItem(key: string) {
+					if (saved instanceof Error) throw saved;
+					return key === "portfolio.settings.v1" ? saved : null;
+				},
+			};
+			for (const script of scripts) {
+				new Function("document", "localStorage", script)({ documentElement: { dataset } }, localStorage);
+			}
+			return dataset.theme;
+		}
+
+		it("has one inline head script, before the stylesheet, so the saved Theme shows before the first paint", () => {
+			expect(scripts).toHaveLength(1);
+			expect(page.match(/<script/g)).toHaveLength(1);
+			expect(head.indexOf("<script>")).toBeLessThan(head.indexOf('rel="stylesheet"'));
+		});
+
+		it.each(THEMES)("shows a saved %s Theme", (theme) => {
+			expect(shownTheme(JSON.stringify({ sound: true, theme }))).toBe(theme);
+		});
+
+		it.each([
+			["no saved settings", null],
+			["saved settings with no Theme", JSON.stringify({ sound: true })],
+			["a saved Theme that is not a Theme", JSON.stringify({ theme: "neon" })],
+			["broken saved settings", "{not json"],
+			["blocked storage", new Error("Blocked site data.")],
+		])("follows the system setting with %s", (_case, saved) => {
+			expect(shownTheme(saved)).toBeUndefined();
+		});
+
+		it("still shows every Exhibit when script is blocked", () => {
+			const doc = parse(page.replace(/<script>[\s\S]*?<\/script>/g, ""));
+			const shown = [...doc.querySelectorAll("main article h3")].map((h) => h.textContent);
+			expect(shown.sort()).toEqual(EXHIBITS.map((e) => e.title).sort());
+		});
 	});
 
 	describe("Part labels", () => {

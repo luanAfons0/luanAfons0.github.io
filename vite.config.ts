@@ -2,12 +2,13 @@ import { resolve } from "node:path";
 import { type Plugin, runnerImport } from "vite";
 import { defineConfig } from "vitest/config";
 import { goatCounterScriptTag } from "./src/analytics/analytics";
+import { withThemeScript } from "./src/theme-script";
 
 export default defineConfig({
 	base: "/portfolio/",
-	// Two pages: the Title Screen (it loads the game) and the Skip View (no script at all).
+	// Two pages: the Title Screen (it loads the game) and the Skip View (only the Theme head script).
 	input: { title: "index.html", skip: "skip/index.html" },
-	plugins: [titleScreen(), skipView(), goatCounter()],
+	plugins: [titleScreen(), skipView(), themeScript(), goatCounter()],
 	build: {
 		target: "es2022",
 	},
@@ -62,6 +63,20 @@ function skipView(): Plugin {
 				});
 				return module.skipViewPage(base);
 			},
+		},
+	};
+}
+
+/**
+ * Puts the Theme head script (`src/theme-script.ts`) into both pages, at their theme-script mark,
+ * after the Title Screen and Skip View plugins. It fails the build when a page has no mark.
+ */
+function themeScript(): Plugin {
+	return {
+		name: "theme-script",
+		transformIndexHtml: {
+			order: "pre",
+			handler: (html) => withThemeScript(html),
 		},
 	};
 }

@@ -311,7 +311,7 @@ A board panel in both Themes: the quiet board tile, a 2px Silkscreen Faint borde
 A full-screen button on a 50% scrim, Board in both Themes. A Silkscreen label in a 2px silkscreen box; hover and focus turn the box Hot Copper.
 
 ### Skip View
-The full datasheet, Room by Room. Paper: LA-1 header, condensed Archivo name, inked Part labels. Board (system dark): the quiet board tile, Silkscreen headings, outlined Part labels. The page has no script, so the system setting always picks the look. The back link is a Silkscreen label with an 8x8 pixel arrow; phones do not see it.
+The full datasheet, Room by Room. Paper: LA-1 header, condensed Archivo name, inked Part labels. Board (system dark): the quiet board tile, Silkscreen headings, outlined Part labels. Its Theme head script shows the saved Theme; with none, or with script blocked, the system setting picks the look. The back link is a Silkscreen label with an 8x8 pixel arrow; phones do not see it.
 
 ### HUD (game)
 A 40px Game Mask bar with a 1px Silkscreen Faint top edge. Sections (ROOM, BUGS FIXED) are 1px outlined boxes, no fill, no bevel; small Silkscreen Grey labels over 2x Hot Copper values in the engine's 5x7 pixel font. The hint ("Press E") is Silkscreen with a one-pixel outline in eight directions so it reads on any wall. The crosshair is four 1px Silkscreen arms.

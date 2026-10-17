@@ -4,8 +4,8 @@
  * the Title Screen, the Pause Menu, the Exhibit Panel, the resume prompt, and the Skip View.
  *
  * How a look is chosen:
- * - data-theme="paper" or data-theme="board" on the root: the saved Theme (the head script in
- *   index.html sets it before the first paint, and the Theme item or switch changes it).
+ * - data-theme="paper" or data-theme="board" on the root: the saved Theme (the Theme head script of
+ *   each page sets it before the first paint, and the Theme item or switch changes it).
  * - No data-theme: the system setting. Light gives Paper, dark gives Board.
  *
  * The look sets `color-scheme` on the root (light for Paper, dark for Board), so the look tokens
