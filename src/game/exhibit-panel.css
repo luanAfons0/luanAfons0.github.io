@@ -404,11 +404,9 @@
 }
 
 :root[data-theme="dungeon"] .exhibit-panel__details {
-	max-width: 62ch;
 	margin: 0.8em 0 0;
 	color: var(--dungeon-ink);
 	font-size: 1.12em;
-	line-height: 1.55;
 }
 
 :root[data-theme="dungeon"] .exhibit-panel__details + .exhibit-panel__details {
