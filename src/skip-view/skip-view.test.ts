@@ -88,7 +88,9 @@ describe("Skip View builder (Seam 2)", () => {
 		});
 		const article = parse(buildSkipView({ content: [orca], level, base: BASE })).querySelector("main section article");
 		expect(article?.querySelector("h3")?.textContent).toBe("Title of orca");
-		expect(article?.textContent).toContain("Job");
+		// The kind sits in the gutter with the Part label, not above the heading.
+		expect(article?.querySelector(".skip-gutter .skip-kind")?.textContent).toBe("Job");
+		expect(article?.querySelector(".skip-body .skip-kind")).toBeNull();
 		expect([...(article?.querySelectorAll("p") ?? [])].map((p) => p.textContent)).toEqual(
 			expect.arrayContaining(["Summary of orca", "First paragraph.", "Second paragraph."]),
 		);
@@ -117,6 +119,19 @@ describe("Skip View builder (Seam 2)", () => {
 		expect(titleScreen).toHaveLength(1);
 		expect(titleScreen[0]?.textContent).toMatch(/Title Screen/);
 		expect(html).not.toMatch(/<script/i);
+		// The arrow is an authored pixel SVG, not a Unicode glyph.
+		expect(html).not.toContain("\u2190");
+		expect(html).not.toContain("&larr;");
+		expect(titleScreen[0]?.querySelector("svg[aria-hidden='true'][shape-rendering='crispEdges']")).not.toBeNull();
+	});
+
+	it("uses one heading, Rooms, for the table of contents in both looks", () => {
+		const level = loadLevel(
+			tiledLevel({ rows: ROWS, extraObjects: [WEST, tiledExhibit("orca", { x: 4, y: 1 }, "west")] }),
+		);
+		const doc = parse(buildSkipView({ content: [exhibit("orca")], level, base: BASE }));
+		expect(doc.querySelector("nav h2")?.textContent).toBe("Rooms");
+		expect(doc.querySelector("nav .only-paper, nav .only-board")).toBeNull();
 	});
 
 	it("has a page title with no em dash", () => {

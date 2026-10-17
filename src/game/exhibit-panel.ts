@@ -58,10 +58,10 @@ export function createExhibitPanel(options: ExhibitPanelOptions): ExhibitPanel {
 
 function exhibitContent(exhibit: Exhibit, content: readonly Exhibit[]): HTMLElement[] {
 	const header = element("header", "exhibit-panel__header");
-	header.append(
-		element("span", "exhibit-panel__part", partLabel(content, exhibit)),
-		element("span", "exhibit-panel__kind", KIND_LABELS[exhibit.kind]),
-	);
+	const part = element("span", "exhibit-panel__part", partLabel(content, exhibit));
+	part.setAttribute("role", "img");
+	part.setAttribute("aria-label", `${KIND_LABELS[exhibit.kind]} ${part.textContent}`);
+	header.append(part, element("span", "exhibit-panel__kind", KIND_LABELS[exhibit.kind]));
 	const title = element("h2", "exhibit-panel__title", exhibit.title);
 	title.id = "exhibit-panel-title";
 

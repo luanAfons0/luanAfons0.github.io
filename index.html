@@ -49,7 +49,6 @@
 					<span class="title-screen__head-note">Portfolio, playable</span>
 				</header>
 				<div class="title-screen__main">
-					<span class="title-screen__ref only-board" aria-hidden="true">LA-1</span>
 					<h1 class="title-screen__name">Luan Afonso</h1>
 					<p class="title-screen__desc">Software engineer. This portfolio is a small first-person game that runs in your browser.</p>
 					<section class="title-screen__features only-paper" aria-labelledby="title-features">
@@ -58,6 +57,8 @@
 							<li><!--level-features--></li>
 							<li>A raycasting engine I wrote from scratch in TypeScript</li>
 							<li>Skip View: every project, job, and skill on one page</li>
+							<!-- Narrow windows drop pins 6 to 10, so this item lists their controls. -->
+							<li class="title-screen__narrow"><kbd>E</kbd> to use, click to fix a Bug, <kbd>Esc</kbd> to pause, <kbd>M</kbd> to mute</li>
 						</ul>
 					</section>
 				</div>
@@ -65,17 +66,17 @@
 					<!-- The chip pinout. Pins 1 to 3 are the menu; the other pins list the controls (Paper only). -->
 					<nav class="pinout" aria-label="Title Screen">
 						<span class="pinout__label pinout__label--menu" style="--row: 1">
-							<button class="title-screen__item is-selected" type="button" data-menu-item="new-game"><span class="title-screen__pad only-board" aria-hidden="true"></span>New Game</button>
+							<button class="title-screen__item is-selected" type="button" data-menu-item="new-game"><span class="title-screen__pad only-board" aria-hidden="true"></span><span>New Game</span></button>
 							<span class="pinout__num only-paper" aria-hidden="true">1</span>
 						</span>
 						<span class="pinout__pin pinout__pin--l only-paper" style="--row: 1"></span>
 						<span class="pinout__label pinout__label--menu" style="--row: 2">
-							<a class="title-screen__item" href="%BASE_URL%skip/" data-menu-item="skip"><span class="title-screen__pad only-board" aria-hidden="true"></span>Skip</a>
+							<a class="title-screen__item" href="%BASE_URL%skip/" data-menu-item="skip"><span class="title-screen__pad only-board" aria-hidden="true"></span><span>Skip</span></a>
 							<span class="pinout__num only-paper" aria-hidden="true">2</span>
 						</span>
 						<span class="pinout__pin pinout__pin--l only-paper" style="--row: 2"></span>
 						<span class="pinout__label pinout__label--menu" style="--row: 3">
-							<button class="title-screen__item title-screen__item--small" type="button" data-menu-item="theme"><span class="title-screen__pad only-board" aria-hidden="true"></span>Theme: <span data-theme-name></span></button>
+							<button class="title-screen__item title-screen__item--small" type="button" data-menu-item="theme"><span class="title-screen__pad only-board" aria-hidden="true"></span><span>Theme: <span data-theme-name></span></span></button>
 							<span class="pinout__num only-paper" aria-hidden="true">3</span>
 						</span>
 						<span class="pinout__pin pinout__pin--l only-paper" style="--row: 3"></span>

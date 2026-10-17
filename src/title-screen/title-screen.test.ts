@@ -492,6 +492,16 @@ describe("Title Screen page", () => {
 		expect(PAGE).not.toContain("\u2014");
 		expect(PAGE).not.toContain("&mdash;");
 	});
+
+	it("lists in Features every control of pins 6 to 10, which narrow windows drop", () => {
+		const features = document.querySelector(".title-screen__features")?.textContent?.toLowerCase() ?? "";
+		const keys = [...document.querySelectorAll(".pinout__label--r")]
+			.filter((label) => label.querySelector(".pinout__name")?.textContent !== "NC")
+			.map((label) => label.querySelector(".pinout__key")?.textContent?.toLowerCase() ?? "");
+
+		expect(keys).toEqual(["e", "click", "esc", "m"]);
+		for (const key of keys) expect(features).toMatch(new RegExp(`\\b${key}\\b`));
+	});
 });
 
 describe("NEW GAME dive", () => {

@@ -45,13 +45,13 @@ ${stylesheet ? `<link rel="stylesheet" href="${escapeHtml(stylesheet)}">` : ""}
 <body>
 <div class="skip-page">
 <header class="skip-header">
-<a class="skip-back" href="${escapeHtml(base)}"><span aria-hidden="true">&larr;</span> Back to the Title Screen</a>
+<a class="skip-back" href="${escapeHtml(base)}">${BACK_ARROW} Back to the Title Screen</a>
 <p class="skip-datasheet only-paper"><span class="skip-part-number">LA-1</span> <span class="skip-datasheet-title">Portfolio, readable</span></p>
 <h1>Luan Afonso</h1>
 <p class="skip-lede">My portfolio: every Exhibit from the game, Room by Room.</p>
 </header>
 <nav class="skip-contents" aria-label="Contents">
-<h2><span class="only-paper">Contents</span><span class="only-board">Rooms</span></h2>
+<h2>Rooms</h2>
 <ol>
 ${rooms.map(({ room, exhibits, anchor }) => `<li><a href="#${anchor}"><span class="skip-contents-room">${escapeHtml(room.name)}</span><span class="skip-contents-parts">${exhibits.map((e) => partLabel(content, e)).join(", ")}</span></a></li>`).join("\n")}
 </ol>
@@ -91,9 +91,11 @@ function exhibitArticle(exhibit: Exhibit, content: readonly Exhibit[]): string {
 ${exhibit.links.map(({ label, url }) => `<li><a href="${escapeHtml(url)}">${escapeHtml(label)}</a></li>`).join("\n")}
 </ul>`;
 	return `<article class="skip-exhibit" id="exhibit-${escapeHtml(exhibit.id)}">
+<div class="skip-gutter">
 <span class="skip-part">${partLabel(content, exhibit)}</span>
-<div class="skip-body">
 <p class="skip-kind">${escapeHtml(KIND_LABELS[exhibit.kind])}</p>
+</div>
+<div class="skip-body">
 <h3>${escapeHtml(exhibit.title)}</h3>
 <p class="skip-summary">${escapeHtml(exhibit.summary)}</p>
 ${exhibit.details.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("\n")}
@@ -101,6 +103,10 @@ ${links}
 </div>
 </article>`;
 }
+
+/** A left arrow drawn on an 8 by 8 pixel grid, shown at 16 by 16 pixels: whole-pixel, crisp edges. */
+const BACK_ARROW =
+	'<svg class="skip-arrow" width="16" height="16" viewBox="0 0 8 8" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><path d="M3 1h1v1H3zM2 2h2v1H2zM0 3h8v2H0zM2 5h2v1H2zM3 6h1v1H3z"/></svg>';
 
 const ESCAPES: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
 

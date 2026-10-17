@@ -24,7 +24,7 @@
 .resume-prompt__label {
 	padding: 0.8em 1.2em;
 	border: 2px solid var(--silk);
-	font: 400 clamp(14px, 2vw, 26px) / 1 var(--font-silk);
+	font: 400 max(8px, round(down, clamp(16px, 2vw, 24px), 8px)) / 1 var(--font-silk);
 }
 
 .resume-prompt:hover .resume-prompt__label {

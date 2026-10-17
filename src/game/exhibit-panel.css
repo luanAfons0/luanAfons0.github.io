@@ -31,7 +31,7 @@
 	--ep-head-align: stretch;
 	--ep-head-rule: 3px;
 	--ep-part-padding: 0.45em 0.8em 0.3em;
-	--ep-part-size: 1.1em;
+	--ep-part-size: max(8px, round(nearest, 1.1em, 8px));
 	--ep-kind-font: 400 1em / 1.2 var(--font-sans);
 	--ep-kind-align: end;
 	--ep-kind-padding: 0 0 0.35em;
@@ -59,12 +59,12 @@
 	--ep-head-align: center;
 	--ep-head-rule: 0;
 	--ep-part-padding: 0.35em 0.6em;
-	--ep-part-size: 1em;
-	--ep-kind-font: 400 1em / 1 var(--font-silk);
+	--ep-part-size: max(8px, round(nearest, 1em, 8px));
+	--ep-kind-font: 400 max(8px, round(nearest, 1em, 8px)) / 1 var(--font-silk);
 	--ep-kind-align: center;
 	--ep-kind-padding: 0;
 	--ep-body-padding: 0;
-	--ep-title-font: 400 2.2em / 1.1 var(--font-silk);
+	--ep-title-font: 400 max(8px, round(nearest, 2.2em, 8px)) / 1.1 var(--font-silk);
 	--ep-title-stretch: normal;
 	--ep-title-spacing: 0;
 	--ep-summary-size: 1.2em;
@@ -86,12 +86,12 @@
 		--ep-head-align: center;
 		--ep-head-rule: 0;
 		--ep-part-padding: 0.35em 0.6em;
-		--ep-part-size: 1em;
-		--ep-kind-font: 400 1em / 1 var(--font-silk);
+		--ep-part-size: max(8px, round(nearest, 1em, 8px));
+		--ep-kind-font: 400 max(8px, round(nearest, 1em, 8px)) / 1 var(--font-silk);
 		--ep-kind-align: center;
 		--ep-kind-padding: 0;
 		--ep-body-padding: 0;
-		--ep-title-font: 400 2.2em / 1.1 var(--font-silk);
+		--ep-title-font: 400 max(8px, round(nearest, 2.2em, 8px)) / 1.1 var(--font-silk);
 		--ep-title-stretch: normal;
 		--ep-title-spacing: 0;
 		--ep-summary-size: 1.2em;
@@ -164,6 +164,17 @@
 	padding: var(--ep-kind-padding);
 	color: var(--text-2);
 	font: var(--ep-kind-font);
+}
+
+/* Board: the designator letter encodes the kind (its aria-label names it), so no kind label shows. */
+:root[data-theme="board"] .exhibit-panel__kind {
+	display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme]) .exhibit-panel__kind {
+		display: none;
+	}
 }
 
 .exhibit-panel__body {
@@ -264,7 +275,7 @@
 	background: light-dark(var(--ink), transparent);
 	border: 1px solid light-dark(var(--ink), var(--silk-2));
 	color: light-dark(var(--paper), var(--silk));
-	font: 400 1em / 1 var(--font-silk);
+	font: 400 max(8px, round(nearest, 1em, 8px)) / 1 var(--font-silk);
 	cursor: pointer;
 }
 
