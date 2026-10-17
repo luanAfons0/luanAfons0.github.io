@@ -1,6 +1,6 @@
 import { type AnalyticsEvent, track as sendEvent } from "../analytics/analytics";
 import { loadSettings, saveSettings } from "../game/settings";
-import { isTheme, THEME_LABELS, THEMES, type Theme } from "../game/theme";
+import { THEME_LABELS, THEMES, type Theme, shownTheme as themeOf } from "../game/theme";
 
 export interface TitleScreenOptions<Game> {
 	/** The document (or part of it) that holds the Title Screen markup from index.html. */
@@ -213,11 +213,7 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 		board: newGame.querySelector<HTMLElement>(".title-screen__pad"),
 		dungeon: plate,
 	};
-	const shownTheme = (): Theme => {
-		const theme = page.dataset.theme;
-		if (isTheme(theme)) return theme;
-		return darkSystem.matches ? "board" : "paper";
-	};
+	const shownTheme = () => themeOf(page, darkSystem);
 	const showThemeName = () => {
 		themeName.textContent = THEME_LABELS[shownTheme()];
 	};

@@ -1,5 +1,5 @@
 import { type Audio, createAudio } from "../audio/audio";
-import { type ArtSet, artSetOf, isTheme } from "../game/theme";
+import { type ArtSet, artSetOf, shownTheme } from "../game/theme";
 import { createTitleScreen } from "./title-screen";
 
 // The Title Screen page entry. It has no game code: the game is a separate chunk that the
@@ -7,8 +7,7 @@ import { createTitleScreen } from "./title-screen";
 
 /** The art set of the shown Theme: the saved Theme on the root, or, with none, the system look. */
 function shownArtSet(): ArtSet {
-	const theme = document.documentElement.dataset.theme;
-	return artSetOf(isTheme(theme) ? theme : undefined);
+	return artSetOf(shownTheme(document.documentElement, matchMedia("(prefers-color-scheme: dark)")));
 }
 
 // The Audio creates nothing and loads nothing until NEW GAME starts it.

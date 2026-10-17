@@ -1,6 +1,6 @@
 import "./pause-menu.css";
 import { MOUSE_SENSITIVITY_RANGE, type Settings } from "./settings";
-import { isTheme, THEME_LABELS, THEMES, type Theme } from "./theme";
+import { isTheme, shownTheme, THEME_LABELS, THEMES, type Theme } from "./theme";
 
 /** The Skip View page, next to the game page. */
 export const SKIP_VIEW_URL = `${import.meta.env.BASE_URL}skip/`;
@@ -137,18 +137,13 @@ export function createPauseMenu(options: PauseMenuOptions): PauseMenu {
 	// setting (light gives Paper, dark gives Board), so the switch follows it too.
 	const page = options.parent.ownerDocument.documentElement;
 	const darkSystem = matchMedia("(prefers-color-scheme: dark)");
-	const shownTheme = (): Theme => {
-		const theme = page.dataset.theme;
-		if (isTheme(theme)) return theme;
-		return darkSystem.matches ? "board" : "paper";
-	};
 
 	const showSettings = () => {
 		sensitivity.value = String(settings.mouseSensitivity);
 		sensitivityValue.value = settings.mouseSensitivity.toFixed(1);
 		invertMouse.checked = settings.invertMouse;
 		sound.checked = settings.sound;
-		const theme = shownTheme();
+		const theme = shownTheme(page, darkSystem);
 		for (const input of themes) input.checked = input.value === theme;
 	};
 	showSettings();
