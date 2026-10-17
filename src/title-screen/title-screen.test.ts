@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Face } from "../engine/raycast";
+import { loadLevel } from "../game/level";
+import sampleLevel from "../game/levels/sample.json";
 import { DEFAULT_SETTINGS, loadSettings, saveSettings } from "../game/settings";
 import { THEMES } from "../game/theme";
 import { skipViewPage } from "../skip-view/page";
@@ -374,7 +376,12 @@ function runHeadScript() {
 }
 
 const shownTheme = () => document.documentElement.getAttribute("data-theme");
-const themeLabel = () => themeItem().textContent?.replace(/\s+/g, " ").trim();
+/** The text of the Theme item that a screen reader reads: the Dungeon hint beside it is hidden. */
+const themeLabel = () => {
+	const label = themeItem().cloneNode(true) as HTMLElement;
+	for (const hidden of label.querySelectorAll('[aria-hidden="true"]')) hidden.remove();
+	return label.textContent?.replace(/\s+/g, " ").trim();
+};
 
 describe("Theme", () => {
 	it.each([
@@ -532,16 +539,39 @@ describe("Title Screen Features", () => {
 			bugSpawns: [{ x: 1, y: 1, room }],
 		};
 
-		const page = titleScreenPage("<li><!--level-features--></li>", level);
+		const page = titleScreenPage(
+			"<li><!--level-features--></li><dd><!--level-rooms--></dd><dd><!--level-exhibits--></dd><dd><!--level-bugs--></dd>",
+			level,
+		);
 
-		expect(page).toBe("<li>1 Room, 2 Exhibits, 1 Bug to fix</li>");
+		expect(page).toBe("<li>1 Room, 2 Exhibits, 1 Bug to fix</li><dd>1</dd><dd>2</dd><dd>1</dd>");
+	});
+
+	it("fails on a page with no mark for a count, so a count never goes missing", () => {
+		expect(() => titleScreenPage("<li><!--level-features--></li><dd><!--level-rooms--></dd>")).toThrow(
+			/level-exhibits/,
+		);
 	});
 
 	it("fills the real page from the real Level", () => {
-		expect(PAGE).not.toContain("level-features");
+		expect(PAGE).not.toMatch(/<!--level-/);
 		expect(document.querySelector("[data-title-screen]")?.textContent).toMatch(
 			/\d+ Rooms?, \d+ Exhibits?, \d+ Bugs? to fix/,
 		);
+	});
+
+	it("shows the Level counts in the Dungeon stat boxes: Rooms, Exhibits, and Bugs", () => {
+		const level = loadLevel(sampleLevel);
+		const stats = [...document.querySelectorAll(".title-screen__stat")].map((stat) => [
+			stat.querySelector("dt")?.textContent,
+			stat.querySelector("dd")?.textContent,
+		]);
+
+		expect(stats).toEqual([
+			["Rooms", `${level.rooms.length}`],
+			["Exhibits", `${level.exhibits.length}`],
+			["Bugs", `${level.bugSpawns.length}`],
+		]);
 	});
 });
 
@@ -624,14 +654,19 @@ describe("NEW GAME dive", () => {
 		expect(dive()?.style.getPropertyValue("--dive-left")).toBe("60px");
 	});
 
-	it("grows from the chip in Dungeon, which shows the Paper look of the HTML screens", async () => {
+	it("grows from the ink plate in Dungeon", async () => {
 		document.documentElement.dataset.theme = "dungeon";
-		const chip = document.querySelector<HTMLElement>("[data-chip]");
-		vi.spyOn(chip as HTMLElement, "getBoundingClientRect").mockReturnValue(rect(100, 300, 200, 150));
+		const plate = document.querySelector<HTMLElement>("[data-ink-plate]");
+		vi.spyOn(plate as HTMLElement, "getBoundingClientRect").mockReturnValue(rect(80, 70, 480, 360));
 		await click();
 
-		expect(dive()?.style.getPropertyValue("--dive-top")).toBe("100px");
-		expect(dive()?.style.getPropertyValue("--dive-left")).toBe("300px");
+		const style = (name: string) => dive()?.style.getPropertyValue(name);
+		expect([style("--dive-top"), style("--dive-right"), style("--dive-bottom"), style("--dive-left")]).toEqual([
+			"80px",
+			"450px",
+			"160px",
+			"70px",
+		]);
 	});
 
 	it("starts the game after the fallback timeout when transitionend never fires", async () => {
@@ -693,5 +728,109 @@ describe("NEW GAME dive", () => {
 
 		expect(dive()?.hidden).toBe(true);
 		expect(loadError()?.hidden).toBe(false);
+	});
+});
+
+describe("Dungeon loading die", () => {
+	const die = () => document.querySelector<HTMLElement>("[data-die]");
+	const face = () => die()?.dataset.face;
+
+	beforeEach(() => {
+		document.documentElement.dataset.theme = "dungeon";
+		vi.useFakeTimers();
+	});
+
+	afterEach(() => {
+		vi.useRealTimers();
+	});
+
+	/** Clicks NEW GAME before the game is ready, and waits out the dive, so the loading state shows. */
+	async function loading() {
+		const setup = setUp();
+		newGame().click();
+		await vi.advanceTimersByTimeAsync(1000);
+		expect(loadingBar()?.hidden).toBe(false);
+		return setup;
+	}
+
+	it("sits on the loading state with the line Loading the game.", () => {
+		expect(loadingBar()?.contains(die() as HTMLElement)).toBe(true);
+		expect(loadingBar()?.querySelector(".only-dungeon")?.textContent).toContain("Loading the game.");
+	});
+
+	it("steps to a new face every 140 ms while the game loads, then stops", async () => {
+		motion("no-preference");
+		const { resolve } = await loading();
+
+		const faces = [face()];
+		for (let step = 0; step < 6; step++) {
+			await vi.advanceTimersByTimeAsync(140);
+			faces.push(face());
+		}
+		// Each step shows the next face of the roll 3, 6, 1, 5, 2, 4, wrapping: six steps show every face once.
+		expect("361524361524").toContain(faces.slice(1).join(""));
+
+		resolve("the game");
+		await vi.advanceTimersByTimeAsync(0);
+		const last = face();
+		await vi.advanceTimersByTimeAsync(1000);
+		expect(face()).toBe(last);
+	});
+
+	it("stays still under reduced motion", async () => {
+		await loading();
+		const first = face();
+
+		await vi.advanceTimersByTimeAsync(1000);
+
+		expect(face()).toBe(first);
+	});
+});
+
+describe("Title Screen in every look", () => {
+	it.each(THEMES)("works the same in %s: hover, focus, the arrow keys, and Enter", (theme) => {
+		document.documentElement.dataset.theme = theme;
+		const { navigate } = setUp();
+
+		themeItem().dispatchEvent(new Event("pointerenter"));
+		expect(themeItem().classList.contains("is-selected")).toBe(true);
+		newGame().focus();
+		expect(newGame().classList.contains("is-selected")).toBe(true);
+		press("ArrowDown");
+		expect(document.activeElement).toBe(skip());
+		expect(skip().classList.contains("is-selected")).toBe(true);
+		press("Enter");
+		expect(navigate).toHaveBeenCalledTimes(1);
+	});
+
+	it("keeps the menu usable while the game loads", () => {
+		const { navigate } = setUp();
+		newGame().click();
+		expect(loadingBar()?.hidden).toBe(false);
+
+		press("ArrowDown");
+		press("Enter");
+
+		expect(navigate).toHaveBeenCalledTimes(1);
+	});
+
+	it("names the Dungeon error as a blocked way, with the same reason and recovery", async () => {
+		const { reject } = setUp();
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		newGame().click();
+		reject(new Error("offline"));
+		await settle();
+
+		expect(loadError()?.querySelector(".only-dungeon")?.textContent).toBe("The way is blocked.");
+		expect(loadError()?.querySelector("[data-load-error-text]")?.textContent).toMatch(/choose NEW GAME to reload/);
+	});
+
+	it("lazy-loads the ink plate, only in the Dungeon look, with a text alternative", () => {
+		const plate = document.querySelector<HTMLImageElement>("img[data-ink-plate]");
+
+		expect(plate?.getAttribute("loading")).toBe("lazy");
+		expect(plate?.getAttribute("src")).toBe("/dungeon/title/ink-plate.png");
+		expect(plate?.alt).toMatch(/ink drawing/);
+		expect(plate?.closest(".only-dungeon")).not.toBeNull();
 	});
 });

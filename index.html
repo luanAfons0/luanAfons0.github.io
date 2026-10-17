@@ -33,17 +33,43 @@
 	<body>
 		<!--
 			The Title Screen: plain HTML and CSS. The game code loads only when the visitor points at or focuses NEW GAME.
-			One markup serves both Themes: Paper (a datasheet cover with a chip pinout) and Board (the name in
-			silkscreen and the menu as copper pads). Elements with only-paper or only-board show in one look only.
+			One markup serves the three Themes: Paper (a datasheet cover with a chip pinout), Board (the name in
+			silkscreen and the menu as copper pads), and Dungeon (an open gamebook on its green cover: the ink plate
+			and How to Play on the left page, the name, the stats, and the menu as choices on the right page).
+			Elements with only-paper, only-board, or only-dungeon show in one look only.
 		-->
-		<main class="title-screen" data-title-screen>
-			<div class="title-screen__sheet">
+		<main class="title-screen dungeon-cover" data-title-screen>
+			<div class="title-screen__sheet dungeon-pulp">
 				<div class="title-screen__outline only-board" aria-hidden="true"></div>
+				<!-- Dungeon: the left page. The plate is lazy, so Paper and Board never fetch it (they never show it). -->
+				<div class="title-screen__leaf only-dungeon">
+					<svg class="title-screen__sprite" width="0" height="0" aria-hidden="true">
+						<!-- The manicule, on a 19x10 grid: a cuff, a fist, and one finger that points right. -->
+						<symbol id="title-hand" viewBox="0 0 19 10"><path d="M0 2h3v6H0zM4 1h2v1h7v1h5v1h1v1h-1v1h-6v1h1v1h-1v1H5V8H4z" /><path class="title-screen__hand-light" d="M6 3h1v1H6zM6 6h5v1H6z" /></symbol>
+					</svg>
+					<p class="title-screen__runhead" aria-hidden="true"><span>The Keep</span><span>Plate I</span></p>
+					<figure class="title-screen__plate">
+						<img src="/dungeon/title/ink-plate.png" width="320" height="240" loading="lazy" decoding="async" alt="An ink drawing of a stone corridor lit by a torch, with a small slime on the floor." data-ink-plate />
+					</figure>
+					<section class="title-screen__rules" aria-labelledby="title-rules">
+						<h2 id="title-rules">How to Play</h2>
+						<dl>
+							<dt><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dt><dd>Move</dd>
+							<dt><kbd>E</kbd></dt><dd>Use</dd>
+							<dt><kbd>Mouse</kbd></dt><dd>Look</dd>
+							<dt><kbd>Click</kbd></dt><dd>Fix a Bug</dd>
+							<dt><kbd>Esc</kbd></dt><dd>Pause</dd>
+							<dt><kbd>M</kbd></dt><dd>Mute</dd>
+						</dl>
+					</section>
+					<p class="title-screen__folio" aria-hidden="true">ii</p>
+				</div>
 				<header class="title-screen__head only-paper">
 					<span class="title-screen__part">LA-1</span>
 					<span class="title-screen__head-note">Portfolio, playable</span>
 				</header>
 				<div class="title-screen__main">
+					<p class="title-screen__runhead only-dungeon" aria-hidden="true"><span>Background</span><span>Luan Afonso</span></p>
 					<h1 class="title-screen__name">Luan Afonso</h1>
 					<p class="title-screen__desc">Software engineer. This portfolio is a small first-person game that runs in your browser.</p>
 					<section class="title-screen__features only-paper" aria-labelledby="title-features">
@@ -56,22 +82,39 @@
 							<li class="title-screen__narrow"><kbd>E</kbd> to use, click to fix a Bug, <kbd>Esc</kbd> to pause, <kbd>M</kbd> to mute</li>
 						</ul>
 					</section>
+					<!-- Dungeon: the Features as the stat boxes of an Adventure Sheet, counted from the Level. -->
+					<section class="title-screen__stats only-dungeon" aria-labelledby="title-stats">
+						<h2 id="title-stats">Features</h2>
+						<dl class="title-screen__stat-boxes">
+							<div class="title-screen__stat"><dt>Rooms</dt><dd><!--level-rooms--></dd></div>
+							<div class="title-screen__stat"><dt>Exhibits</dt><dd><!--level-exhibits--></dd></div>
+							<div class="title-screen__stat"><dt>Bugs</dt><dd><!--level-bugs--></dd></div>
+						</dl>
+						<ul class="title-screen__notes">
+							<li>A raycasting engine I wrote from scratch in TypeScript</li>
+							<li>Skip View: every project, job, and skill on one page</li>
+						</ul>
+					</section>
 				</div>
 				<figure class="title-screen__fig">
 					<!-- The chip pinout. Pins 1 to 3 are the menu; the other pins list the controls (Paper only). -->
 					<nav class="pinout" aria-label="Title Screen">
+						<h2 class="title-screen__choose only-dungeon">Now choose:</h2>
 						<span class="pinout__label pinout__label--menu" style="--row: 1">
-							<button class="title-screen__item is-selected" type="button" data-menu-item="new-game"><span class="title-screen__pad only-board" aria-hidden="true"></span><span>New Game</span></button>
+							<svg class="title-screen__hand only-dungeon" aria-hidden="true"><use href="#title-hand" /></svg>
+							<button class="title-screen__item is-selected" type="button" data-menu-item="new-game"><span class="title-screen__pad only-board" aria-hidden="true"></span><span>New Game</span><span class="title-screen__lead only-dungeon" aria-hidden="true"></span><span class="title-screen__to only-dungeon" aria-hidden="true">turn to 1</span></button>
 							<span class="pinout__num only-paper" aria-hidden="true">1</span>
 						</span>
 						<span class="pinout__pin pinout__pin--l only-paper" style="--row: 1"></span>
 						<span class="pinout__label pinout__label--menu" style="--row: 2">
-							<a class="title-screen__item" href="%BASE_URL%skip/" data-menu-item="skip"><span class="title-screen__pad only-board" aria-hidden="true"></span><span>Skip</span></a>
+							<svg class="title-screen__hand only-dungeon" aria-hidden="true"><use href="#title-hand" /></svg>
+							<a class="title-screen__item" href="%BASE_URL%skip/" data-menu-item="skip"><span class="title-screen__pad only-board" aria-hidden="true"></span><span>Skip</span><span class="title-screen__lead only-dungeon" aria-hidden="true"></span><span class="title-screen__to only-dungeon" aria-hidden="true">read every page</span></a>
 							<span class="pinout__num only-paper" aria-hidden="true">2</span>
 						</span>
 						<span class="pinout__pin pinout__pin--l only-paper" style="--row: 2"></span>
 						<span class="pinout__label pinout__label--menu" style="--row: 3">
-							<button class="title-screen__item title-screen__item--small" type="button" data-menu-item="theme"><span class="title-screen__pad only-board" aria-hidden="true"></span><span>Theme: <span data-theme-name></span></span></button>
+							<svg class="title-screen__hand only-dungeon" aria-hidden="true"><use href="#title-hand" /></svg>
+							<button class="title-screen__item title-screen__item--small" type="button" data-menu-item="theme"><span class="title-screen__pad only-board" aria-hidden="true"></span><span>Theme: <span data-theme-name></span></span><span class="title-screen__lead only-dungeon" aria-hidden="true"></span><span class="title-screen__to only-dungeon" aria-hidden="true">Paper, Board, Dungeon</span></button>
 							<span class="pinout__num only-paper" aria-hidden="true">3</span>
 						</span>
 						<span class="pinout__pin pinout__pin--l only-paper" style="--row: 3"></span>
@@ -141,20 +184,26 @@
 							<span class="leds__label">Loading</span>
 							<span class="leds__led"></span><span class="leds__led"></span><span class="leds__led"></span><span class="leds__led"></span><span class="leds__led"></span><span class="leds__led"></span><span class="leds__led"></span>
 						</div>
+						<!-- Dungeon: a die that shows a new face every step, like a roll (title-screen.ts steps it). -->
+						<div class="roll only-dungeon">
+							<span class="roll__die" data-die data-face="3" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+							<span>Loading the game.</span>
+						</div>
 					</div>
-					<p class="title-screen__error" data-load-error role="alert" hidden><strong class="title-screen__error-label only-paper">Note 1.</strong><strong class="title-screen__error-label title-screen__error-label--board only-board">Fault.</strong> <span data-load-error-text></span></p>
+					<p class="title-screen__error" data-load-error role="alert" hidden><strong class="title-screen__error-label only-paper">Note 1.</strong><strong class="title-screen__error-label title-screen__error-label--board only-board">Fault.</strong><strong class="title-screen__error-label title-screen__error-label--dungeon only-dungeon">The way is blocked.</strong> <span data-load-error-text></span></p>
 
 					<p class="title-screen__hint only-board">
 						<kbd>&uarr;</kbd> <kbd>&darr;</kbd> to choose, <kbd>Enter</kbd> to select<br />
 						Skip to read every project, job, and skill without playing.
 					</p>
 				</figure>
+				<p class="title-screen__book-foot only-dungeon"><span><kbd>Up</kbd> <kbd>Down</kbd> to choose, <kbd>Enter</kbd> to select</span><span class="title-screen__folio" aria-hidden="true">iii</span></p>
 				<footer class="title-screen__foot only-paper">
 					<span><kbd>&uarr;</kbd> <kbd>&darr;</kbd> to choose, <kbd>Enter</kbd> to select</span>
 					<span>Skip to read every project, job, and skill without playing.</span>
 				</footer>
 			</div>
-			<!-- The NEW GAME dive: a board-colored layer that grows from the chip (Paper) or the pad (Board). -->
+			<!-- The NEW GAME dive: a board-colored layer that grows from the chip (Paper) or the pad (Board), or the ink plate (Dungeon). -->
 			<div class="title-screen__dive" data-dive aria-hidden="true" hidden></div>
 		</main>
 		<canvas id="screen" width="640" height="360" tabindex="-1" hidden aria-label="Game view. Click to capture the mouse. Press Esc to pause. Press M to mute."></canvas>

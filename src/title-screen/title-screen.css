@@ -784,3 +784,564 @@
 		background: var(--silk-3);
 	}
 }
+
+/* ==========================================================================================
+ * Dungeon: an open gamebook on its green cloth cover, as in the approved mock
+ * (.impeccable/mocks/ui-studio/dungeon.html). Every rule here is under :root[data-theme="dungeon"]
+ * or on an .only-dungeon element, so Paper and Board do not change.
+ *
+ * The sheet is the two-page spread: a two-column grid. The left page is one element (the running
+ * head, the ink plate, How to Play, and the folio). The right page is the main block (running
+ * head, name, description, stat boxes, Features lines), the menu as choices, and the foot. The
+ * loading die and the error stay in the menu figure in the markup (one markup for three looks),
+ * and CSS anchor positioning puts them on the left page, under the plate, in place of How to Play.
+ * The em sizes are the mock's, in em of the spread font size --f.
+ * ========================================================================================== */
+
+:root[data-theme="dungeon"] .title-screen {
+	background-size: auto;
+	color: var(--dungeon-ink);
+	font-family: var(--font-book);
+
+	--ts-name-font: 400 5.4em / 0.9 var(--font-fell);
+	--ts-name-stretch: normal;
+	--ts-name-spacing: -0.015em;
+	--ts-item-trace: none;
+}
+
+:root[data-theme="dungeon"] .title-screen ::selection {
+	background: var(--dungeon-ink);
+	color: var(--dungeon-page);
+}
+
+/* The spread: 92% by 90% of the 16:9 sheet, as the book on the mock's stage. */
+:root[data-theme="dungeon"] .title-screen__sheet {
+	--f: max(10px, calc(1.18 * var(--u)));
+
+	grid-template-columns: 1fr 1fr;
+	grid-template-rows: auto auto 1fr auto;
+	align-items: start;
+	width: calc(92 * var(--u));
+	height: calc(50.625 * var(--u));
+	min-height: 0;
+	overflow-x: visible;
+	box-shadow:
+		0 1.2em 2.6em rgb(6 18 11 / 0.55),
+		0 0.2em 0.4em rgb(6 18 11 / 0.4);
+	font-size: var(--f);
+	line-height: 1.5;
+}
+
+/* The page edges: the stacked leaves at each outer side (the left one is on the left page). */
+:root[data-theme="dungeon"] .title-screen__sheet::before,
+.title-screen__leaf::before {
+	content: "";
+	position: absolute;
+	top: 0.35em;
+	bottom: 0.35em;
+	width: 0.5em;
+	background: repeating-linear-gradient(90deg, var(--dungeon-page-2) 0 1px, var(--dungeon-rule) 1px 2px);
+}
+
+:root[data-theme="dungeon"] .title-screen__sheet::before {
+	right: -0.5em;
+}
+
+.title-screen__leaf::before {
+	left: -0.5em;
+}
+
+/* The fold: the paper curves into the spine, so it darkens there. The left page has its own shadow. */
+:root[data-theme="dungeon"] .title-screen__sheet::after {
+	content: "";
+	position: absolute;
+	z-index: -1;
+	inset: 0 0 0 50%;
+	box-shadow: inset 2.2em 0 2em -1.6em rgb(74 70 61 / 0.45);
+	pointer-events: none;
+}
+
+/* The left page. */
+.title-screen__leaf {
+	position: relative;
+	grid-row: 1 / -1;
+	grid-column: 1;
+	align-self: stretch;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	padding: 2.6em 3em 2.2em;
+	box-shadow: inset -2.2em 0 2em -1.6em rgb(74 70 61 / 0.45);
+}
+
+.title-screen__sprite {
+	position: absolute;
+}
+
+.title-screen__hand-light {
+	fill: var(--dungeon-page);
+	opacity: 0.55;
+}
+
+.title-screen__runhead {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	margin: 0 0 1.4em;
+	padding-bottom: 0.35em;
+	border-bottom: 1px solid var(--dungeon-ink);
+	color: var(--dungeon-ink-2);
+	font: 400 0.95em / 1 var(--font-fell-sc);
+	letter-spacing: 0.06em;
+}
+
+/* The ink plate: the anchor of the loading die and the error. */
+.title-screen__plate {
+	margin: 0;
+	padding: 0.35em;
+	border: 2px solid var(--dungeon-ink);
+	background: var(--dungeon-page);
+	anchor-name: --title-plate;
+}
+
+.title-screen__plate img {
+	display: block;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 4 / 3;
+}
+
+.title-screen__rules {
+	margin-top: 1.3em;
+}
+
+.title-screen__rules h2 {
+	margin: 0 0 0.5em;
+	font: 400 1.25em / 1 var(--font-fell-sc);
+	letter-spacing: 0.04em;
+}
+
+.title-screen__rules dl {
+	display: grid;
+	grid-template-columns: auto 1fr auto 1fr;
+	align-items: baseline;
+	gap: 0.45em 0.8em;
+	margin: 0;
+}
+
+.title-screen__rules dt {
+	white-space: nowrap;
+}
+
+.title-screen__rules dd {
+	margin: 0;
+	font-size: 1.05em;
+}
+
+.title-screen__folio {
+	margin: auto 0 0;
+	padding-top: 0.8em;
+	color: var(--dungeon-ink-2);
+	font: italic 400 0.95em / 1 var(--font-fell);
+	text-align: center;
+}
+
+:root[data-theme="dungeon"] .title-screen kbd {
+	min-width: 1.7em;
+	padding: 0.1em 0.35em 0;
+	border: 1px solid var(--dungeon-ink);
+	border-bottom-width: 2px;
+	background: var(--dungeon-page);
+	color: var(--dungeon-ink);
+	font: 500 0.82em / 1.2 var(--font-book-sc);
+}
+
+/* The right page: the main block, the choices, and the foot. */
+:root[data-theme="dungeon"] .title-screen__main,
+:root[data-theme="dungeon"] .title-screen__fig,
+.title-screen__book-foot {
+	grid-column: 2;
+	padding: 0 3em 0 3.6em;
+}
+
+/* A flex column like the mock's page, so the margins inside do not collapse. */
+:root[data-theme="dungeon"] .title-screen__main {
+	grid-row: 1;
+	gap: 0;
+	padding-top: 2.6em;
+}
+
+:root[data-theme="dungeon"] .title-screen__name {
+	color: var(--dungeon-ink);
+	text-wrap: nowrap;
+}
+
+:root[data-theme="dungeon"] .title-screen__desc {
+	max-width: 30ch;
+	margin: 0.55em 0 0;
+	color: var(--dungeon-ink);
+	font: italic 400 1.5em / 1.3 var(--font-book);
+}
+
+.title-screen__stats {
+	margin: 1.5em 0 0;
+}
+
+/* Hidden but read: the stat boxes are the Features. */
+.title-screen__stats h2 {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+.title-screen__stat-boxes {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 0.8em;
+	margin: 1em 0;
+}
+
+.title-screen__stat {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	gap: 0.5em;
+	padding: 0.45em 0.6em 0.5em;
+	border: 2px solid var(--dungeon-ink);
+}
+
+.title-screen__stat dt {
+	font: 500 1.05em / 1 var(--font-book-sc);
+	letter-spacing: 0.03em;
+}
+
+.title-screen__stat dd {
+	margin: 0;
+	font: 700 2.2em / 0.9 var(--font-book);
+}
+
+.title-screen__notes {
+	margin: 0.7em 0 0;
+	padding: 0;
+	font-size: 1.12em;
+	line-height: 1.4;
+	list-style: none;
+}
+
+.title-screen__notes li {
+	display: flex;
+	gap: 0.6em;
+}
+
+/* The list marker: an empty tick box. */
+.title-screen__notes li::before {
+	content: "";
+	flex: none;
+	width: 0.5em;
+	height: 0.5em;
+	margin-top: 0.45em;
+	border: 1px solid var(--dungeon-ink);
+}
+
+/* The choices. The figure is a plain block, so the die and the error can leave it for the left page. */
+:root[data-theme="dungeon"] .title-screen__fig {
+	position: static;
+	grid-row: 2;
+	justify-self: stretch;
+	display: block;
+}
+
+:root[data-theme="dungeon"] .title-screen__fig::before {
+	display: none;
+}
+
+:root[data-theme="dungeon"] .pinout {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 0.3em;
+	margin-top: 1.6em;
+}
+
+.title-screen__choose {
+	margin: 0 0 0.15em;
+	color: var(--dungeon-ink-2);
+	font: italic 400 1.2em / 1.2 var(--font-book);
+}
+
+:root[data-theme="dungeon"] .pinout__label--menu {
+	justify-content: flex-start;
+	gap: 0.5em;
+	margin-left: -2.4em;
+	padding: 0;
+	white-space: normal;
+}
+
+/* The manicule: the printer's pointing hand marks the selected choice. */
+.title-screen__hand {
+	flex: none;
+	width: 1.9em;
+	height: 1em;
+	fill: var(--dungeon-ink);
+	visibility: hidden;
+}
+
+.pinout__label:has(.is-selected) .title-screen__hand {
+	visibility: visible;
+}
+
+:root[data-theme="dungeon"] .title-screen__item {
+	flex: 1;
+	align-items: baseline;
+	gap: 0.6em;
+	padding: 0.42em 0.7em 0.38em;
+	color: var(--dungeon-ink);
+	font: 700 1.5em / 1 var(--font-book-sc);
+	letter-spacing: 0.02em;
+	text-align: left;
+}
+
+:root[data-theme="dungeon"] .title-screen__item--small {
+	font-size: 1.15em;
+}
+
+.title-screen__lead {
+	flex: 1;
+	align-self: center;
+	min-width: 1em;
+	height: 0;
+	border-bottom: 2px dotted var(--dungeon-rule);
+}
+
+.title-screen__to {
+	margin-left: auto;
+	color: var(--dungeon-ink-2);
+	font: italic 400 0.72em / 1 var(--font-book);
+	letter-spacing: 0;
+}
+
+/* Selected means inked: an ink block with page text. */
+:root[data-theme="dungeon"] .title-screen__item.is-selected {
+	background: var(--dungeon-ink);
+	color: var(--dungeon-page);
+}
+
+:root[data-theme="dungeon"] .title-screen__item.is-selected .title-screen__to {
+	color: var(--dungeon-page);
+}
+
+:root[data-theme="dungeon"] .title-screen__item.is-selected .title-screen__lead {
+	border-color: rgb(224 217 197 / 0.4);
+}
+
+:root[data-theme="dungeon"] .title-screen__item:focus-visible {
+	outline: 2px solid var(--dungeon-ink);
+	outline-offset: 3px;
+}
+
+.title-screen__book-foot {
+	grid-row: 4;
+	display: flex;
+	justify-content: space-between;
+	gap: 1em;
+	margin: 0;
+	padding-top: 0.9em;
+	padding-bottom: 2.2em;
+	color: var(--dungeon-ink-2);
+	font-size: 1.02em;
+}
+
+.title-screen__book-foot .title-screen__folio {
+	margin: 0;
+	padding: 0;
+}
+
+/* Loading: a die rolls in steps (title-screen.ts sets data-face). Error: a blocked-way note. */
+:root[data-theme="dungeon"] .title-screen__loading {
+	width: auto;
+	max-width: none;
+}
+
+.roll {
+	display: flex;
+	align-items: center;
+	gap: 0.9em;
+	margin: 1.3em 0 0;
+	font: italic 400 1.25em / 1.2 var(--font-book);
+}
+
+.roll__die {
+	position: relative;
+	flex: none;
+	width: 2.4em;
+	height: 2.4em;
+	border: 2px solid var(--dungeon-ink);
+	border-radius: 2px;
+	background: var(--dungeon-page);
+}
+
+.roll__die i {
+	position: absolute;
+	width: 0.42em;
+	height: 0.42em;
+	border-radius: 50%;
+	background: var(--dungeon-ink);
+	opacity: 0;
+}
+
+.roll__die i:nth-child(1) {
+	top: 0.3em;
+	left: 0.3em;
+}
+
+.roll__die i:nth-child(2) {
+	top: 0.3em;
+	right: 0.3em;
+}
+
+.roll__die i:nth-child(3) {
+	top: calc(50% - 0.21em);
+	left: 0.3em;
+}
+
+.roll__die i:nth-child(4) {
+	top: calc(50% - 0.21em);
+	right: 0.3em;
+}
+
+.roll__die i:nth-child(5) {
+	bottom: 0.3em;
+	left: 0.3em;
+}
+
+.roll__die i:nth-child(6) {
+	right: 0.3em;
+	bottom: 0.3em;
+}
+
+.roll__die i:nth-child(7) {
+	top: calc(50% - 0.21em);
+	left: calc(50% - 0.21em);
+}
+
+.roll__die[data-face="1"] i:nth-child(7),
+.roll__die[data-face="2"] i:is(:nth-child(1), :nth-child(6)),
+.roll__die[data-face="3"] i:is(:nth-child(1), :nth-child(7), :nth-child(6)),
+.roll__die[data-face="4"] i:is(:nth-child(1), :nth-child(2), :nth-child(5), :nth-child(6)),
+.roll__die[data-face="5"] i:is(:nth-child(1), :nth-child(2), :nth-child(5), :nth-child(6), :nth-child(7)),
+.roll__die[data-face="6"] i:not(:nth-child(7)) {
+	opacity: 1;
+}
+
+:root[data-theme="dungeon"] .title-screen__error {
+	max-width: 44ch;
+	margin: 1.3em 0 0;
+	padding: 0.7em 0.9em;
+	border: 2px solid var(--dungeon-ink);
+	background: var(--dungeon-page-2);
+	color: var(--dungeon-ink);
+	font-size: 1.12em;
+	line-height: 1.4;
+}
+
+.title-screen__error-label--dungeon {
+	margin-right: 0.3em;
+	font: 400 1.25em / 1 var(--font-fell);
+}
+
+/* The die and the error take the place of How to Play, under the plate on the left page. Without
+   anchor positioning, and in one-page windows, they stay under the choices. */
+@supports (top: anchor(bottom)) {
+	@media (min-aspect-ratio: 1 / 1) {
+		:root[data-theme="dungeon"] .title-screen__loading,
+		:root[data-theme="dungeon"] .title-screen__error {
+			position: absolute;
+			position-anchor: --title-plate;
+			top: anchor(bottom);
+			left: anchor(left);
+		}
+
+		:root[data-theme="dungeon"] .title-screen__loading {
+			width: anchor-size(width);
+		}
+
+		:root[data-theme="dungeon"] .title-screen__error {
+			max-width: min(44ch, anchor-size(width));
+		}
+
+		:root[data-theme="dungeon"]
+			.title-screen__sheet:has([data-loading-bar]:not([hidden]), [data-load-error]:not([hidden]))
+			.title-screen__rules {
+			display: none;
+		}
+	}
+}
+
+/* NEW GAME: the ink plate grows to the window, then the game takes its place. */
+:root[data-theme="dungeon"] .title-screen__dive {
+	background: var(--dungeon-ink) url("/dungeon/title/ink-plate.png") center / cover no-repeat;
+}
+
+:root[data-theme="dungeon"] .title-screen__dive.is-open {
+	transition-duration: 460ms;
+}
+
+/* Narrow or tall windows: one page, the right page first, then the plate and How to Play. */
+@media (max-aspect-ratio: 1 / 1) {
+	:root[data-theme="dungeon"] .title-screen__sheet {
+		--f: max(14px, calc(1.25 * var(--u)));
+
+		grid-template-columns: minmax(0, 1fr);
+		grid-template-rows: auto;
+		width: 100%;
+		height: auto;
+		min-height: 100%;
+		padding: 0 0 2em;
+		box-shadow: none;
+	}
+
+	:root[data-theme="dungeon"] .title-screen__sheet::before,
+	:root[data-theme="dungeon"] .title-screen__sheet::after,
+	.title-screen__leaf::before {
+		display: none;
+	}
+
+	:root[data-theme="dungeon"] .title-screen__main,
+	:root[data-theme="dungeon"] .title-screen__fig,
+	.title-screen__book-foot,
+	.title-screen__leaf {
+		grid-row: auto;
+		grid-column: 1;
+		padding: 0 1.5em;
+	}
+
+	:root[data-theme="dungeon"] .title-screen__main {
+		padding-top: 2em;
+		background: none;
+	}
+
+	:root[data-theme="dungeon"] .title-screen__name {
+		font-size: min(5.4em, 15vw);
+	}
+
+	.title-screen__book-foot {
+		padding-bottom: 0;
+	}
+
+	.title-screen__leaf {
+		order: 1;
+		margin-top: 2em;
+		box-shadow: none;
+	}
+
+	:root[data-theme="dungeon"] .pinout__label--menu {
+		margin-left: 0;
+	}
+
+	.title-screen__stat {
+		flex-wrap: wrap;
+	}
+}

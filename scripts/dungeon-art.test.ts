@@ -205,3 +205,43 @@ describe("dungeon page tiles", () => {
 		for (const path of used) expect(files, path).toContain(path);
 	});
 });
+
+describe("dungeon ink plate", () => {
+	/** The ink and the pulp page of the approved mock, as RGBA. */
+	const INK = [0x17, 0x17, 0x17, 255].join();
+	const PAGE = [0xe0, 0xd9, 0xc5, 255].join();
+
+	it("prints the corridor view as a 320x240 plate in one ink on pulp", () => {
+		const { folder, files } = generate();
+		expect(files).toContain("title/ink-plate.png");
+		const png = readFileSync(join(folder, "title/ink-plate.png"));
+		expect(pngSize(png)).toEqual([320, 240]);
+
+		const { data } = readPng(png);
+		const colors = new Map<string, number>();
+		for (let y = 0; y < 240; y++) {
+			for (let x = 0; x < 320; x++) {
+				const at = y * (320 * 4 + 1) + 1 + x * 4;
+				const color = [...data.subarray(at, at + 4)].join();
+				colors.set(color, (colors.get(color) ?? 0) + 1);
+			}
+		}
+		expect([...colors.keys()].sort()).toEqual([INK, PAGE].sort());
+		// A drawing, not a flat block: both the ink and the page cover a real part of it.
+		for (const count of colors.values()) expect(count).toBeGreaterThan(320 * 240 * 0.2);
+	});
+
+	it("draws every dungeon file the Title Screen uses", () => {
+		const { files } = generate();
+		const root = join(import.meta.dirname, "..");
+		const sources = ["index.html", "src/title-screen/title-screen.css"].map((file) =>
+			readFileSync(join(root, file), "utf8"),
+		);
+		const used = sources.flatMap((source) =>
+			[...source.matchAll(/(?:src="|url\(")\/dungeon\/([^"]+)"/g)].map(([, path]) => path),
+		);
+
+		expect(used).toContain("title/ink-plate.png");
+		for (const path of used) expect(files, path).toContain(path);
+	});
+});
