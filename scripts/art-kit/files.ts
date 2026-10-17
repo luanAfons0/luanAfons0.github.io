@@ -1,3 +1,5 @@
+import { mkdirSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 import { crc32, deflateSync } from "node:zlib";
 import type { Pixmap } from "./pixmap.ts";
 
@@ -5,6 +7,15 @@ import type { Pixmap } from "./pixmap.ts";
 export interface GeneratedFile {
 	path: string;
 	bytes: Buffer;
+}
+
+/** Writes `files` into `outDir`, with their folders. Returns their paths inside `outDir`, sorted. */
+export function writeFiles(outDir: string, files: readonly GeneratedFile[]): string[] {
+	for (const { path, bytes } of files) {
+		mkdirSync(dirname(join(outDir, path)), { recursive: true });
+		writeFileSync(join(outDir, path), bytes);
+	}
+	return files.map(({ path }) => path).sort();
 }
 
 /** The sample rate of every generated sound, in samples per second. */

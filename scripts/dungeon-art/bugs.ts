@@ -7,7 +7,8 @@
  * Sprite PNGs have no place for the anchor, so this module also writes `sprites/offsets.json`.
  */
 
-import { createPixmap, disc, fillRect, type Pixmap, plot, TRANSPARENT } from "../art-kit/pixmap.ts";
+import { bugFrameFiles } from "../art-kit/kinds.ts";
+import { createPixmap, disc, fillRect, flash, type Pixmap, plot, TRANSPARENT } from "../art-kit/pixmap.ts";
 import { type GeneratedFile, pngFile } from "./files.ts";
 import * as c from "./palette.ts";
 
@@ -28,18 +29,14 @@ const ANCHOR = { left: WIDTH / 2, top: HEIGHT - 14 };
 const FRAMES: Readonly<Record<string, () => Pixmap>> = {
 	"slime-walk-1": () => slime(false),
 	"slime-walk-2": () => slime(true),
-	"slime-fix-1": () => flash(slime(false)),
+	"slime-fix-1": () => flash(slime(false), c.EYE),
 	"slime-fix-2": () => drops(),
 	"slime-fix-3": () => tickBox(fade(drops())),
 	"slime-cleared": () => cross(tickBox(createPixmap(WIDTH, HEIGHT))),
 };
 
 export function bugs(): GeneratedFile[] {
-	const offsets = Object.fromEntries(Object.keys(FRAMES).map((name) => [name, ANCHOR]));
-	return [
-		...Object.entries(FRAMES).map(([name, draw]) => pngFile(`sprites/${name}.png`, draw())),
-		{ path: "sprites/offsets.json", bytes: Buffer.from(`${JSON.stringify(offsets, null, "\t")}\n`) },
-	];
+	return bugFrameFiles(pngFile, FRAMES, ANCHOR);
 }
 
 /**
@@ -90,12 +87,6 @@ export function slime(squashed: boolean): Pixmap {
 	plot(t, shineX, shineY, c.SHINE);
 	plot(t, shineX + 1, shineY, c.SHINE);
 	plot(t, shineX, shineY + 1, c.SHINE);
-	return t;
-}
-
-/** The hit: every pixel of the Slime turns white for one frame. */
-function flash(t: Pixmap): Pixmap {
-	for (let i = 0; i < t.pixels.length; i++) if (t.pixels[i] !== TRANSPARENT) t.pixels[i] = c.EYE;
 	return t;
 }
 

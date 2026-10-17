@@ -9,10 +9,9 @@
  * Each asset kind is one module under `scripts/dungeon-art/` that returns its files. To add a
  * kind, write its module and add it to `KINDS`.
  */
-import { mkdirSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { join } from "node:path";
+import { type GeneratedFile, writeFiles } from "./art-kit/files.ts";
 import { bugs } from "./dungeon-art/bugs.ts";
-import type { GeneratedFile } from "./dungeon-art/files.ts";
 import { plate } from "./dungeon-art/plate.ts";
 import { posters } from "./dungeon-art/posters.ts";
 import { sounds } from "./dungeon-art/sounds.ts";
@@ -28,11 +27,7 @@ const KINDS: readonly (() => GeneratedFile[])[] = [textures, bugs, () => posters
 /** Writes every file of the dungeon art set into `outDir`. Returns their paths inside `outDir`, sorted. */
 export function generateDungeonArt(outDir: string): string[] {
 	const files = KINDS.flatMap((kind) => kind());
-	for (const { path, bytes } of files) {
-		mkdirSync(dirname(join(outDir, path)), { recursive: true });
-		writeFileSync(join(outDir, path), bytes);
-	}
-	return files.map(({ path }) => path).sort();
+	return writeFiles(outDir, files);
 }
 
 if (import.meta.main) {

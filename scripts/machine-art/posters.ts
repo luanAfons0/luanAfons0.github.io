@@ -7,18 +7,9 @@
  * A poster is 72x66, drawn on a 36x33 grid at twice the size: the game shows it at 36x33 inside
  * its frame on a 64x64 wall (`src/game/poster.ts`), so every line stays.
  */
-import { EXHIBITS, type Exhibit, type ExhibitKind, partLabel } from "../../src/game/content.ts";
-import {
-	createPixmap,
-	fillRect,
-	outlineRect,
-	type Pixmap,
-	path,
-	plot,
-	scaled,
-	seededRandom,
-	text,
-} from "../art-kit/pixmap.ts";
+import { EXHIBITS, type Exhibit, type ExhibitKind } from "../../src/game/content.ts";
+import { posterFiles } from "../art-kit/kinds.ts";
+import { createPixmap, fillRect, outlineRect, type Pixmap, path, plot, seededRandom, text } from "../art-kit/pixmap.ts";
 import { type GeneratedFile, pngFile } from "./files.ts";
 import * as c from "./palette.ts";
 
@@ -33,10 +24,7 @@ const MARK = 0x2a2e32;
  * machine art set looks for it), with its Part label in the image and in a `Title` text chunk.
  */
 export function posters(content: readonly Exhibit[] = EXHIBITS): GeneratedFile[] {
-	return content.map((exhibit) => {
-		const label = partLabel(content, exhibit);
-		return pngFile(`posters/${exhibit.id}.png`, scaled(poster(exhibit.kind, label), SCALE), { Title: label });
-	});
+	return posterFiles(pngFile, content, poster, SCALE);
 }
 
 function poster(kind: ExhibitKind, label: string): Pixmap {
