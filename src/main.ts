@@ -20,7 +20,7 @@ import sampleLevel from "./game/levels/sample.json";
 import { createPauseMenu } from "./game/pause-menu";
 import { createResumePrompt } from "./game/resume-prompt";
 import { loadSettings, saveSettings } from "./game/settings";
-import { type ArtSet, artSetOf, posterPath, type TextureRole } from "./game/theme";
+import { type ArtSet, artSetOf, isTextureRole, posterPath, type TextureRole } from "./game/theme";
 
 // The browser shell: it owns the canvas, the clock, the keyboard, the mouse, and the overlays.
 // Everything it does is manual-test only; the Game core has the tests.
@@ -68,11 +68,13 @@ async function fetchArt(artSet: ArtSet): Promise<GameArt> {
 	const base = import.meta.env.BASE_URL;
 	const [textureEntries, spriteEntries, posterEntries] = await Promise.all([
 		Promise.all(
-			levelTextureNames(sampleLevel).map(async (role) => {
-				const file = artSet.textures[role as TextureRole];
-				if (!file) throw new Error(`Art set "${artSet.name}" has no texture file for the texture role "${role}".`);
-				return [role, await loadTexture(`${base}${artSet.folders.textures}/${file}.png`)] as const;
-			}),
+			levelTextureNames(sampleLevel)
+				// createGame and game.changeArtSet name a texture that is not a role or has no file; load only the others.
+				.filter((name): name is TextureRole => isTextureRole(name) && Boolean(artSet.textures[name]))
+				.map(
+					async (role) =>
+						[role, await loadTexture(`${base}${artSet.folders.textures}/${artSet.textures[role]}.png`)] as const,
+				),
 		),
 		loadSprites(`${base}${artSet.folders.sprites}`, bugFrameNames(artSet)),
 		Promise.all(EXHIBITS.map(async ({ id }) => [id, await loadTexture(`${base}${posterPath(artSet, id)}`)] as const)),
