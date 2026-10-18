@@ -90,9 +90,9 @@ export interface GameOptions {
 	/**
 	 * The art set the Level, the Bugs, the posters, the Flats, and the HUD use. When it is given,
 	 * creating the Game core fails with an error that names the art set and the missing item if the
-	 * art set has no file for a texture role, a sound event, or a Flat, or if `textures` has no
-	 * texture for a Flat it names; it also fails if the Level names a texture that is not a texture
-	 * role. Leave it out only in tests that name their own
+	 * art set has no file for a texture role, a sound event, or a Flat, if a Flat has the name of a
+	 * texture role, or if `textures` has no texture for a Flat it names; it also fails if the Level
+	 * names a texture that is not a texture role. Leave it out only in tests that name their own
 	 * textures: the Bugs, the posters, and the HUD then use MACHINE_ART_SET, the ceiling and the
 	 * floor show `NO_FLAT_COLORS` (unless `textures` holds the machine Flats), and the Level
 	 * textures are not checked.
@@ -406,8 +406,8 @@ function textureNamesOf({ wallTextures, doorTracks }: Level): string[] {
 
 /**
  * Fails with an error that names the first missing item: a texture role, a sound event, or a Flat
- * the art set has no file for, a Flat with no texture in `textures` (by its file name), or a
- * texture the Level names that is not a texture role.
+ * the art set has no file for, a Flat with the name of a texture role, a Flat with no texture in
+ * `textures` (by its file name), or a texture the Level names that is not a texture role.
  */
 function checkArtSet(level: Level, artSet: ArtSet, textures: GameOptions["textures"]): void {
 	for (const role of TEXTURE_ROLES) {
@@ -426,6 +426,12 @@ function checkArtSet(level: Level, artSet: ArtSet, textures: GameOptions["textur
 			throw new Error(`Art set "${artSet.name}" has no texture file for the ${surface} Flat.`);
 		}
 		const name = artSet.flats[surface];
+		// The wall textures (by texture role) and the Flats (by file name) share one textures record.
+		if (isTextureRole(name)) {
+			throw new Error(
+				`Art set "${artSet.name}" names the ${surface} Flat "${name}", which is a texture role: wall textures and Flats share one textures record, so give the Flat another file name.`,
+			);
+		}
 		if (!textures?.[name]) {
 			throw new Error(`Art set "${artSet.name}" names the ${surface} Flat "${name}", but no texture has that name.`);
 		}

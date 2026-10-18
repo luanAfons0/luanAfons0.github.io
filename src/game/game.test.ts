@@ -1179,6 +1179,23 @@ describe("Flats of the art sets", () => {
 	});
 
 	it.each(["ceiling", "floor"] as const)(
+		"fails with an error that names the art set and the %s Flat when the Flat has the name of a texture role",
+		(surface) => {
+			// The wall textures (by texture role) and the Flats (by file name) share one textures record,
+			// so a Flat named like a texture role would take the place of that wall texture.
+			const clashing = { ...DUNGEON_ART_SET, flats: { ...DUNGEON_ART_SET.flats, [surface]: "door" } };
+			const textures = texturesOf(clashing, BLUE, WHITE);
+			const error = new RegExp(`art set "dungeon".*${surface} Flat "door".*texture role`, "i");
+
+			expect(() => createGame({ level, artSet: clashing, textures })).toThrow(error);
+
+			const game = createGame({ level, artSet: MACHINE_ART_SET, textures: texturesOf(MACHINE_ART_SET, RED, GREEN) });
+			expect(() => game.changeArtSet({ artSet: clashing, textures })).toThrow(error);
+			expect(ceilingAndFloor(game)).toEqual([rgb(231, 0, 0), rgb(0, 231, 0)]);
+		},
+	);
+
+	it.each(["ceiling", "floor"] as const)(
 		"fails with an error that names the art set and the %s Flat when the art set names no file for it",
 		(surface) => {
 			// An art set built at run time can lack a Flat its type requires.
