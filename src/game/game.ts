@@ -52,8 +52,8 @@ const BOB_EASE = 0.2;
 
 /**
  * The flat colors of the ceiling and the floor when the Game core has no Flat textures for the
- * Renderer: only in tests that leave out `textures`, or that give no art set and no Flats. Every
- * art set has Flats, and the art set check makes sure that given `textures` hold them.
+ * Renderer: only in tests that give no art set. With an art set, the art set check makes sure that
+ * `textures` holds both of its Flats.
  */
 export const NO_FLAT_COLORS: Readonly<{ ceiling: Rgb; floor: Rgb }> = { ceiling: [11, 13, 15], floor: [22, 27, 30] };
 
@@ -90,11 +90,12 @@ export interface GameOptions {
 	/**
 	 * The art set the Level, the Bugs, the posters, the Flats, and the HUD use. When it is given,
 	 * creating the Game core fails with an error that names the art set and the missing item if the
-	 * art set has no file for a texture role, a sound event, or a Flat, or (when `textures` is given)
-	 * no texture for a Flat it names, and it fails if the Level names a texture that is not a texture
-	 * role. Leave it out only in tests that name their own textures: the Bugs, the posters, the Flats,
-	 * and the HUD then use MACHINE_ART_SET, the ceiling and the floor show `NO_FLAT_COLORS` when
-	 * `textures` has no Flats, and the Level textures are not checked.
+	 * art set has no file for a texture role, a sound event, or a Flat, or if `textures` has no
+	 * texture for a Flat it names; it also fails if the Level names a texture that is not a texture
+	 * role. Leave it out only in tests that name their own
+	 * textures: the Bugs, the posters, and the HUD then use MACHINE_ART_SET, the ceiling and the
+	 * floor show `NO_FLAT_COLORS` (unless `textures` holds the machine Flats), and the Level
+	 * textures are not checked.
 	 * With or without it, a Level with Bugs needs a Bug walk and fix frame, and given `sprites` and
 	 * `posters` must hold every Bug frame and every poster.
 	 */
@@ -102,9 +103,9 @@ export interface GameOptions {
 	/**
 	 * Decoded textures by the name the Level uses (with an art set, the texture role), and the Flats
 	 * of the art set by their file names. It must hold every wall, door, and track texture the Level
-	 * names (see `levelTextureNames`) and every Flat the art set names.
-	 * Leave it out only when the walls do not matter (as in movement tests): walls then draw magenta,
-	 * and the ceiling and the floor show `NO_FLAT_COLORS`.
+	 * names (see `levelTextureNames`) and, with an art set, both Flats of the art set.
+	 * Leave it out only with no art set, when the walls do not matter (as in movement tests): walls
+	 * then draw magenta, and the ceiling and the floor show `NO_FLAT_COLORS`.
 	 */
 	textures?: Readonly<Record<string, Texture>>;
 	/**
@@ -405,7 +406,7 @@ function textureNamesOf({ wallTextures, doorTracks }: Level): string[] {
 
 /**
  * Fails with an error that names the first missing item: a texture role, a sound event, or a Flat
- * the art set has no file for, a Flat with no texture in the given textures (by its file name), or a
+ * the art set has no file for, a Flat with no texture in `textures` (by its file name), or a
  * texture the Level names that is not a texture role.
  */
 function checkArtSet(level: Level, artSet: ArtSet, textures: GameOptions["textures"]): void {
@@ -425,7 +426,7 @@ function checkArtSet(level: Level, artSet: ArtSet, textures: GameOptions["textur
 			throw new Error(`Art set "${artSet.name}" has no texture file for the ${surface} Flat.`);
 		}
 		const name = artSet.flats[surface];
-		if (textures && !textures[name]) {
+		if (!textures?.[name]) {
 			throw new Error(`Art set "${artSet.name}" names the ${surface} Flat "${name}", but no texture has that name.`);
 		}
 	}

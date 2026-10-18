@@ -105,7 +105,16 @@ function flatTexturesOf(artSet: ArtSet, color: number): Record<string, Texture> 
 	return { [artSet.flats.ceiling]: solidTexture(color), [artSet.flats.floor]: solidTexture(color) };
 }
 
-// A Game core with no Flat textures (a test that leaves them out) shows the no-Flat colors.
+/** Every wall texture (by texture role) and both Flats (by file name) of an art set, all white. */
+function artTexturesOf(artSet: ArtSet): Record<string, Texture> {
+	return {
+		...Object.fromEntries(TEXTURE_ROLES.map((role) => [role, solidTexture(WHITE)])),
+		...flatTexturesOf(artSet, WHITE),
+	};
+}
+
+// A Game core with no Flat textures (a test that leaves out the art set and the textures) shows
+// the no-Flat colors.
 const CEILING_SHADES = shadesOf(NO_FLAT_COLORS.ceiling);
 const FLOOR_SHADES = shadesOf(NO_FLAT_COLORS.floor);
 
@@ -477,7 +486,9 @@ describe("Art set", () => {
 		const sprites = Object.fromEntries(bugFrameNames(artSet).map((name) => [name, image]));
 		const posters = Object.fromEntries(EXHIBITS.map(({ id }) => [id, solidTexture(GREEN)]));
 
-		const game = createGame({ level: sampleLevel, content: EXHIBITS, artSet, sprites, posters });
+		const textures = artTexturesOf(artSet);
+
+		const game = createGame({ level: sampleLevel, content: EXHIBITS, artSet, textures, sprites, posters });
 
 		expect(game.state().room).toBe("Lobby");
 	});
@@ -510,7 +521,10 @@ describe("Art set", () => {
 
 	it("fails with an error that names a wall texture that is not a texture role", () => {
 		const level = tiledLevel({ rows: ["###", "#P#", "###"], wallTextures: { "#": "board-a" } });
-		expect(() => createGame({ level, artSet: MACHINE_ART_SET })).toThrow(/texture "board-a".*not a texture role/);
+		const textures = artTexturesOf(MACHINE_ART_SET);
+		expect(() => createGame({ level, artSet: MACHINE_ART_SET, textures })).toThrow(
+			/texture "board-a".*not a texture role/,
+		);
 	});
 
 	it("fails with an error that names a door texture that is not a texture role", () => {
@@ -519,7 +533,10 @@ describe("Art set", () => {
 			wallTextures: { "#": "wall-a" },
 			doorTiles: { D: { texture: "NOSUCHDOOR", track: "door-track" } },
 		});
-		expect(() => createGame({ level, artSet: MACHINE_ART_SET })).toThrow(/texture "NOSUCHDOOR".*not a texture role/);
+		const textures = artTexturesOf(MACHINE_ART_SET);
+		expect(() => createGame({ level, artSet: MACHINE_ART_SET, textures })).toThrow(
+			/texture "NOSUCHDOOR".*not a texture role/,
+		);
 	});
 
 	it("fails with an error that names the art set and the texture role it has no file for", () => {
@@ -538,21 +555,24 @@ describe("Art set", () => {
 
 	it("fails with an error that names the missing Bug walk frame when the Level has Bugs", () => {
 		const artSet = { ...MACHINE_ART_SET, bugWalkFrames: [] };
-		expect(() => createGame({ level: bugLevel, artSet })).toThrow(/Bug walk frame/);
+		expect(() => createGame({ level: bugLevel, artSet, textures: artTexturesOf(artSet) })).toThrow(/Bug walk frame/);
 	});
 
 	it("fails with an error that names the missing Bug fix frame when the Level has Bugs", () => {
 		const artSet = { ...MACHINE_ART_SET, bugFixFrames: [] };
-		expect(() => createGame({ level: bugLevel, artSet })).toThrow(/Bug fix frame/);
+		expect(() => createGame({ level: bugLevel, artSet, textures: artTexturesOf(artSet) })).toThrow(/Bug fix frame/);
 	});
 
 	it("loads the Bug frames the art set names, and names the art set and the frame it has no image for", () => {
 		const artSet = { ...MACHINE_ART_SET, bugWalkFrames: ["BEETLE1"], bugFixFrames: ["PATCHED1"] };
 		const image = { texture: solidTexture(GREEN), left: 2, top: 4 };
-		expect(() => createGame({ level: bugLevel, artSet, sprites: { BEETLE1: image } })).toThrow(
+		const textures = artTexturesOf(artSet);
+		expect(() => createGame({ level: bugLevel, artSet, textures, sprites: { BEETLE1: image } })).toThrow(
 			/art set "machine".*Bug frame "PATCHED1"/i,
 		);
-		expect(() => createGame({ level: bugLevel, artSet, sprites: { BEETLE1: image, PATCHED1: image } })).not.toThrow();
+		expect(() =>
+			createGame({ level: bugLevel, artSet, textures, sprites: { BEETLE1: image, PATCHED1: image } }),
+		).not.toThrow();
 	});
 
 	it("names each Bug frame once, so the browser shell loads a held frame once", () => {
@@ -1148,6 +1168,16 @@ describe("Flats of the art sets", () => {
 		expect(ceilingAndFloor(game)).toEqual([rgb(231, 0, 0), rgb(0, 231, 0)]);
 	});
 
+	it("fails with an error that names the art set and the ceiling Flat when no textures are given", () => {
+		const error = /art set "dungeon".*ceiling Flat "timber"/i;
+
+		expect(() => createGame({ level, artSet: DUNGEON_ART_SET })).toThrow(error);
+
+		const game = createGame({ level, artSet: MACHINE_ART_SET, textures: texturesOf(MACHINE_ART_SET, RED, GREEN) });
+		expect(() => game.changeArtSet({ artSet: DUNGEON_ART_SET })).toThrow(error);
+		expect(ceilingAndFloor(game)).toEqual([rgb(231, 0, 0), rgb(0, 231, 0)]);
+	});
+
 	it.each(["ceiling", "floor"] as const)(
 		"fails with an error that names the art set and the %s Flat when the art set names no file for it",
 		(surface) => {
@@ -1156,7 +1186,9 @@ describe("Flats of the art sets", () => {
 			const broken = { ...DUNGEON_ART_SET, flats: otherFlat } as ArtSet;
 			const error = new RegExp(`art set "dungeon".*${surface} Flat`, "i");
 
-			expect(() => createGame({ level, artSet: broken })).toThrow(error);
+			expect(() => createGame({ level, artSet: broken, textures: texturesOf(DUNGEON_ART_SET, BLUE, WHITE) })).toThrow(
+				error,
+			);
 
 			const game = createGame({ level, artSet: MACHINE_ART_SET, textures: texturesOf(MACHINE_ART_SET, RED, GREEN) });
 			expect(() => game.changeArtSet({ artSet: broken, textures: texturesOf(DUNGEON_ART_SET, BLUE, WHITE) })).toThrow(
@@ -1642,6 +1674,7 @@ describe("Bugs", () => {
 					{ wall: "wall-a" },
 				),
 				artSet,
+				textures: artTexturesOf(artSet),
 				sprites: Object.fromEntries(bugFrameNames(artSet).map((name) => [name, image])),
 			});
 		}
@@ -1677,6 +1710,7 @@ describe("Bugs", () => {
 				createGame({
 					level: bugLevel(bugs, { wall: "wall-a" }),
 					artSet,
+					textures: artTexturesOf(artSet),
 					sprites: Object.fromEntries(bugFrameNames(artSet).map((name) => [name, image])),
 				}),
 			).toThrow(/Bug tally of 60 Bugs does not fit/);
@@ -1734,7 +1768,8 @@ describe("Bugs", () => {
 		it("draws a one-pixel outline around the crosshair when the art set has one", () => {
 			const outline = rgb(255, 0, 255);
 			const artSet: ArtSet = { ...MACHINE_ART_SET, hud: { ...MACHINE_ART_SET.hud, crosshairOutline: [255, 0, 255] } };
-			const game = createGame({ level: tiledLevel({ rows: still, wallTextures: { "#": "wall-a" } }), artSet });
+			const level = tiledLevel({ rows: still, wallTextures: { "#": "wall-a" } });
+			const game = createGame({ level, artSet, textures: artTexturesOf(artSet) });
 			const frame = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
 			game.render(frame);
 			const centerX = SCREEN_WIDTH / 2;
