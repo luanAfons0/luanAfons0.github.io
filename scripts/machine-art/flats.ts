@@ -1,10 +1,9 @@
 /**
  * The Flats: the textures of the floor and the ceiling, 64x64, the texel size of the walls. A Flat
  * is not a texture role: one Flat covers exactly one tile and repeats on every tile, so each Flat
- * is seamless. A trace that
- * leaves one edge enters at the matching point of the opposite edge, the speck noise is random per
- * pixel, and the panel grid draws one seam per period. The machine art set in `src/game/theme.ts`
- * names these files as its floor Flat and its ceiling Flat.
+ * is seamless. A trace that leaves one edge enters at the matching point of the opposite edge, the
+ * speck noise is random per pixel, and the panel grid draws one seam per period. The machine art
+ * set in `src/game/theme.ts` names these files as its floor Flat and its ceiling Flat.
  */
 
 import {
@@ -20,6 +19,7 @@ import {
 } from "../art-kit/pixmap.ts";
 import { type GeneratedFile, pngFile } from "./files.ts";
 import * as c from "./palette.ts";
+import { solderMask, via } from "./textures.ts";
 
 const SIZE = 64;
 
@@ -49,12 +49,9 @@ function wrappedPath(pixmap: Pixmap, points: readonly Point[], color: number, wi
 	});
 }
 
-/** A via: a copper ring around a drilled hole, as on the walls. */
-function via(pixmap: Pixmap, x: number, y: number): void {
-	wrapped((dx, dy) => {
-		disc(pixmap, x + dx, y + dy, 2, c.RING);
-		plot(pixmap, x + dx, y + dy, c.HOLE);
-	});
+/** A via of the walls that wraps at the edges. */
+function wrappedVia(pixmap: Pixmap, x: number, y: number): void {
+	wrapped((dx, dy) => via(pixmap, x + dx, y + dy));
 }
 
 /** A small stitching via, for via fields. */
@@ -76,12 +73,7 @@ function padPair(pixmap: Pixmap, x: number, y: number): void {
  * the traces are two pixels wide, as on the walls.
  */
 function solderMaskFlat(): Pixmap {
-	const t = createPixmap(SIZE, SIZE);
-	const random = seededRandom(101);
-	for (let i = 0; i < t.pixels.length; i++) {
-		const r = random();
-		t.pixels[i] = r < 0.14 ? c.MASK_HI : r < 0.24 ? c.MASK_LO : c.MASK;
-	}
+	const t = solderMask(101);
 	// The bus crosses the tile from left to right and the trunk from top to bottom; they meet at a via.
 	const traces: readonly (readonly Point[])[] = [
 		[
@@ -140,7 +132,7 @@ function solderMaskFlat(): Pixmap {
 		[9, 19],
 		[15, 33],
 	] as const) {
-		via(t, x, y);
+		wrappedVia(t, x, y);
 	}
 	for (let y = 51; y <= 59; y += 4) for (let x = 6; x <= 22; x += 4) smallVia(t, x, y);
 	padPair(t, 36, 24);
