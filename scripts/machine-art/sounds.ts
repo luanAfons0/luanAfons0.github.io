@@ -4,6 +4,7 @@
  * clunk. The noise comes from a seeded generator, so every run gives the same bytes. The art set
  * in `src/game/theme.ts` lists the same file names.
  */
+import { attack, fadeOut, normalize, render, seededNoise, smoothstep } from "../art-kit/synth.ts";
 import { type GeneratedFile, SAMPLE_RATE, wavFile } from "./files.ts";
 
 /** The loudest sample of each sound, under full scale so it does not clip after decoding. */
@@ -15,7 +16,7 @@ const SOUNDS: Readonly<Record<string, () => Float32Array>> = {
 };
 
 export function sounds(): GeneratedFile[] {
-	return Object.entries(SOUNDS).map(([name, render]) => wavFile(`sounds/${name}.wav`, normalize(render())));
+	return Object.entries(SOUNDS).map(([name, render]) => wavFile(`sounds/${name}.wav`, normalize(render(), PEAK)));
 }
 
 /** The zap: a square wave that falls from about 1.6 kHz to 180 Hz in 0.16 s, over a short noise click. */
@@ -52,43 +53,4 @@ function doorOpen(): Float32Array {
 				: Math.sin(2 * Math.PI * 90 * since) * Math.exp(-since * 30) + 0.5 * noise() * Math.exp(-since * 400);
 		return hum + hiss + clunk * fadeOut(t, duration, 0.03);
 	});
-}
-
-/** The samples of `seconds` of sound; `sample` gets the time of each sample and the length. */
-function render(seconds: number, sample: (t: number, duration: number) => number): Float32Array {
-	const samples = new Float32Array(Math.round(seconds * SAMPLE_RATE));
-	for (let i = 0; i < samples.length; i++) samples[i] = sample(i / SAMPLE_RATE, seconds);
-	return samples;
-}
-
-/** Scales the samples so the loudest one is `PEAK`. */
-function normalize(samples: Float32Array): Float32Array {
-	const loudest = samples.reduce((max, value) => Math.max(max, Math.abs(value)), 0);
-	return loudest === 0 ? samples : samples.map((value) => (value / loudest) * PEAK);
-}
-
-/** 0 at the start, 1 after `length` seconds: a short fade-in, so the sound starts with no click. */
-function attack(t: number, length: number): number {
-	return Math.min(t / length, 1);
-}
-
-/** 1 until `length` seconds before `end`, then down to 0 at `end`. */
-function fadeOut(t: number, end: number, length: number): number {
-	return Math.max(0, Math.min((end - t) / length, 1));
-}
-
-function smoothstep(x: number): number {
-	return x * x * (3 - 2 * x);
-}
-
-/** White noise from -1 to 1, from a mulberry32 generator with a fixed seed. */
-function seededNoise(seed: number): () => number {
-	let state = seed >>> 0;
-	return () => {
-		state = (state + 0x6d2b79f5) >>> 0;
-		let t = state;
-		t = Math.imul(t ^ (t >>> 15), t | 1);
-		t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-		return (((t ^ (t >>> 14)) >>> 0) / 4294967296) * 2 - 1;
-	};
 }

@@ -1,10 +1,10 @@
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
-import { inflateSync } from "node:zlib";
 import { afterAll, describe, expect, it } from "vitest";
 import { EXHIBITS, type Exhibit, partLabel } from "../src/game/content.ts";
 import { MACHINE_ART_SET } from "../src/game/theme.ts";
+import { readPng, sameContent } from "./art-kit/read-files.ts";
 import { posters } from "./machine-art/posters.ts";
 import { generateMachineArt, MACHINE_ART_FOLDER } from "./machine-art.ts";
 
@@ -20,31 +20,6 @@ function generate(): { folder: string; files: string[] } {
 afterAll(() => {
 	for (const folder of runs) rmSync(folder, { recursive: true, force: true });
 });
-
-/** The text chunks (keyword and text) of a PNG file, and its image data before compression. */
-function readPng(png: Buffer): { texts: Record<string, string>; data: Buffer } {
-	const texts: Record<string, string> = {};
-	const compressed: Buffer[] = [];
-	for (let at = 8; at < png.length; ) {
-		const length = png.readUInt32BE(at);
-		const type = png.toString("latin1", at + 4, at + 8);
-		const body = png.subarray(at + 8, at + 8 + length);
-		if (type === "tEXt") {
-			const [keyword = "", text = ""] = body.toString("latin1").split("\0");
-			texts[keyword] = text;
-		}
-		if (type === "IDAT") compressed.push(body);
-		at += 12 + length;
-	}
-	return { texts, data: inflateSync(Buffer.concat(compressed)) };
-}
-
-/** The same file content. PNGs compare by image data and text, as another zlib may compress them differently. */
-function sameContent(file: string, a: Buffer, b: Buffer): boolean {
-	if (!file.endsWith(".png")) return a.equals(b);
-	const [pngA, pngB] = [readPng(a), readPng(b)];
-	return pngA.data.equals(pngB.data) && JSON.stringify(pngA.texts) === JSON.stringify(pngB.texts);
-}
 
 /** A folder of the art set (under `public/`) as a path inside the machine art folder. */
 function inMachineFolder(folder: string): string {
@@ -97,7 +72,7 @@ describe("machine art generator", () => {
 		}
 	});
 
-	it("gives byte-identical files when it runs twice", () => {
+	it("gives the same bytes when it runs twice in one process", () => {
 		const first = generate();
 		const second = generate();
 		expect(second.files).toEqual(first.files);
@@ -106,13 +81,23 @@ describe("machine art generator", () => {
 		}
 	});
 
-	it("matches the committed files, so the build needs no generation step", () => {
+	it("matches the committed files (PNGs by image data and text), so the build needs no generation step", () => {
 		const { folder, files } = generate();
 		for (const file of files) {
 			const committed = readFileSync(join(import.meta.dirname, "..", MACHINE_ART_FOLDER, file));
 			const generated = readFileSync(join(folder, file));
 			expect(sameContent(file, committed, generated), `${file} is out of date: run the generator`).toBe(true);
 		}
+	});
+
+	it("commits exactly the files it writes, and no other file", () => {
+		const { files } = generate();
+		const artFolder = join(import.meta.dirname, "..", MACHINE_ART_FOLDER);
+		const committed = readdirSync(artFolder, { recursive: true, withFileTypes: true })
+			.filter((entry) => entry.isFile())
+			.map((entry) => relative(artFolder, join(entry.parentPath, entry.name)))
+			.sort();
+		expect(committed, "the committed art folder must hold exactly the files the generator writes").toEqual(files);
 	});
 
 	it("names the generator as the provenance of each PNG", () => {
@@ -124,7 +109,7 @@ describe("machine art generator", () => {
 });
 
 describe("Exhibit posters", () => {
-	/** A sample Exhibit of a kind, with its poster in the machine art folder. */
+	/** A sample Exhibit of a kind. */
 	const exhibit = (id: string, kind: Exhibit["kind"]): Exhibit => ({
 		id,
 		kind,
@@ -132,21 +117,17 @@ describe("Exhibit posters", () => {
 		summary: "",
 		details: [],
 		links: [],
-		poster: `machine/posters/${id}.png`,
 	});
 
-	it("draws one poster per Exhibit of the Content, at the path the Content names", () => {
+	it("draws one poster per Exhibit of the Content, named by its id in the posters folder", () => {
 		const { files } = generate();
-		for (const { id, poster } of EXHIBITS) {
-			expect(poster, id).toMatch(/^machine\//);
-			expect(files, id).toContain(poster.slice("machine/".length));
-		}
+		for (const { id } of EXHIBITS) expect(files, id).toContain(`posters/${id}.png`);
 	});
 
 	it("names each poster by the Part label the Skip View and the Exhibit Panel show", () => {
 		const { folder } = generate();
 		for (const exhibit of EXHIBITS) {
-			const png = readFileSync(join(folder, exhibit.poster.slice("machine/".length)));
+			const png = readFileSync(join(folder, `posters/${exhibit.id}.png`));
 			expect(readPng(png).texts, exhibit.id).toMatchObject({ Title: partLabel(EXHIBITS, exhibit) });
 		}
 		expect(EXHIBITS.map((exhibit) => partLabel(EXHIBITS, exhibit))).toEqual(["U1", "Q1", "R1", "J1"]);
@@ -158,9 +139,5 @@ describe("Exhibit posters", () => {
 		expect(files.map(({ path }) => path)).toEqual(["posters/first.png", "posters/talk.png", "posters/second.png"]);
 		expect(files.map(({ bytes }) => readPng(bytes).texts.Title)).toEqual(["U1", "J1", "U2"]);
 		expect(readPng(files[2]?.bytes ?? Buffer.alloc(0)).texts).toMatchObject({ Software: "scripts/machine-art.ts" });
-	});
-
-	it("fails with an error that names the Exhibit when its poster is not in the machine art folder", () => {
-		expect(() => posters([{ ...exhibit("old", "skill"), poster: "posters/old.png" }])).toThrow(/Exhibit "old"/);
 	});
 });

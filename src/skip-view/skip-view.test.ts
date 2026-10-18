@@ -5,6 +5,8 @@ import { describe, expect, it } from "vitest";
 import { EXHIBITS, type Exhibit } from "../game/content";
 import { loadLevel } from "../game/level";
 import { tiledExhibit, tiledLevel, tiledRoom } from "../game/test-support/tiled-level";
+import { THEMES } from "../game/theme";
+import { withThemeScript } from "../theme-script";
 import { skipViewPage } from "./page";
 import { buildSkipView } from "./skip-view";
 
@@ -19,7 +21,6 @@ function exhibit(id: string, overrides: Partial<Exhibit> = {}): Exhibit {
 		summary: `Summary of ${id}`,
 		details: [`Details of ${id}`],
 		links: [{ label: `Source of ${id}`, url: `https://example.com/${id}` }],
-		poster: `posters/${id}.png`,
 		...overrides,
 	};
 }
@@ -105,7 +106,7 @@ describe("Skip View builder (Seam 2)", () => {
 		]);
 	});
 
-	it("is a whole static page with a link back to the Title Screen and no script", () => {
+	it("is a whole static page with a link back to the Title Screen and no script of its own", () => {
 		const level = loadLevel(
 			tiledLevel({ rows: ROWS, extraObjects: [WEST, tiledExhibit("orca", { x: 4, y: 1 }, "west")] }),
 		);
@@ -118,6 +119,7 @@ describe("Skip View builder (Seam 2)", () => {
 		const titleScreen = [...doc.querySelectorAll("a")].filter((a) => a.getAttribute("href") === BASE);
 		expect(titleScreen).toHaveLength(1);
 		expect(titleScreen[0]?.textContent).toMatch(/Title Screen/);
+		// The builder writes no script: the theme-script plugin puts in the only one (see "saved Theme").
 		expect(html).not.toMatch(/<script/i);
 		// The arrow is an authored pixel SVG, not a Unicode glyph.
 		expect(html).not.toContain("\u2190");
@@ -149,7 +151,7 @@ describe("Skip View builder (Seam 2)", () => {
 		);
 		const doc = parse(buildSkipView({ content: [exhibit("orca")], level, base: BASE }));
 		expect(doc.querySelector('meta[name="color-scheme"]')?.getAttribute("content")).toBe("light dark");
-		// No saved Theme here: the page has no script to set one.
+		// The script did not run (as when script is blocked): no data-theme, so the CSS follows the system.
 		expect(doc.documentElement.hasAttribute("data-theme")).toBe(false);
 	});
 
@@ -160,9 +162,39 @@ describe("Skip View builder (Seam 2)", () => {
 		const doc = parse(buildSkipView({ content: [exhibit("orca")], level, base: BASE }));
 		expect(doc.querySelector(".skip-datasheet .skip-part-number")?.textContent).toBe("LA-1");
 		expect(doc.querySelector("h1")?.textContent).toBe("Luan Afonso");
-		expect(doc.querySelector(".skip-lede")?.textContent).toBe(
+		expect(doc.querySelector(".skip-lede")?.firstChild?.textContent?.trim()).toBe(
 			"My portfolio: every Exhibit from the game, Room by Room.",
 		);
+	});
+
+	it("sets the Dungeon page on the cover: a running head, all Content on the pulp, the back link off it", () => {
+		const level = loadLevel(
+			tiledLevel({ rows: ROWS, extraObjects: [WEST, tiledExhibit("orca", { x: 4, y: 1 }, "west")] }),
+		);
+		const doc = parse(buildSkipView({ content: [exhibit("orca")], level, base: BASE }));
+		expect(doc.body.classList.contains("dungeon-cover")).toBe(true);
+		const pulp = doc.querySelectorAll(".dungeon-pulp");
+		expect(pulp).toHaveLength(1);
+		const page = pulp[0];
+		for (const part of ["h1", "nav", "main"]) expect(page?.querySelector(part)).not.toBeNull();
+		expect(page?.querySelector(`a[href="${BASE}"]`)).toBeNull();
+		const runningHead = page?.querySelector(".only-dungeon[aria-hidden='true'] + h1")?.previousElementSibling;
+		expect([...(runningHead?.children ?? [])].map((span) => span.textContent)).toEqual(["Every page", "Luan Afonso"]);
+		const end = page?.lastElementChild;
+		expect([end?.textContent, end?.classList.contains("only-dungeon"), end?.getAttribute("aria-hidden")]).toEqual([
+			"The end of the book.",
+			true,
+			"true",
+		]);
+	});
+
+	it("stamps the lede with Sample content in Dungeon only, as the Exhibit Panel does", () => {
+		const level = loadLevel(
+			tiledLevel({ rows: ROWS, extraObjects: [WEST, tiledExhibit("orca", { x: 4, y: 1 }, "west")] }),
+		);
+		const doc = parse(buildSkipView({ content: [exhibit("orca")], level, base: BASE }));
+		const stamp = doc.querySelector(".skip-lede > .only-dungeon:last-child");
+		expect([stamp?.textContent, stamp?.hasAttribute("aria-hidden")]).toEqual(["Sample content", false]);
 	});
 
 	it("links the site icon, so the browser does not ask for a missing favicon.ico", () => {
@@ -232,6 +264,54 @@ describe("Skip View builder (Seam 2)", () => {
 		for (const { url } of EXHIBITS.flatMap((e) => e.links)) expect(hrefs).toContain(url);
 	});
 
+	describe("saved Theme", () => {
+		/** The real Skip View as Vite builds it: the builder output, then the theme-script plugin. */
+		const page = withThemeScript(skipViewPage(BASE));
+		const head = page.slice(0, page.indexOf("</head>"));
+		const scripts = [...head.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((match) => match[1] ?? "");
+
+		/** Runs the head scripts with the given saved settings (null: none; an Error: blocked storage). Returns the data-theme they set. */
+		function shownTheme(saved: string | null | Error): string | undefined {
+			const dataset: { theme?: string } = {};
+			const localStorage = {
+				getItem(key: string) {
+					if (saved instanceof Error) throw saved;
+					return key === "portfolio.settings.v1" ? saved : null;
+				},
+			};
+			for (const script of scripts) {
+				new Function("document", "localStorage", script)({ documentElement: { dataset } }, localStorage);
+			}
+			return dataset.theme;
+		}
+
+		it("has one inline head script, before the stylesheet, so the saved Theme shows before the first paint", () => {
+			expect(scripts).toHaveLength(1);
+			expect(page.match(/<script/g)).toHaveLength(1);
+			expect(head.indexOf("<script>")).toBeLessThan(head.indexOf('rel="stylesheet"'));
+		});
+
+		it.each(THEMES)("shows a saved %s Theme", (theme) => {
+			expect(shownTheme(JSON.stringify({ sound: true, theme }))).toBe(theme);
+		});
+
+		it.each([
+			["no saved settings", null],
+			["saved settings with no Theme", JSON.stringify({ sound: true })],
+			["a saved Theme that is not a Theme", JSON.stringify({ theme: "neon" })],
+			["broken saved settings", "{not json"],
+			["blocked storage", new Error("Blocked site data.")],
+		])("follows the system setting with %s", (_case, saved) => {
+			expect(shownTheme(saved)).toBeUndefined();
+		});
+
+		it("still shows every Exhibit when script is blocked", () => {
+			const doc = parse(page.replace(/<script>[\s\S]*?<\/script>/g, ""));
+			const shown = [...doc.querySelectorAll("main article h3")].map((h) => h.textContent);
+			expect(shown.sort()).toEqual(EXHIBITS.map((e) => e.title).sort());
+		});
+	});
+
 	describe("Part labels", () => {
 		const level = loadLevel(
 			tiledLevel({
@@ -270,6 +350,28 @@ describe("Skip View builder (Seam 2)", () => {
 			const byId = (id: string) => doc.getElementById(`exhibit-${id}`)?.querySelector(".skip-part")?.textContent;
 			expect(byId("a")).toBe("U1");
 			expect(byId("c")).toBe("U2");
+		});
+
+		it("heads each Exhibit with a Dungeon section number read as its kind and Part label", () => {
+			const content = [
+				exhibit("a", { kind: "project" }),
+				exhibit("b", { kind: "contact" }),
+				exhibit("c", { kind: "skill" }),
+				exhibit("d", { kind: "job" }),
+			];
+			const doc = parse(buildSkipView({ content, level, base: BASE }));
+			const sections = ["a", "b", "c", "d"].map((id) => {
+				const article = doc.getElementById(`exhibit-${id}`);
+				const number = article?.querySelector(".only-dungeon[role='img']");
+				const kind = article?.querySelector(".only-dungeon[aria-hidden='true']");
+				return [number?.getAttribute("aria-label"), number?.textContent, kind?.textContent];
+			});
+			expect(sections).toEqual([
+				["Project U1", "U1", "Project"],
+				["Contact J1", "J1", "Contact"],
+				["Skill R1", "R1", "Skill"],
+				["Job Q1", "Q1", "Job"],
+			]);
 		});
 
 		it("lists each Room in a Contents list with an anchor link and its Part labels", () => {

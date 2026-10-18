@@ -5,14 +5,14 @@
  * click or key press. Nothing is created or loaded before that: the Title Screen stays light.
  */
 
-import { type ArtSet, MACHINE_ART_SET, type SoundEvent } from "../game/theme";
+import type { ArtSet, SoundEvent } from "../game/theme";
 
 export type { SoundEvent } from "../game/theme";
 
 export interface Audio {
 	/**
 	 * Creates the audio context, or resumes it when the browser suspended it, and starts to load the
-	 * sounds. Call it inside a user gesture. It is safe to call again. It never throws: without Web
+	 * sounds (again, when a sound failed to load before). Call it inside a user gesture. It is safe to call again. It never throws: without Web
 	 * Audio, it logs the problem once and the game stays silent.
 	 */
 	start(): void;
@@ -20,24 +20,74 @@ export interface Audio {
 	play(event: SoundEvent): void;
 	/** Mutes or unmutes all sound. */
 	setMuted(muted: boolean): void;
+	/**
+	 * Plays the sounds of another art set. After start(), it loads them (once, then from a cache) and
+	 * plays the old sounds until they are loaded. Before start(), start() loads them. Mute stays.
+	 */
+	changeArtSet(artSet: ArtSounds): void;
 }
 
+/** The parts of an art set that the Audio uses. */
+export type ArtSounds = Pick<ArtSet, "folders" | "sounds">;
+
+type Buffers = Partial<Record<SoundEvent, AudioBuffer>>;
+
 /**
- * The Audio, with the sound of each event at `<soundsUrl>/<file>.wav`, where `sounds` names the
- * file (default: the machine art set).
+ * The Audio of an art set: the sound of each event is `<baseUrl><sounds folder>/<file>.wav`, where
+ * the art set names the folder and the file. `baseUrl` is the base path of the site, such as `/portfolio/`.
  */
-export function createAudio(soundsUrl: string, sounds: ArtSet["sounds"] = MACHINE_ART_SET.sounds): Audio {
+export function createAudio(baseUrl: string, initialArtSet: ArtSounds): Audio {
+	let artSet = initialArtSet;
 	let context: AudioContext | undefined;
 	let output: GainNode | undefined;
 	let muted = false;
 	/** True once Web Audio failed: the Audio then stays silent and does not log again. */
 	let unavailable = false;
-	const buffers: Partial<Record<SoundEvent, AudioBuffer>> = {};
+	/** The sounds that play: those of the art set, once they are loaded. */
+	let buffers: Buffers = {};
+	/** The sound load of each art set, so each loads once. */
+	const loads = new Map<ArtSounds, Promise<Buffers>>();
 
-	async function load(audio: AudioContext, event: SoundEvent): Promise<void> {
-		const response = await fetch(`${soundsUrl}/${sounds[event]}.wav`);
+	async function load(audio: AudioContext, art: ArtSounds, event: SoundEvent): Promise<AudioBuffer> {
+		const response = await fetch(`${baseUrl}${art.folders.sounds}/${art.sounds[event]}.wav`);
 		if (!response.ok) throw new Error(`Cannot load the "${event}" sound: HTTP ${response.status}.`);
-		buffers[event] = await audio.decodeAudioData(await response.arrayBuffer());
+		return audio.decodeAudioData(await response.arrayBuffer());
+	}
+
+	/**
+	 * Loads every sound of an art set. A sound that fails to load stays silent; the game goes on.
+	 * A load with a failed sound is forgotten, so the next start() or change to the art set tries again.
+	 */
+	function loadAll(audio: AudioContext, art: ArtSounds): Promise<Buffers> {
+		let all = loads.get(art);
+		if (!all) {
+			const events = Object.keys(art.sounds) as SoundEvent[];
+			const attempt = Promise.all(
+				events.map((event) =>
+					load(audio, art, event).then(
+						(buffer) => [event, buffer] as const,
+						(error: unknown) => {
+							console.error(error);
+							return undefined;
+						},
+					),
+				),
+			).then((entries) => {
+				if (entries.includes(undefined) && loads.get(art) === attempt) loads.delete(art);
+				return Object.fromEntries(entries.filter((entry) => entry !== undefined));
+			});
+			all = attempt;
+			loads.set(art, all);
+		}
+		return all;
+	}
+
+	/** Plays the sounds of the art set once they are loaded, unless the art set changed again before. */
+	function useArtSet(audio: AudioContext): void {
+		const wanted = artSet;
+		void loadAll(audio, wanted).then((loaded) => {
+			if (artSet === wanted) buffers = loaded;
+		});
 	}
 
 	return {
@@ -48,6 +98,8 @@ export function createAudio(soundsUrl: string, sounds: ArtSet["sounds"] = MACHIN
 				if (context) {
 					// A refused resume is not an error: the next user gesture tries again.
 					if (context.state !== "running") context.resume().catch(() => {});
+					// Loads the sounds again when a load failed; else they come from the cache.
+					useArtSet(context);
 					return;
 				}
 				const created = new AudioContext();
@@ -60,10 +112,7 @@ export function createAudio(soundsUrl: string, sounds: ArtSet["sounds"] = MACHIN
 				console.error("No sound: Web Audio is not available.", error);
 				return;
 			}
-			for (const event of Object.keys(sounds) as SoundEvent[]) {
-				// A sound that fails to load stays silent; the game goes on.
-				load(context, event).catch((error: unknown) => console.error(error));
-			}
+			useArtSet(context);
 		},
 		play(event) {
 			const buffer = buffers[event];
@@ -76,6 +125,10 @@ export function createAudio(soundsUrl: string, sounds: ArtSet["sounds"] = MACHIN
 		setMuted(value) {
 			muted = value;
 			if (output) output.gain.value = muted ? 0 : 1;
+		},
+		changeArtSet(next) {
+			artSet = next;
+			if (context) useArtSet(context);
 		},
 	};
 }

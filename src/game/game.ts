@@ -4,15 +4,15 @@ import { type Framebuffer, rgb } from "../engine/framebuffer";
 import { cellAt } from "../engine/grid";
 import type { InputSnapshot } from "../engine/input";
 import { castRay, createRayHit, faceKey } from "../engine/raycast";
-import { type Camera, createRenderer, type SpriteImage } from "../engine/renderer";
+import { type Camera, createRenderer, type Renderer, type SpriteImage } from "../engine/renderer";
 import type { Texture } from "../engine/texture";
-import { type BugArt, type BugState, bugFrameNames, createBugs } from "./bugs";
+import { type BugArt, type BugFrames, type BugState, bugFrameNames, bugFramesOf, createBugs } from "./bugs";
 import { checkContent, type Exhibit } from "./content";
-import { assertHudCanDraw, createHud, type HudView, STATUS_BAR_HEIGHT } from "./hud";
+import { assertHudCanDraw, createHud, type Hud, type HudView, STATUS_BAR_HEIGHT } from "./hud";
 import { type Level, loadLevel, roomAt } from "./level";
 import { createPosterFace } from "./poster";
 import { DEFAULT_SETTINGS, type Settings } from "./settings";
-import { type ArtSet, MACHINE_ART_SET, type SoundEvent } from "./theme";
+import { type ArtSet, isTextureRole, MACHINE_ART_SET, SOUND_EVENTS, type SoundEvent, TEXTURE_ROLES } from "./theme";
 import { TICKS_PER_SECOND } from "./ticks";
 
 export { bugFrameNames } from "./bugs";
@@ -63,14 +63,18 @@ export interface GameOptions {
 	/** Parsed Tiled JSON for the Level. */
 	level: unknown;
 	/**
-	 * The art set the Level, the Bugs, and the HUD use. When it is given, creating the Game core
-	 * fails if the Level names a texture the art set does not have, or has Bugs and the art set has
-	 * no Bug walk or fix frame. Leave it out only in tests that name their own textures: the Bugs
-	 * and the HUD then use MACHINE_ART_SET, and the Level textures are not checked.
+	 * The art set the Level, the Bugs, the posters, and the HUD use. When it is given, creating the
+	 * Game core fails with an error that names the art set and the missing item if the art set has no
+	 * file for a texture role or no sound for a sound event, and it fails if the Level names a texture
+	 * that is not a texture role. Leave it out only in tests that name their own textures: the Bugs,
+	 * the posters, and the HUD then use MACHINE_ART_SET, and the Level textures are not checked.
+	 * With or without it, a Level with Bugs needs a Bug walk and fix frame, and given `sprites` and
+	 * `posters` must hold every Bug frame and every poster.
 	 */
 	artSet?: ArtSet;
 	/**
-	 * Decoded textures by name. It must hold every wall, door, and track texture the Level names (see `levelTextureNames`).
+	 * Decoded textures by the name the Level uses (with an art set, the texture role). It must hold
+	 * every wall, door, and track texture the Level names (see `levelTextureNames`).
 	 * Leave it out only when the walls do not matter (as in movement tests): walls then draw magenta.
 	 */
 	textures?: Readonly<Record<string, Texture>>;
@@ -80,7 +84,8 @@ export interface GameOptions {
 	 */
 	content?: readonly Exhibit[];
 	/**
-	 * Decoded poster images by Exhibit id. It must hold the poster of every Exhibit.
+	 * Decoded poster images by Exhibit id, from the posters folder of the art set (see `posterPath`).
+	 * It must hold the poster of every Exhibit.
 	 * Leave it out only when posters do not matter: the walls then show no posters.
 	 */
 	posters?: Readonly<Record<string, Texture>>;
@@ -103,6 +108,13 @@ export interface GameOptions {
 	/** Settings that are not given use DEFAULT_GAME_SETTINGS. */
 	settings?: Partial<GameSettings>;
 }
+
+/**
+ * A new art set for a running Game core, with its decoded art: the same items as in `GameOptions`,
+ * with the same checks.
+ */
+export type ArtSetChange = Required<Pick<GameOptions, "artSet">> &
+	Pick<GameOptions, "textures" | "posters" | "sprites">;
 
 export interface PlayerState {
 	x: number;
@@ -150,6 +162,12 @@ export interface Game {
 	resume(): void;
 	/** Closes the open Exhibit and resumes the game. */
 	closeExhibit(): void;
+	/**
+	 * Draws with another art set from the next frame on: its walls, posters, Bug frames, ceiling,
+	 * floor, and HUD colors. It checks the new art set as `createGame` does, and when the check fails
+	 * it throws and keeps the old art set. The player, the Bugs, the doors, and the open Exhibit stay.
+	 */
+	changeArtSet(change: ArtSetChange): void;
 	/** Changes some settings. They apply from the next tick on. */
 	updateSettings(settings: Partial<GameSettings>): void;
 	/** A full copy of the state, for tests and tools. It allocates: do not call it every frame. */
@@ -162,7 +180,7 @@ export interface Game {
 
 export function createGame(options: GameOptions): Game {
 	const level: Level = loadLevel(options.level);
-	if (options.artSet) checkLevelTextures(level, options.artSet);
+	if (options.artSet) checkArtSet(level, options.artSet);
 	const art = options.artSet ?? MACHINE_ART_SET;
 	checkContent(level.exhibits, options.content ?? []);
 	const player: PlayerState = { ...level.playerStart };
@@ -174,7 +192,8 @@ export function createGame(options: GameOptions): Game {
 	let shakeTicks = 0;
 	const camera: Camera = { x: 0, y: 0, angle: 0, horizonOffset: 0 };
 	for (const { name } of level.rooms) assertHudCanDraw(name, `Room "${name}"`);
-	const bugs = createBugs(level.bugSpawns, options.sprites ?? placeholderSprites(art), art);
+	let view = artView(level, art, options);
+	const bugs = createBugs(level.bugSpawns, view.bugFrames);
 	let room = roomAt(level.rooms, player.x, player.y)?.name ?? null;
 	const doors: DoorState[] = level.doors.map(({ x, y }) => ({ x, y, state: "closed", open: 0 }));
 	const exhibitsByFace = new Map<number, string>();
@@ -190,21 +209,8 @@ export function createGame(options: GameOptions): Game {
 	let exhibitInFocus = findExhibitInFocus();
 	let openExhibit: string | null = null;
 	let goalSent = false;
-	const wallTextures = texturesFor(level.wallTextures, options.textures);
-	const renderer = createRenderer({
-		width: SCREEN_WIDTH,
-		height: SCREEN_HEIGHT,
-		wallTextures,
-		faceTextures: posterFacesFor(level, wallTextures, options.posters),
-		trackTextures: texturesFor(level.doorTracks, options.textures),
-		ceilingColor: rgb(...art.ceiling),
-		floorColor: rgb(...art.floor),
-		viewHeight: SCREEN_HEIGHT - STATUS_BAR_HEIGHT,
-		spriteTexelSize: SPRITE_TEXEL_SIZE,
-	});
-	const hud = createHud(SCREEN_WIDTH, SCREEN_HEIGHT, art.hud);
 	// Reused every frame, so rendering allocates nothing.
-	const hudView: HudView = { room: null, bugsFixed: null, hint: null };
+	const hudView: HudView = { room: null, bugsFixed: null, bugsFixedCount: 0, hint: null };
 	// The counter text changes only when a Bug is fixed, so frames do not build strings.
 	const bugsFixedText = () => (bugs.total > 0 ? `${bugs.fixedCount()}/${bugs.total}` : null);
 	hudView.bugsFixed = bugsFixedText();
@@ -261,6 +267,7 @@ export function createGame(options: GameOptions): Game {
 			}
 			if (input.shoot && bugs.shoot(level.walls, player.x, player.y, player.angle)) {
 				hudView.bugsFixed = bugsFixedText();
+				hudView.bugsFixedCount = bugs.fixedCount();
 				if (!goalSent && bugs.total > 0 && bugs.fixedCount() === bugs.total) {
 					goalSent = true;
 					options.track?.("all-bugs-fixed");
@@ -285,6 +292,12 @@ export function createGame(options: GameOptions): Game {
 			openExhibit = null;
 			paused = false;
 		},
+		changeArtSet(change) {
+			// Build all of the new view first, so a failed check changes nothing.
+			checkArtSet(level, change.artSet);
+			view = artView(level, change.artSet, change);
+			bugs.useFrames(view.bugFrames);
+		},
 		updateSettings(changes) {
 			Object.assign(settings, changes);
 		},
@@ -308,12 +321,38 @@ export function createGame(options: GameOptions): Game {
 			// Shake: alternate up and down each tick, and fade out.
 			const shake = (shakeTicks % 2 === 0 ? 1 : -1) * SHAKE_PIXELS * (shakeTicks / SHAKE_TICKS);
 			camera.horizonOffset = settings.reducedMotion ? 0 : Math.sin(bobPhase) * bobStrength * BOB_PIXELS + shake;
-			renderer.render(framebuffer, level.walls, camera, bugs.sprites, bugs.updateSprites());
+			view.renderer.render(framebuffer, level.walls, camera, bugs.sprites, bugs.updateSprites());
 			hudView.room = room;
 			hudView.hint = exhibitInFocus !== null && openExhibit === null ? USE_HINT : null;
-			hud.draw(framebuffer, hudView);
+			view.hud.draw(framebuffer, hudView);
 		},
 	};
+}
+
+/** What the Game core draws with one art set: the Renderer with its textures, the HUD (its layout and colors are fixed at creation), and the Bug frames. */
+interface ArtView {
+	renderer: Renderer;
+	hud: Hud;
+	bugFrames: BugFrames;
+}
+
+/** Builds the view of an art set from its decoded art. It fails when an item is missing. */
+function artView(level: Level, art: ArtSet, files: Pick<GameOptions, "textures" | "posters" | "sprites">): ArtView {
+	const bugFrames = bugFramesOf(level.bugSpawns.length > 0, files.sprites ?? placeholderSprites(art), art);
+	const wallTextures = texturesFor(level.wallTextures, files.textures);
+	const renderer = createRenderer({
+		width: SCREEN_WIDTH,
+		height: SCREEN_HEIGHT,
+		wallTextures,
+		faceTextures: posterFacesFor(level, wallTextures, files.posters, art),
+		trackTextures: texturesFor(level.doorTracks, files.textures),
+		ceilingColor: rgb(...art.ceiling),
+		floorColor: rgb(...art.floor),
+		viewHeight: SCREEN_HEIGHT - STATUS_BAR_HEIGHT,
+		spriteTexelSize: SPRITE_TEXEL_SIZE,
+	});
+	const hud = createHud(SCREEN_WIDTH, SCREEN_HEIGHT, art.hud, level.bugSpawns.length);
+	return { renderer, hud, bugFrames };
 }
 
 /** The names of the textures that a Level (parsed Tiled JSON) uses, so the caller can load them first. */
@@ -326,13 +365,33 @@ function textureNamesOf({ wallTextures, doorTracks }: Level): string[] {
 	return [...new Set(names)].sort();
 }
 
-/** Fails with an error that names the first texture the Level uses and the art set does not have. */
-function checkLevelTextures(level: Level, artSet: ArtSet): void {
-	for (const name of textureNamesOf(level)) {
-		if (!artSet.textures.includes(name)) {
-			throw new Error(`The Level uses texture "${name}", but art set "${artSet.name}" has no texture with that name.`);
+/**
+ * Fails with an error that names the first missing item: a texture role or a sound event the art
+ * set has no file for, or a texture the Level names that is not a texture role.
+ */
+function checkArtSet(level: Level, artSet: ArtSet): void {
+	for (const role of TEXTURE_ROLES) {
+		if (!hasFile(artSet.textures, role)) {
+			throw new Error(`Art set "${artSet.name}" has no texture file for the texture role "${role}".`);
 		}
 	}
+	for (const event of SOUND_EVENTS) {
+		if (!hasFile(artSet.sounds, event)) {
+			throw new Error(`Art set "${artSet.name}" has no sound file for the sound event "${event}".`);
+		}
+	}
+	for (const name of textureNamesOf(level)) {
+		if (!isTextureRole(name)) {
+			throw new Error(
+				`The Level uses texture "${name}", which is not a texture role. Use one of: ${TEXTURE_ROLES.join(", ")}.`,
+			);
+		}
+	}
+}
+
+/** True when the map names a file for the key. An art set built at run time can lack a key its type requires. */
+function hasFile(files: Readonly<Record<string, string | undefined>>, key: string): boolean {
+	return Object.hasOwn(files, key) && typeof files[key] === "string" && files[key] !== "";
 }
 
 /** The poster face texture of each placed Exhibit, by `faceKey`. */
@@ -340,12 +399,13 @@ function posterFacesFor(
 	level: Level,
 	wallTextures: readonly (Texture | undefined)[],
 	posters: GameOptions["posters"],
+	art: Pick<ArtSet, "name">,
 ): Map<number, Texture> | undefined {
 	if (!posters) return undefined;
 	const faces = new Map<number, Texture>();
 	for (const { id, x, y, face } of level.exhibits) {
 		const poster = posters[id];
-		if (!poster) throw new Error(`Exhibit "${id}" has no poster image.`);
+		if (!poster) throw new Error(`Art set "${art.name}" has no poster image for Exhibit "${id}".`);
 		const wall = wallTextures[cellAt(level.walls, x, y)];
 		faces.set(faceKey(level.walls, x, y, face), createPosterFace(wall, poster, x, y, face));
 	}

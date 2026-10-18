@@ -30,6 +30,18 @@ describe("Exhibit Panel", () => {
 		expect(header?.querySelector(".exhibit-panel__kind")?.textContent).toBe("Project");
 	});
 
+	it.each([
+		["contact", "Contact J1"],
+		["skill", "Skill R1"],
+		["job", "Job Q1"],
+	] as const)("names the Part label of a %s Exhibit by its kind for screen readers", (kind, name) => {
+		const panel = createExhibitPanel({ parent: document.body, onClose: () => {} });
+		panel.open(sample(kind));
+		const part = document.querySelector(".exhibit-panel__part");
+		expect(part?.getAttribute("role")).toBe("img");
+		expect(part?.getAttribute("aria-label")).toBe(name);
+	});
+
 	it("shows the title, the summary, the details under Description, and the links under Links", () => {
 		const panel = createExhibitPanel({ parent: document.body, onClose: () => {} });
 		const project = sample("project");
@@ -74,11 +86,24 @@ describe("Exhibit Panel", () => {
 		expect(dialog?.contains(document.activeElement)).toBe(true);
 	});
 
-	it("runs onClose when the player clicks Close (Esc), and closes at once", () => {
+	it("shows the Esc key as a key cap on Close", () => {
+		createExhibitPanel({ parent: document.body, onClose: () => {} }).open(sample("project"));
+		const close = document.querySelector(".exhibit-panel__close");
+		expect(close?.textContent).toBe("Close Esc");
+		expect(close?.querySelector("kbd")?.textContent).toBe("Esc");
+	});
+
+	it("marks the Content as sample content in its foot", () => {
+		createExhibitPanel({ parent: document.body, onClose: () => {} }).open(sample("project"));
+		expect(document.querySelector(".exhibit-panel__foot")?.textContent).toContain("Sample content");
+	});
+
+	it("runs onClose when the player clicks Close, and closes at once", () => {
 		const onClose = vi.fn();
 		const panel = createExhibitPanel({ parent: document.body, onClose });
 		panel.open(sample("contact"));
-		const close = [...document.querySelectorAll("button")].find((b) => b.textContent === "Close (Esc)");
+		const close = document.querySelector<HTMLButtonElement>(".exhibit-panel__close");
+		expect(close).not.toBeNull();
 		close?.click();
 		expect(onClose).toHaveBeenCalledOnce();
 		panel.close();

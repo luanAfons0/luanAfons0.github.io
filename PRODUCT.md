@@ -23,13 +23,14 @@ The game engine is the proof. The raycaster, the Level pipeline, and the content
 - Desktop: keyboard and mouse (WASD, mouse look with pointer lock, E to use, click to shoot, Esc to pause, M to mute).
 - Title Screen first, then the game; the Pause Menu and the Exhibit Panel pause play.
 - Phones are redirected to the Skip View before first paint (ADR 0002).
+- Three Themes (ADR 0003): Paper and Board show the machine world (a circuit board), and the system color scheme picks one of them when the visitor has saved none. Dungeon shows a torch-lit stone keep, and the HTML screens as an open gamebook; it shows only when the visitor picks it. The visitor picks a Theme on the Title Screen or in the Pause Menu (also during play), and the choice is saved for the Title Screen, the game, and the Skip View.
 
 ## Capabilities and Constraints
 
 - TypeScript + Vite, no framework. 640x360 framebuffer raycaster (ADR 0001). Levels drawn in Tiled.
 - Gzipped JS budget of 100 KB. 60 FPS render target.
-- The Skip View is built at build time and has no script.
-- Glossary terms are binding: Level, Room, Exhibit, Exhibit Panel, Bug, Title Screen, Pause Menu, Skip View (see `GLOSSARY.md`).
+- The Skip View is built at build time. Its only script is the Theme head script, which sets the saved Theme (ADR 0003); the page works fully without it.
+- Glossary terms are binding: Level, Room, Exhibit, Exhibit Panel, Part label, Bug, Title Screen, Pause Menu, Skip View, Theme (see `GLOSSARY.md`). In Dungeon a Bug looks like a Slime, but the copy still calls it a Bug.
 - Keyboard navigation and `prefers-reduced-motion` must keep working.
 - Copy is in English.
 - Art and sounds must be original or carry a free license with credits.

@@ -1,6 +1,7 @@
 /**
  * The Content: the one typed source of every Exhibit. The game and the Skip View read it.
- * The Level places each Exhibit on a wall by its `id` (see `src/game/levels/`).
+ * The Level places each Exhibit on a wall by its `id` (see `src/game/levels/`), and each art set
+ * has its poster by that `id` (see `posterPath` in `src/game/theme.ts`).
  * Creating the Game core and building the Skip View fail when the Level and this list do not
  * match (see `checkContent`).
  *
@@ -44,11 +45,14 @@ export interface ExhibitLink {
 	url: string;
 }
 
+/** An Exhibit id: it is also the poster file name in each art set, so only a-z, 0-9, and "-". */
+const EXHIBIT_ID = /^[a-z0-9-]+$/;
+
 /** The only link schemes an Exhibit may use: no script URLs, no data URLs. */
 const LINK_PROTOCOLS: ReadonlySet<string> = new Set(["http:", "https:", "mailto:"]);
 
 export interface Exhibit {
-	/** The key the Level uses to place the Exhibit. */
+	/** The key the Level uses to place the Exhibit, and its poster file name: lowercase letters, digits, and hyphens. */
 	id: string;
 	kind: ExhibitKind;
 	title: string;
@@ -57,21 +61,19 @@ export interface Exhibit {
 	/** The full details, one paragraph per item. */
 	details: readonly string[];
 	links: readonly ExhibitLink[];
-	/**
-	 * The poster image, a PNG path relative to `public/` in the machine art folder (for example
-	 * `machine/posters/orca.png`). The generator draws it with the Exhibit's Part label.
-	 */
-	poster: string;
 }
 
 /**
  * Fails with an error that names the `id` when the Content is not valid or does not match the
- * Level Exhibits: two Exhibits with one id, a link that is not an http, https, or mailto URL, a
+ * Level Exhibits: an id that is not a safe file name (see `EXHIBIT_ID`), two Exhibits with one id, a link that is not an http, https, or mailto URL, a
  * Level Exhibit with no Content, or a Content Exhibit the Level does not place.
  */
 export function checkContent(placements: readonly { id: string }[], content: readonly Exhibit[]): void {
 	const ids = new Set<string>();
 	for (const { id, links } of content) {
+		if (!EXHIBIT_ID.test(id)) {
+			throw new Error(`Exhibit id "${id}" is not valid. Use only lowercase letters, digits, and hyphens.`);
+		}
 		if (ids.has(id)) throw new Error(`The Content has two Exhibits with the id "${id}".`);
 		ids.add(id);
 		for (const { url } of links) {
@@ -111,7 +113,6 @@ export const EXHIBITS: readonly Exhibit[] = [
 			"The Level is drawn in the Tiled map editor. All Exhibit content comes from one typed source, and the tests fail when the Level and the content do not match.",
 		],
 		links: [{ label: "Source code", url: "https://github.com/luanAfons0/portfolio" }],
-		poster: "machine/posters/project-portfolio.png",
 	},
 	{
 		id: "job-sample",
@@ -120,7 +121,6 @@ export const EXHIBITS: readonly Exhibit[] = [
 		summary: "Sample job. The real work history comes later.",
 		details: ["Built and ran web services for a sample product.", "Worked with a small team, from design to deploy."],
 		links: [],
-		poster: "machine/posters/job-sample.png",
 	},
 	{
 		id: "skill-typescript",
@@ -129,7 +129,6 @@ export const EXHIBITS: readonly Exhibit[] = [
 		summary: "Strict TypeScript for browsers and Node.",
 		details: ["Typed domain models, test-first development, and small dependency-free modules."],
 		links: [{ label: "TypeScript", url: "https://www.typescriptlang.org/" }],
-		poster: "machine/posters/skill-typescript.png",
 	},
 	{
 		id: "contact",
@@ -138,6 +137,5 @@ export const EXHIBITS: readonly Exhibit[] = [
 		summary: "Want to talk? Find me on GitHub.",
 		details: ["I read every message."],
 		links: [{ label: "GitHub", url: "https://github.com/luanAfons0" }],
-		poster: "machine/posters/contact.png",
 	},
 ];

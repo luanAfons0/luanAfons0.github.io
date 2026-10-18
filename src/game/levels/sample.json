@@ -284,28 +284,28 @@
 					"image": "../../../public/machine/textures/board-a.png",
 					"imagewidth": 64,
 					"imageheight": 64,
-					"properties": [{ "name": "texture", "type": "string", "value": "board-a" }]
+					"properties": [{ "name": "texture", "type": "string", "value": "wall-a" }]
 				},
 				{
 					"id": 1,
 					"image": "../../../public/machine/textures/board-b.png",
 					"imagewidth": 64,
 					"imageheight": 64,
-					"properties": [{ "name": "texture", "type": "string", "value": "board-b" }]
+					"properties": [{ "name": "texture", "type": "string", "value": "wall-b" }]
 				},
 				{
 					"id": 2,
 					"image": "../../../public/machine/textures/chip.png",
 					"imagewidth": 64,
 					"imageheight": 64,
-					"properties": [{ "name": "texture", "type": "string", "value": "chip" }]
+					"properties": [{ "name": "texture", "type": "string", "value": "feature" }]
 				},
 				{
 					"id": 3,
 					"image": "../../../public/machine/textures/rack.png",
 					"imagewidth": 64,
 					"imageheight": 64,
-					"properties": [{ "name": "texture", "type": "string", "value": "rack" }]
+					"properties": [{ "name": "texture", "type": "string", "value": "storage" }]
 				},
 				{
 					"id": 4,

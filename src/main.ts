@@ -5,7 +5,7 @@ import { createKeyboardInput, type InputSnapshot, isTextEntry } from "./engine/i
 import { createFixedStepLoop } from "./engine/loop";
 import { createMouseLook } from "./engine/pointer-lock";
 import type { SpriteImage } from "./engine/renderer";
-import { loadTexture } from "./engine/texture";
+import { loadTexture, type Texture } from "./engine/texture";
 import { EXHIBITS } from "./game/content";
 import { createExhibitPanel } from "./game/exhibit-panel";
 import {
@@ -20,29 +20,71 @@ import sampleLevel from "./game/levels/sample.json";
 import { createPauseMenu } from "./game/pause-menu";
 import { createResumePrompt } from "./game/resume-prompt";
 import { loadSettings, saveSettings } from "./game/settings";
-import { MACHINE_ART_SET } from "./game/theme";
+import { type ArtSet, artSetOf, isTextureRole, posterPath, type TextureRole } from "./game/theme";
 
 // The browser shell: it owns the canvas, the clock, the keyboard, the mouse, and the overlays.
 // Everything it does is manual-test only; the Game core has the tests.
-// The Title Screen loads this module with a dynamic import (on hover or focus of NEW GAME), so the
-// assets load then too: the import is ready when the game can start. startGame() runs the game.
+// The Title Screen loads this module with a dynamic import (on hover or focus of NEW GAME), then
+// loadArt() loads the art of the shown Theme, so both are ready when the game can start.
+// startGame() runs the game. A Theme switch in the Pause Menu changes the art set during play.
 
-// Decode every wall texture, Bug sprite, and Exhibit poster once, before the first frame.
-// The wall and sprite PNGs are in the art set folders under public/, the posters at the paths the Content names.
-const artSet = MACHINE_ART_SET;
-const texturesUrl = `${import.meta.env.BASE_URL}${artSet.folders.textures}`;
-const spritesUrl = `${import.meta.env.BASE_URL}${artSet.folders.sprites}`;
-const [textureEntries, spriteEntries, posterEntries] = await Promise.all([
-	Promise.all(
-		levelTextureNames(sampleLevel).map(
-			async (name) => [name, await loadTexture(`${texturesUrl}/${name}.png`)] as const,
+/** The decoded art of one art set: wall textures by texture role, Bug sprites, and Exhibit posters. */
+interface GameArt {
+	textures: Record<string, Texture>;
+	sprites: Record<string, SpriteImage>;
+	posters: Record<string, Texture>;
+}
+
+/** The art of each art set once it is loaded, and the load of each art set, so each loads once. */
+const loadedArt = new Map<ArtSet, GameArt>();
+const artLoads = new Map<ArtSet, Promise<void>>();
+
+/**
+ * Loads and decodes every wall texture, Bug sprite, and Exhibit poster of an art set, once, before
+ * the first frame. A failed load is forgotten, so the next call tries again.
+ */
+export function loadArt(artSet: ArtSet): Promise<void> {
+	let load = artLoads.get(artSet);
+	if (!load) {
+		load = fetchArt(artSet).then(
+			(art) => {
+				loadedArt.set(artSet, art);
+			},
+			(error: unknown) => {
+				artLoads.delete(artSet);
+				throw error;
+			},
+		);
+		artLoads.set(artSet, load);
+	}
+	return load;
+}
+
+/**
+ * The art of an art set. All files are in the art set folders under public/. The Level names
+ * texture roles, and the art set maps each role to its file. The poster of an Exhibit is named by its id.
+ */
+async function fetchArt(artSet: ArtSet): Promise<GameArt> {
+	const base = import.meta.env.BASE_URL;
+	const [textureEntries, spriteEntries, posterEntries] = await Promise.all([
+		Promise.all(
+			levelTextureNames(sampleLevel)
+				// createGame and game.changeArtSet name a texture that is not a role or has no file; load only the others.
+				.filter((name): name is TextureRole => isTextureRole(name) && Boolean(artSet.textures[name]))
+				.map(
+					async (role) =>
+						[role, await loadTexture(`${base}${artSet.folders.textures}/${artSet.textures[role]}.png`)] as const,
+				),
 		),
-	),
-	loadSprites(bugFrameNames(artSet)),
-	Promise.all(
-		EXHIBITS.map(async ({ id, poster }) => [id, await loadTexture(`${import.meta.env.BASE_URL}${poster}`)] as const),
-	),
-]);
+		loadSprites(`${base}${artSet.folders.sprites}`, bugFrameNames(artSet)),
+		Promise.all(EXHIBITS.map(async ({ id }) => [id, await loadTexture(`${base}${posterPath(artSet, id)}`)] as const)),
+	]);
+	return {
+		textures: Object.fromEntries(textureEntries),
+		sprites: Object.fromEntries(spriteEntries),
+		posters: Object.fromEntries(posterEntries),
+	};
+}
 
 /** The key that mutes and unmutes all sound. Keys are `KeyboardEvent.code` values. */
 const MUTE_KEY = "KeyM";
@@ -50,10 +92,13 @@ const MUTE_KEY = "KeyM";
 const OVERLAYS = ".exhibit-panel, .pause-menu, .resume-prompt";
 
 /**
- * Starts the game in the page's #screen canvas. The Title Screen calls it after NEW GAME, with the
- * Audio it started in the NEW GAME user gesture. Without an Audio, the game is silent.
+ * Starts the game in the page's #screen canvas, with the art set of the shown Theme, whose art
+ * `loadArt` loaded. The Title Screen calls it after NEW GAME, with the Audio it started in the NEW
+ * GAME user gesture. Without an Audio, the game is silent.
  */
-export function startGame(audio?: Audio): void {
+export function startGame(startArtSet: ArtSet, audio?: Audio): void {
+	const art = loadedArt.get(startArtSet);
+	if (!art) throw new Error(`The art of the "${startArtSet.name}" art set is not loaded: call loadArt() first.`);
 	const canvas = document.querySelector<HTMLCanvasElement>("#screen");
 	const context = canvas?.getContext("2d");
 	if (!canvas || !context) throw new Error("The page has no #screen canvas with a 2D context.");
@@ -67,13 +112,13 @@ export function startGame(audio?: Audio): void {
 	const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 	const game = createGame({
 		level: sampleLevel,
-		artSet,
+		artSet: startArtSet,
 		content: EXHIBITS,
 		track,
 		sound: (event) => audio?.play(event),
-		textures: Object.fromEntries(textureEntries),
-		sprites: Object.fromEntries(spriteEntries),
-		posters: Object.fromEntries(posterEntries),
+		textures: art.textures,
+		sprites: art.sprites,
+		posters: art.posters,
 		settings: {
 			mouseSensitivity: settings.mouseSensitivity,
 			invertMouse: settings.invertMouse,
@@ -81,6 +126,28 @@ export function startGame(audio?: Audio): void {
 		},
 	});
 	reducedMotion.addEventListener("change", (event) => game.updateSettings({ reducedMotion: event.matches }));
+
+	/** The art set the game draws with, and the art set of the last Theme the player chose. */
+	let shownArtSet = startArtSet;
+	let wantedArtSet = startArtSet;
+
+	/**
+	 * The Pause Menu Theme switch. Paper and Board share one art set, so a switch between them
+	 * changes nothing here. Another art set is loaded first (once, then from the cache), and the
+	 * current art stays until then. A failed load or check rejects, and the Pause Menu sets the Theme back.
+	 */
+	async function changeArtSet(next: ArtSet): Promise<void> {
+		wantedArtSet = next;
+		if (next === shownArtSet) return;
+		await loadArt(next);
+		// The player chose another Theme while this art loaded.
+		if (wantedArtSet !== next) return;
+		const nextArt = loadedArt.get(next);
+		if (!nextArt) throw new Error(`The art of the "${next.name}" art set is not loaded.`);
+		game.changeArtSet({ artSet: next, ...nextArt });
+		shownArtSet = next;
+		audio?.changeArtSet(next);
+	}
 
 	// Keys pressed in an overlay are for the overlay: the arrow keys scroll the Exhibit Panel, and
 	// Enter or Space press a button.
@@ -100,27 +167,21 @@ export function startGame(audio?: Audio): void {
 		settings,
 		onResume: resume,
 		track,
+		onThemeChange: (theme) => changeArtSet(artSetOf(theme)),
+		// The Pause Menu owns the settings from here on, so the shell keeps no copy that can go stale.
 		onSettingsChange(changed) {
-			Object.assign(settings, changed);
 			game.updateSettings({ mouseSensitivity: changed.mouseSensitivity, invertMouse: changed.invertMouse });
 			audio?.setMuted(!changed.sound);
 			saveSettings(changed);
 		},
 	});
 
-	/** M: the same sound setting as the Pause Menu, so the menu shows it and it is saved. */
-	function toggleSound(): void {
-		settings.sound = !settings.sound;
-		audio?.setMuted(!settings.sound);
-		pauseMenu.showSettings(settings);
-		saveSettings(settings);
-	}
-
 	function openPauseMenu(): void {
 		if (pauseMenu.isOpen()) return;
 		resumePrompt.close();
 		game.pause();
-		pauseMenu.open();
+		const { bugsFixed, bugsTotal } = game.state();
+		pauseMenu.open({ fixed: bugsFixed, total: bugsTotal });
 	}
 
 	function resume(): void {
@@ -181,7 +242,7 @@ export function startGame(audio?: Audio): void {
 	// Without capture (keyboard-only play, an open Exhibit Panel, or "Click to resume"), Esc reaches the page.
 	window.addEventListener("keydown", (event) => {
 		// M works everywhere but in a text field; a checkbox or slider in the Pause Menu takes no text.
-		if (event.code === MUTE_KEY && !event.repeat && !isTextEntry(event.target)) toggleSound();
+		if (event.code === MUTE_KEY && !event.repeat && !isTextEntry(event.target)) pauseMenu.toggleSound();
 		if (event.code !== "Escape") return;
 		if (exhibitPanel.isOpen()) {
 			event.preventDefault();
@@ -219,7 +280,7 @@ export function startGame(audio?: Audio): void {
 }
 
 /** Sprite PNGs have no place for the anchor, so the anchors come from offsets.json in the sprites folder. */
-async function loadSprites(names: readonly string[]): Promise<(readonly [string, SpriteImage])[]> {
+async function loadSprites(spritesUrl: string, names: readonly string[]): Promise<(readonly [string, SpriteImage])[]> {
 	const response = await fetch(`${spritesUrl}/offsets.json`);
 	if (!response.ok) throw new Error(`Cannot load sprite offsets: HTTP ${response.status}.`);
 	const offsets = (await response.json()) as Record<string, { left: number; top: number } | undefined>;

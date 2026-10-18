@@ -6,7 +6,7 @@ import { EXHIBITS, type Exhibit } from "./content";
 import { createGame, type Game, SCREEN_HEIGHT, SCREEN_WIDTH, STATUS_BAR_HEIGHT } from "./game";
 import sampleLevel from "./levels/sample.json";
 import { TEST_WALL_TEXTURE, tiledExhibit, tiledLevel } from "./test-support/tiled-level";
-import { MACHINE_ART_SET } from "./theme";
+import { MACHINE_ART_SET, posterPath } from "./theme";
 
 /** The hint color of the machine art set, which the Game core uses by default. */
 const HUD_HINT_COLOR = rgb(...MACHINE_ART_SET.hud.hint);
@@ -23,7 +23,6 @@ function exhibit(id: string): Exhibit {
 		summary: `Summary of ${id}`,
 		details: [`Details of ${id}`],
 		links: [{ label: "Source", url: `https://example.com/${id}` }],
-		poster: `posters/${id}.png`,
 	};
 }
 
@@ -52,6 +51,15 @@ describe("Exhibit Content check", () => {
 		expect(() => createGame({ level, content: [orca] })).toThrow(/"orca".*link/);
 	});
 
+	// The id is the poster file name in each art set, so it must be a safe file name.
+	it.each(["../orca", "Orca", "orca poster", "orca.png"])(
+		'fails creation and names the id when an Exhibit id "%s" is not lowercase letters, digits, and hyphens',
+		(id) => {
+			const level = tiledLevel({ rows, extraObjects: [tiledExhibit(id, { x: 6, y: 1 }, "west")] });
+			expect(() => createGame({ level, content: [exhibit(id)] })).toThrow(`Exhibit id "${id}"`);
+		},
+	);
+
 	it("accepts http, https, and mailto links", () => {
 		const level = tiledLevel({ rows, extraObjects: [tiledExhibit("orca", { x: 6, y: 1 }, "west")] });
 		const links = ["http://example.com/", "https://example.com/a?b=1", "mailto:me@example.com"].map((url) => ({
@@ -76,9 +84,10 @@ describe("The real Level and the real Content (the build content check)", () => 
 		expect(() => createGame({ level: sampleLevel, content: EXHIBITS })).not.toThrow();
 	});
 
-	it("give every Exhibit a poster that is a committed PNG", () => {
-		const committed = Object.keys(import.meta.glob("/public/machine/posters/*.png"));
-		for (const { id, poster } of EXHIBITS) expect(committed, id).toContain(`/public/${poster}`);
+	it("give every Exhibit a poster that is a committed PNG in the posters folder of the machine art set", () => {
+		const committed = Object.keys(import.meta.glob("/public/**/*.png"));
+		expect(posterPath(MACHINE_ART_SET, "orca")).toBe("machine/posters/orca.png");
+		for (const { id } of EXHIBITS) expect(committed, id).toContain(`/public/${posterPath(MACHINE_ART_SET, id)}`);
 	});
 });
 
@@ -281,15 +290,21 @@ describe("Exhibit posters", () => {
 		expect(at(SCREEN_WIDTH / 2 + 30)[2]).toBeGreaterThan(0);
 	});
 
-	it("fails with a clear error that names the id when a poster image is missing", () => {
+	it("fails with a clear error that names the art set and the Exhibit id when a poster image is missing", () => {
+		const roleLevel = tiledLevel({
+			rows: ["#######", "#P....#", "#######"],
+			wallTextures: { "#": "wall-a" },
+			extraObjects: [tiledExhibit("orca", { x: 6, y: 1 }, "west")],
+		});
 		expect(() =>
 			createGame({
-				level,
+				level: roleLevel,
+				artSet: { ...MACHINE_ART_SET, name: "test" },
 				content: [exhibit("orca")],
-				textures: { [TEST_WALL_TEXTURE]: solidTexture(RED) },
+				textures: { "wall-a": solidTexture(RED) },
 				posters: {},
 			}),
-		).toThrow(/Exhibit "orca" has no poster image/);
+		).toThrow(/art set "test".*poster.*Exhibit "orca"/i);
 	});
 });
 

@@ -7,33 +7,24 @@
  * A poster is 72x66, drawn on a 36x33 grid at twice the size: the game shows it at 36x33 inside
  * its frame on a 64x64 wall (`src/game/poster.ts`), so every line stays.
  */
-import { EXHIBITS, type Exhibit, type ExhibitKind, partLabel } from "../../src/game/content.ts";
+import { EXHIBITS, type Exhibit, type ExhibitKind } from "../../src/game/content.ts";
+import { posterFiles } from "../art-kit/kinds.ts";
+import { createPixmap, fillRect, outlineRect, type Pixmap, path, plot, seededRandom, text } from "../art-kit/pixmap.ts";
 import { type GeneratedFile, pngFile } from "./files.ts";
 import * as c from "./palette.ts";
-import { createPixmap, fillRect, outlineRect, type Pixmap, path, plot, seededRandom, text } from "./pixmap.ts";
 
 const WIDTH = 36;
 const HEIGHT = 33;
 const SCALE = 2;
-/** Poster paths in the Content are relative to `public/`. The generator writes under `public/machine/`. */
-const FOLDER = "machine/";
 /** The faint marking on a package, such as the pin-1 dot. */
 const MARK = 0x2a2e32;
 
 /**
- * One poster for each Exhibit, at the path its `poster` names, with its Part label in the image
- * and in a `Title` text chunk. Fails when a poster is not in the machine art folder.
+ * One poster for each Exhibit, named by its id in the posters folder (`posters/<id>.png`, where the
+ * machine art set looks for it), with its Part label in the image and in a `Title` text chunk.
  */
 export function posters(content: readonly Exhibit[] = EXHIBITS): GeneratedFile[] {
-	return content.map((exhibit) => {
-		if (!exhibit.poster.startsWith(FOLDER)) {
-			throw new Error(
-				`Exhibit "${exhibit.id}" has the poster "${exhibit.poster}". Put it under ${FOLDER}posters/ so the generator draws it.`,
-			);
-		}
-		const label = partLabel(content, exhibit);
-		return pngFile(exhibit.poster.slice(FOLDER.length), scaled(poster(exhibit.kind, label)), { Title: label });
-	});
+	return posterFiles(pngFile, content, poster, SCALE);
 }
 
 function poster(kind: ExhibitKind, label: string): Pixmap {
@@ -135,17 +126,4 @@ function solderMask(seed: number): Pixmap {
 		pixmap.pixels[i] = r < 0.14 ? c.MASK_HI : r < 0.24 ? c.MASK_LO : c.MASK;
 	}
 	return pixmap;
-}
-
-/** The pixmap at `SCALE` times its size: each pixel becomes a square of pixels. */
-function scaled(pixmap: Pixmap): Pixmap {
-	const out = createPixmap(pixmap.width * SCALE, pixmap.height * SCALE);
-	for (let y = 0; y < out.height; y++) {
-		for (let x = 0; x < out.width; x++) {
-			out.pixels[y * out.width + x] = pixmap.pixels[
-				Math.floor(y / SCALE) * pixmap.width + Math.floor(x / SCALE)
-			] as number;
-		}
-	}
-	return out;
 }

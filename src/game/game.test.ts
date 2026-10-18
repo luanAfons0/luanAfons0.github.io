@@ -21,10 +21,20 @@ import {
 	TEST_TRACK_TEXTURE,
 	TEST_WALL_TEXTURE,
 	tiledBug,
+	tiledExhibit,
 	tiledLevel,
 	tiledRoom,
 } from "./test-support/tiled-level";
-import { MACHINE_ART_SET } from "./theme";
+import {
+	type ArtSet,
+	artSetOf,
+	DUNGEON_ART_SET,
+	MACHINE_ART_SET,
+	posterPath,
+	SOUND_EVENTS,
+	TEXTURE_ROLES,
+	THEMES,
+} from "./theme";
 
 const IDLE: InputSnapshot = { forward: 0, strafe: 0, turn: 0, look: 0 };
 const FORWARD: InputSnapshot = { ...IDLE, forward: 1 };
@@ -364,27 +374,79 @@ describe("Art set", () => {
 	const bugRoom = tiledRoom("Lobby", { x: 1, y: 1, width: 3, height: 1 });
 	const bugLevel = tiledLevel({
 		rows: ["#####", "#P..#", "#####"],
-		wallTextures: { "#": "board-a" },
+		wallTextures: { "#": "wall-a" },
 		extraObjects: [bugRoom, tiledBug({ x: 3.5, y: 1.5 })],
 	});
 
-	it("creates the Game core with the real sample Level and the machine art set", () => {
-		const game = createGame({ level: sampleLevel, content: EXHIBITS, artSet: MACHINE_ART_SET });
+	/** The machine art set with no entry for one key of a map, as a broken art set would have. */
+	function without<K extends "textures" | "sounds">(key: K, missing: string): ArtSet {
+		const map = Object.fromEntries(Object.entries(MACHINE_ART_SET[key]).filter(([name]) => name !== missing));
+		return { ...MACHINE_ART_SET, [key]: map };
+	}
+
+	it.each(THEMES)("creates the Game core with the real sample Level and the art set of the %s Theme", (theme) => {
+		const artSet = artSetOf(theme);
+		const image = { texture: solidTexture(GREEN), left: 2, top: 4 };
+		const sprites = Object.fromEntries(bugFrameNames(artSet).map((name) => [name, image]));
+		const posters = Object.fromEntries(EXHIBITS.map(({ id }) => [id, solidTexture(GREEN)]));
+
+		const game = createGame({ level: sampleLevel, content: EXHIBITS, artSet, sprites, posters });
+
 		expect(game.state().room).toBe("Lobby");
 	});
 
-	it("fails with an error that names a wall texture the art set does not have", () => {
-		const level = tiledLevel({ rows: ["###", "#P#", "###"], wallTextures: { "#": "NOSUCHWALL" } });
-		expect(() => createGame({ level, artSet: MACHINE_ART_SET })).toThrow(/texture "NOSUCHWALL".*art set "machine"/);
+	it("maps Paper and Board (and no saved Theme) to the machine art set, and Dungeon to the dungeon art set", () => {
+		expect(artSetOf("paper")).toBe(MACHINE_ART_SET);
+		expect(artSetOf("board")).toBe(MACHINE_ART_SET);
+		expect(artSetOf(undefined)).toBe(MACHINE_ART_SET);
+		expect(artSetOf("dungeon")).toBe(DUNGEON_ART_SET);
+		expect(DUNGEON_ART_SET.name).toBe("dungeon");
 	});
 
-	it("fails with an error that names a door texture the art set does not have", () => {
+	it("has the real sample Level name texture roles only", () => {
+		const names = levelTextureNames(sampleLevel);
+
+		expect(names.length).toBeGreaterThan(0);
+		for (const name of names) expect(TEXTURE_ROLES).toContain(name);
+	});
+
+	it("maps every texture role of the machine art set to its machine file", () => {
+		expect(MACHINE_ART_SET.textures).toEqual({
+			"wall-a": "board-a",
+			"wall-b": "board-b",
+			feature: "chip",
+			storage: "rack",
+			door: "door",
+			"door-track": "door-track",
+		});
+	});
+
+	it("fails with an error that names a wall texture that is not a texture role", () => {
+		const level = tiledLevel({ rows: ["###", "#P#", "###"], wallTextures: { "#": "board-a" } });
+		expect(() => createGame({ level, artSet: MACHINE_ART_SET })).toThrow(/texture "board-a".*not a texture role/);
+	});
+
+	it("fails with an error that names a door texture that is not a texture role", () => {
 		const level = tiledLevel({
 			rows: ["######", "#P.D.#", "######"],
-			wallTextures: { "#": "board-a" },
+			wallTextures: { "#": "wall-a" },
 			doorTiles: { D: { texture: "NOSUCHDOOR", track: "door-track" } },
 		});
-		expect(() => createGame({ level, artSet: MACHINE_ART_SET })).toThrow(/texture "NOSUCHDOOR"/);
+		expect(() => createGame({ level, artSet: MACHINE_ART_SET })).toThrow(/texture "NOSUCHDOOR".*not a texture role/);
+	});
+
+	it("fails with an error that names the art set and the texture role it has no file for", () => {
+		const level = tiledLevel({ rows: ["###", "#P#", "###"], wallTextures: { "#": "wall-a" } });
+		expect(() => createGame({ level, artSet: without("textures", "storage") })).toThrow(
+			/art set "machine".*texture role "storage"/i,
+		);
+	});
+
+	it("fails with an error that names the art set and the sound event it has no sound for", () => {
+		const level = tiledLevel({ rows: ["###", "#P#", "###"], wallTextures: { "#": "wall-a" } });
+		expect(() => createGame({ level, artSet: without("sounds", "door-open") })).toThrow(
+			/art set "machine".*sound event "door-open"/i,
+		);
 	});
 
 	it("fails with an error that names the missing Bug walk frame when the Level has Bugs", () => {
@@ -397,10 +459,12 @@ describe("Art set", () => {
 		expect(() => createGame({ level: bugLevel, artSet })).toThrow(/Bug fix frame/);
 	});
 
-	it("loads the Bug frames the art set names", () => {
+	it("loads the Bug frames the art set names, and names the art set and the frame it has no image for", () => {
 		const artSet = { ...MACHINE_ART_SET, bugWalkFrames: ["BEETLE1"], bugFixFrames: ["PATCHED1"] };
 		const image = { texture: solidTexture(GREEN), left: 2, top: 4 };
-		expect(() => createGame({ level: bugLevel, artSet, sprites: { BEETLE1: image } })).toThrow(/"PATCHED1"/);
+		expect(() => createGame({ level: bugLevel, artSet, sprites: { BEETLE1: image } })).toThrow(
+			/art set "machine".*Bug frame "PATCHED1"/i,
+		);
 		expect(() => createGame({ level: bugLevel, artSet, sprites: { BEETLE1: image, PATCHED1: image } })).not.toThrow();
 	});
 
@@ -409,23 +473,144 @@ describe("Art set", () => {
 		expect(bugFrameNames(artSet)).toEqual(["W1", "W2", "F1", "DONE"]);
 	});
 
-	it("names only committed files: textures, Bug frames with anchors, and sounds", () => {
-		const committed = Object.keys(import.meta.glob(["/public/**/*.png", "/public/**/*.wav", "/public/**/*.json"]));
-		const { folders } = MACHINE_ART_SET;
-		const allOffsets = import.meta.glob<Record<string, unknown>>("/public/**/offsets.json", {
-			eager: true,
-			import: "default",
-		});
-		const offsets = allOffsets[`/public/${folders.sprites}/offsets.json`] ?? {};
+	it.each([MACHINE_ART_SET, DUNGEON_ART_SET])(
+		"names only committed files in the $name art set: textures, Bug frames with anchors, posters, and sounds",
+		(artSet) => {
+			const committed = Object.keys(import.meta.glob(["/public/**/*.png", "/public/**/*.wav", "/public/**/*.json"]));
+			const { folders } = artSet;
+			const allOffsets = import.meta.glob<Record<string, unknown>>("/public/**/offsets.json", {
+				eager: true,
+				import: "default",
+			});
+			const offsets = allOffsets[`/public/${folders.sprites}/offsets.json`] ?? {};
 
-		for (const name of MACHINE_ART_SET.textures) expect(committed).toContain(`/public/${folders.textures}/${name}.png`);
-		for (const name of bugFrameNames(MACHINE_ART_SET)) {
-			expect(committed).toContain(`/public/${folders.sprites}/${name}.png`);
-			expect(offsets[name]).toEqual({ left: expect.any(Number), top: expect.any(Number) });
+			for (const role of TEXTURE_ROLES) {
+				expect(committed).toContain(`/public/${folders.textures}/${artSet.textures[role]}.png`);
+			}
+			for (const name of bugFrameNames(artSet)) {
+				expect(committed).toContain(`/public/${folders.sprites}/${name}.png`);
+				expect(offsets[name]).toEqual({ left: expect.any(Number), top: expect.any(Number) });
+			}
+			for (const { id } of EXHIBITS) expect(committed).toContain(`/public/${posterPath(artSet, id)}`);
+			for (const event of SOUND_EVENTS) {
+				expect(committed).toContain(`/public/${folders.sounds}/${artSet.sounds[event]}.wav`);
+			}
+		},
+	);
+
+	describe("change during play", () => {
+		const SHOOT: InputSnapshot = { ...IDLE, shoot: true };
+		const exhibitId = (EXHIBITS[0] as (typeof EXHIBITS)[number]).id;
+		// A corridor: the player starts at x 1.5 and faces east. A Bug stays in a closet at x 2.5, a
+		// door is the cell x 3, and the end wall (x 8) has an Exhibit.
+		const corridor = tiledLevel({
+			rows: ["#########", "#P.D....#", "#########"],
+			wallTextures: { "#": "wall-a" },
+			doorTiles: { D: { texture: "door", track: "door-track" } },
+			extraObjects: [
+				tiledRoom("Lobby", { x: 1, y: 1, width: 7, height: 1 }),
+				tiledRoom("Closet", { x: 2.4, y: 1.4, width: 0.2, height: 0.2 }),
+				tiledBug({ x: 2.5, y: 1.5 }),
+				tiledExhibit(exhibitId, { x: 8, y: 1 }, "west"),
+			],
+		});
+		const content = EXHIBITS.filter(({ id }) => id === exhibitId);
+
+		/** A Bug-sized sprite of one color, anchored at its bottom middle. */
+		function spriteOf(color: number) {
+			const rgba = new Uint8Array(30 * 39 * 4);
+			new Uint32Array(rgba.buffer).fill(color);
+			return { texture: createTexture(30, 39, rgba), left: 15, top: 35 };
 		}
-		for (const file of Object.values(MACHINE_ART_SET.sounds)) {
-			expect(committed).toContain(`/public/${folders.sounds}/${file}.wav`);
+
+		/** The decoded art of an art set: every texture and poster in one color, every Bug frame in another. */
+		function artOf(artSet: ArtSet, wall: number, bug: number) {
+			return {
+				artSet,
+				textures: Object.fromEntries(TEXTURE_ROLES.map((role) => [role, solidTexture(wall)])),
+				sprites: Object.fromEntries(bugFrameNames(artSet).map((name) => [name, spriteOf(bug)])),
+				posters: Object.fromEntries(EXHIBITS.map(({ id }) => [id, solidTexture(wall)])),
+			};
 		}
+
+		/** The color channels a pixel lights, as "r", "g", and "b". */
+		function lit(pixel: number): string {
+			return channels(pixel)
+				.map((value, i) => (value > 0 ? "rgb"[i] : ""))
+				.join("");
+		}
+
+		function render(game: Game): Framebuffer {
+			const frame = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+			game.render(frame);
+			return frame;
+		}
+
+		/** Fixes the Bug, opens the door, walks to the end wall, and opens its Exhibit. */
+		function play(game: Game): void {
+			game.step(SHOOT);
+			stepTicks(game, FORWARD, 30);
+			game.step(USE);
+			stepTicks(game, IDLE, 60);
+			for (let tick = 0; tick < 300 && game.state().exhibitInFocus === null; tick++) game.step(FORWARD);
+			game.step(USE);
+		}
+
+		it("keeps the player, the Bugs fixed, the doors, and the open Exhibit", () => {
+			const game = createGame({ level: corridor, content, ...artOf(MACHINE_ART_SET, RED, BLUE) });
+			play(game);
+			const before = game.state();
+			expect(before).toMatchObject({ bugsFixed: 1, openExhibit: exhibitId, paused: true });
+			expect(before.doors[0]?.state).toBe("open");
+
+			game.changeArtSet(artOf(DUNGEON_ART_SET, GREEN, WHITE));
+
+			expect(game.state()).toEqual(before);
+			game.closeExhibit();
+			game.step(IDLE);
+			expect(game.state().paused).toBe(false);
+		});
+
+		it("draws the walls, the Bug frames, and the floor of the new art set", () => {
+			const game = createGame({ level: corridor, content, ...artOf(MACHINE_ART_SET, RED, BLUE) });
+			const wall = { x: SCREEN_WIDTH / 2 + 200, y: HORIZON - 40 };
+			const floor = { x: SCREEN_WIDTH / 2, y: VIEW_HEIGHT - 2 };
+			const machine = render(game);
+			expect(lit(pixelAt(machine, SCREEN_WIDTH / 2, HORIZON))).toBe("b");
+			expect(lit(pixelAt(machine, wall.x, wall.y))).toBe("r");
+			expect(shadesOf(MACHINE_ART_SET.floor).has(pixelAt(machine, floor.x, floor.y))).toBe(true);
+
+			game.changeArtSet(artOf(DUNGEON_ART_SET, GREEN, RED));
+
+			const dungeon = render(game);
+			expect(lit(pixelAt(dungeon, SCREEN_WIDTH / 2, HORIZON))).toBe("r");
+			expect(lit(pixelAt(dungeon, wall.x, wall.y))).toBe("g");
+			expect(shadesOf(DUNGEON_ART_SET.floor).has(pixelAt(dungeon, floor.x, floor.y))).toBe(true);
+			// The status bar is filled with the bar color of the art set.
+			const barPixels = (frame: Framebuffer, artSet: ArtSet) =>
+				frame.pixels.subarray(VIEW_HEIGHT * SCREEN_WIDTH).filter((pixel) => pixel === rgb(...artSet.hud.bar)).length;
+			expect(barPixels(machine, MACHINE_ART_SET)).toBeGreaterThan(SCREEN_WIDTH * 10);
+			expect(barPixels(dungeon, DUNGEON_ART_SET)).toBeGreaterThan(SCREEN_WIDTH * 10);
+			expect(barPixels(dungeon, MACHINE_ART_SET)).toBe(0);
+		});
+
+		it.each([
+			["a texture role", { artSet: without("textures", "storage") }, /art set "machine".*texture role "storage"/i],
+			["a sound event", { artSet: without("sounds", "shot") }, /art set "machine".*sound event "shot"/i],
+			["a Bug frame image", { sprites: {} }, /art set "dungeon".*Bug frame/i],
+			["a poster", { posters: {} }, /art set "dungeon".*poster image for Exhibit/i],
+			["a texture the Level uses", { textures: {} }, /texture "wall-a"/],
+		])("fails on an art set with no %s, and keeps the old art set", (_, broken, error) => {
+			const game = createGame({ level: corridor, content, ...artOf(MACHINE_ART_SET, RED, BLUE) });
+			play(game);
+			const before = game.state();
+			const machine = render(game);
+
+			expect(() => game.changeArtSet({ ...artOf(DUNGEON_ART_SET, GREEN, WHITE), ...broken })).toThrow(error);
+
+			expect(game.state()).toEqual(before);
+			expect(render(game).pixels).toEqual(machine.pixels);
+		});
 	});
 });
 
@@ -695,13 +880,6 @@ describe("Textured walls", () => {
 		for (const tileset of level.tilesets) tileset.tiles = [];
 		expect(() => createGame({ level })).toThrow(/gid 1 has no "texture" property/);
 	});
-
-	it("lists the textures the real sample Level uses, and the machine art set has each one", () => {
-		const names = levelTextureNames(sampleLevel);
-
-		expect(names.length).toBeGreaterThan(0);
-		for (const name of names) expect(MACHINE_ART_SET.textures).toContain(name);
-	});
 });
 
 describe("Bugs", () => {
@@ -709,9 +887,13 @@ describe("Bugs", () => {
 	const rows = ["###########", "#P........#", "#.........#", "#.........#", "###########"];
 	const room = tiledRoom("Lobby", { x: 1, y: 1, width: 9, height: 3 });
 
-	function bugLevel(bugs: { x: number; y: number }[], options: { rows?: string[]; rooms?: object[] } = {}) {
+	function bugLevel(
+		bugs: { x: number; y: number }[],
+		options: { rows?: string[]; rooms?: object[]; wall?: string } = {},
+	) {
 		return tiledLevel({
 			rows: options.rows ?? rows,
+			wallTextures: { "#": options.wall ?? TEST_WALL_TEXTURE },
 			playerAngle: 0,
 			extraObjects: [...(options.rooms ?? [room]), ...bugs.map(tiledBug)],
 		});
@@ -988,11 +1170,10 @@ describe("Bugs", () => {
 				}),
 			);
 			const game = createGame({
-				level: bugLevel([{ x: 3.5, y: 1.5 }], { rooms: [closet] }),
-				textures: { [TEST_WALL_TEXTURE]: solidTexture(GREEN) },
+				level: bugLevel([{ x: 3.5, y: 1.5 }], { rooms: [closet], wall: "wall-a" }),
+				textures: { "wall-a": solidTexture(GREEN) },
 				artSet: {
 					...MACHINE_ART_SET,
-					textures: [TEST_WALL_TEXTURE],
 					bugWalkFrames: ["W1", "W2"],
 					bugFixFrames: ["F1", "F2", "F3"],
 				},
@@ -1069,6 +1250,113 @@ describe("Bugs", () => {
 			game.step(SHOOT);
 			expect(counterShape(renderNow(game))).toEqual(roomShape(renderNow(twoBugs("1/2"))));
 		});
+
+		/** The pixels of `color` in the status bar, as groups of touching pixels, left to right. */
+		function shapesOf(frame: Framebuffer, color: number): { x: number; y: number }[][] {
+			const top = SCREEN_HEIGHT - STATUS_BAR_HEIGHT;
+			const seen = new Set<number>();
+			const shapes: { x: number; y: number }[][] = [];
+			for (let start = top * SCREEN_WIDTH; start < frame.pixels.length; start++) {
+				if (frame.pixels[start] !== color || seen.has(start)) continue;
+				const shape: { x: number; y: number }[] = [];
+				const todo = [start];
+				seen.add(start);
+				while (todo.length > 0) {
+					const i = todo.pop() as number;
+					const x = i % SCREEN_WIDTH;
+					const y = Math.floor(i / SCREEN_WIDTH);
+					shape.push({ x, y });
+					for (let dy = -1; dy <= 1; dy++) {
+						for (let dx = -1; dx <= 1; dx++) {
+							const nx = x + dx;
+							const ny = y + dy;
+							const next = ny * SCREEN_WIDTH + nx;
+							if (nx < 0 || nx >= SCREEN_WIDTH || ny < top || ny >= SCREEN_HEIGHT) continue;
+							if (seen.has(next) || frame.pixels[next] !== color) continue;
+							seen.add(next);
+							todo.push(next);
+						}
+					}
+				}
+				shapes.push(shape);
+			}
+			return shapes.sort((a, b) => Math.min(...a.map(({ x }) => x)) - Math.min(...b.map(({ x }) => x)));
+		}
+
+		/** Each tally box, left to right: true when it has a tick (a pixel inside its edges). */
+		function tally(frame: Framebuffer, color: number): boolean[] {
+			return shapesOf(frame, color).map((shape) => {
+				const xs = shape.map(({ x }) => x);
+				const ys = shape.map(({ y }) => y);
+				const [left, right, top, bottom] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+				return shape.some(({ x, y }) => x > left && x < right && y > top && y < bottom);
+			});
+		}
+
+		const TALLY_COLOR = rgb(255, 0, 255);
+
+		/** Two Bugs, in an art set like the machine one whose HUD draws a tally in `TALLY_COLOR`. */
+		function twoBugsWithTally(): Game {
+			const rgba = new Uint8Array(4 * 4 * 4);
+			new Uint32Array(rgba.buffer).fill(GREEN);
+			const image = { texture: createTexture(4, 4, rgba), left: 2, top: 3 };
+			const artSet: ArtSet = { ...MACHINE_ART_SET, hud: { ...MACHINE_ART_SET.hud, tally: [255, 0, 255] } };
+			return createGame({
+				level: bugLevel(
+					[
+						{ x: 6.5, y: 1.5 },
+						{ x: 7.5, y: 3.5 },
+					],
+					{ wall: "wall-a" },
+				),
+				artSet,
+				sprites: Object.fromEntries(bugFrameNames(artSet).map((name) => [name, image])),
+			});
+		}
+
+		it("draws a tick box per Bug next to the counter when the art set has a tally, ticked for each fixed Bug", () => {
+			const game = twoBugsWithTally();
+
+			expect(tally(renderNow(game), TALLY_COLOR)).toEqual([false, false]);
+			game.step(SHOOT);
+			expect(tally(renderNow(game), TALLY_COLOR)).toEqual([true, false]);
+		});
+
+		it("puts the tally right of the counter value, inside the Bugs fixed section", () => {
+			const frame = renderNow(twoBugsWithTally());
+			const boxes = shapesOf(frame, TALLY_COLOR).flat();
+			const counter = shapesOf(frame, HUD_VALUE_COLOR)
+				.flat()
+				.filter(({ x }) => x > SCREEN_WIDTH / 2);
+
+			expect(boxes.length).toBeGreaterThan(0);
+			expect(counter.length).toBeGreaterThan(0);
+			expect(Math.min(...boxes.map(({ x }) => x))).toBeGreaterThan(Math.max(...counter.map(({ x }) => x)));
+			expect(Math.max(...boxes.map(({ x }) => x))).toBeLessThan(SCREEN_WIDTH - 4);
+		});
+
+		it("fails with a clear error when the tally of the Level's Bugs does not fit in the status bar", () => {
+			const image = { texture: createTexture(4, 4, new Uint8Array(4 * 4 * 4)), left: 2, top: 3 };
+			const artSet: ArtSet = { ...MACHINE_ART_SET, hud: { ...MACHINE_ART_SET.hud, tally: [255, 0, 255] } };
+			// 60 Bugs need 60 tick boxes, 10 pixels apart: more than the 640-pixel status bar holds.
+			const bugs = Array.from({ length: 60 }, (_, i) => ({ x: 1.5 + (i % 9), y: 1.2 + 0.2 * Math.floor(i / 9) }));
+
+			expect(() =>
+				createGame({
+					level: bugLevel(bugs, { wall: "wall-a" }),
+					artSet,
+					sprites: Object.fromEntries(bugFrameNames(artSet).map((name) => [name, image])),
+				}),
+			).toThrow(/Bug tally of 60 Bugs does not fit/);
+		});
+
+		it("draws no tally in the machine HUD: its lines are only the top edge and the two section outlines", () => {
+			const game = twoBugs("Lobby");
+			game.step(SHOOT);
+			const lines = shapesOf(renderNow(game), rgb(...MACHINE_ART_SET.hud.outline));
+
+			expect(lines).toHaveLength(3);
+		});
 	});
 
 	describe("shot feedback", () => {
@@ -1109,6 +1397,26 @@ describe("Bugs", () => {
 
 			expect(near(1, 0) && near(-1, 0) && near(0, 1) && near(0, -1)).toBe(true);
 			expect(pixelAt(frame, 0, HORIZON)).not.toBe(CROSSHAIR_COLOR);
+		});
+
+		it("draws a one-pixel outline around the crosshair when the art set has one", () => {
+			const outline = rgb(255, 0, 255);
+			const artSet: ArtSet = { ...MACHINE_ART_SET, hud: { ...MACHINE_ART_SET.hud, crosshairOutline: [255, 0, 255] } };
+			const game = createGame({ level: tiledLevel({ rows: still, wallTextures: { "#": "wall-a" } }), artSet });
+			const frame = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+			game.render(frame);
+			const centerX = SCREEN_WIDTH / 2;
+			// Along the right arm, the outline hugs the crosshair on every side. The center stays clear; the
+			// outline of the up and down arms touches its corners.
+			const row = (dy: number) =>
+				[0, 1, 2, 3, 4, 5, 6, 7].map((dx) => {
+					const pixel = pixelAt(frame, centerX + dx, HORIZON + dy);
+					return pixel === CROSSHAIR_COLOR ? "+" : pixel === outline ? "o" : ".";
+				});
+
+			expect(row(-1).join("")).toBe("ooooooo.");
+			expect(row(0).join("")).toBe(".o++++o.");
+			expect(row(1).join("")).toBe("ooooooo.");
 		});
 	});
 });
