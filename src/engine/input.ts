@@ -44,8 +44,8 @@ export interface KeyboardInputOptions {
 export interface KeyboardInput {
 	/**
 	 * Writes the input for the next tick into `input`: the axes of the keys that are down now, and
-	 * the use key pressed since the last call. It leaves `look`, `lookUp`, and `shoot` alone (the mouse owns
-	 * them) and allocates nothing.
+	 * the use key pressed since the last call. It leaves `look`, `lookUp`, and `shoot` alone (the
+	 * mouse owns them) and allocates nothing.
 	 */
 	snapshot(input: InputSnapshot): void;
 	/** Removes the event listeners. */

@@ -28,7 +28,10 @@ import { type ArtSet, artSetOf, isTextureRole, posterPath, type TextureRole } fr
 // loadArt() loads the art of the shown Theme, so both are ready when the game can start.
 // startGame() runs the game. A Theme switch in the Pause Menu changes the art set during play.
 
-/** The decoded art of one art set: wall textures by texture role and Flats by file name, Bug sprites, and Exhibit posters. */
+/**
+ * The decoded art of one art set: wall textures by texture role and Flats by file name, Bug
+ * sprites, and Exhibit posters.
+ */
 interface GameArt {
 	textures: Record<string, Texture>;
 	sprites: Record<string, SpriteImage>;
@@ -40,8 +43,8 @@ const loadedArt = new Map<ArtSet, GameArt>();
 const artLoads = new Map<ArtSet, Promise<void>>();
 
 /**
- * Loads and decodes every wall texture, Flat, Bug sprite, and Exhibit poster of an art set, once, before
- * the first frame. A failed load is forgotten, so the next call tries again.
+ * Loads and decodes every wall texture, Flat, Bug sprite, and Exhibit poster of an art set, once,
+ * before the first frame. A failed load is forgotten, so the next call tries again.
  */
 export function loadArt(artSet: ArtSet): Promise<void> {
 	let load = artLoads.get(artSet);

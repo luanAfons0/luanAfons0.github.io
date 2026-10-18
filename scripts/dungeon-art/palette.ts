@@ -62,7 +62,10 @@ export const FLOOR_SPECK_HI = 0x2a2722;
 export const FLOOR_SPECK_LO = 0x1b1916;
 export const CEILING = 0x0e0d0c;
 export const FOG = 0x0a0908;
-/** The flagstones of the floor Flat: the cut stone of the walls, darker and warmer, in deep seams (`SEAM`). */
+/**
+ * The flagstones of the floor Flat: the cut stone of the walls, darker and warmer, in deep seams
+ * (`SEAM`).
+ */
 export const FLAG = 0x3a3732;
 export const FLAG_A = 0x37342f;
 export const FLAG_B = 0x3d3a35;
@@ -70,7 +73,10 @@ export const FLAG_HI = 0x4a4640;
 export const FLAG_LO = 0x2a2824;
 export const FLAG_SPECK_HI = 0x44403a;
 export const FLAG_SPECK_LO = 0x302d29;
-/** The ceiling Flat: sooty oak, darker than the floor so the ceiling reads as above. Planks, and the beam over them. */
+/**
+ * The ceiling Flat: sooty oak, darker than the floor so the ceiling reads as above. Planks, and the
+ * beam over them.
+ */
 export const PLANK = 0x2c2118;
 export const PLANK_DK = 0x231a13;
 export const PLANK_GAP = 0x110c08;

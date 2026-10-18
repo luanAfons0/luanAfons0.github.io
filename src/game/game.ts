@@ -64,7 +64,7 @@ export const SCREEN_HEIGHT = 360;
 const VIEW_HEIGHT = SCREEN_HEIGHT - STATUS_BAR_HEIGHT;
 /** The view pitch stops at 40% of the view height, up and down, in screen pixels. */
 const MAX_PITCH = Math.round(0.4 * VIEW_HEIGHT);
-/** Half the width of the view plane, in tiles at distance 1 (about a 84 degree field of view). */
+/** Half the width of the view plane, in tiles at distance 1 (about an 84 degree field of view). */
 const PLANE_HALF_WIDTH = 0.9;
 /** The height on screen, in pixels, of one tile at distance 1, as the Renderer draws it. */
 const PROJECTION = projectionOf(SCREEN_WIDTH, PLANE_HALF_WIDTH);

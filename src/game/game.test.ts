@@ -100,7 +100,10 @@ function shadesOf([red, green, blue]: readonly [number, number, number]): Set<nu
 	return shades;
 }
 
-/** The decoded Flats of an art set, keyed by file name as the browser shell loads them: each one solid color. */
+/**
+ * The decoded Flats of an art set, keyed by file name as the browser shell loads them: each one
+ * solid color.
+ */
 function flatTexturesOf(artSet: ArtSet, color: number): Record<string, Texture> {
 	return { [artSet.flats.ceiling]: solidTexture(color), [artSet.flats.floor]: solidTexture(color) };
 }
@@ -633,7 +636,10 @@ describe("Art set", () => {
 			return { texture: createTexture(30, 39, rgba), left: 15, top: 35 };
 		}
 
-		/** The decoded art of an art set: every texture, Flat, and poster in one color, every Bug frame in another. */
+		/**
+		 * The decoded art of an art set: every texture, Flat, and poster in one color, every Bug frame
+		 * in another.
+		 */
 		function artOf(artSet: ArtSet, wall: number, bug: number) {
 			return {
 				artSet,
@@ -1132,7 +1138,10 @@ describe("Flats of the art sets", () => {
 	);
 	const level = tiledLevel({ rows: room, wallTextures: { "#": "wall-a" } });
 
-	/** The wall textures of every texture role, white, and the two Flats of an art set, each in its own color. */
+	/**
+	 * The wall textures of every texture role, white, and the two Flats of an art set, each in its
+	 * own color.
+	 */
 	function texturesOf(artSet: ArtSet, ceiling: number, floor: number): Record<string, Texture> {
 		return {
 			...Object.fromEntries(TEXTURE_ROLES.map((role) => [role, solidTexture(WHITE)])),

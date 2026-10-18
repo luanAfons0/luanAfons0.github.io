@@ -10,7 +10,10 @@ import * as c from "./palette.ts";
 export const SIZE = 64;
 const WRAP = SIZE - 1;
 
-/** The colors of one kind of cut stone: the block tones, the lit and shaded edges, the specks, and the joints. */
+/**
+ * The colors of one kind of cut stone: the block tones, the lit and shaded edges, the specks, and
+ * the joints.
+ */
 interface StoneColors {
 	tones: readonly [number, number, number];
 	hi: number;

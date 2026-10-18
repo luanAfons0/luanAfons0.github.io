@@ -10,7 +10,10 @@ import { isTheme, type Theme } from "./theme";
 export interface Settings {
 	/** Multiplies the mouse turn and the mouse pitch. 1 is the default speed. */
 	mouseSensitivity: number;
-	/** Mouse movement up looks down, and down looks up. The mouse turn left and right does not change. */
+	/**
+	 * Mouse movement up looks down, and down looks up. The mouse turn left and right does not
+	 * change.
+	 */
 	invertMouse: boolean;
 	sound: boolean;
 	/**

@@ -5,7 +5,10 @@ import { createTitleScreen } from "./title-screen";
 // The Title Screen page entry. It has no game code: the game is a separate chunk that the
 // dynamic import below loads on hover or focus of NEW GAME. Manual test only; the logic is in title-screen.ts.
 
-/** The art set of the shown Theme: `data-theme` on the root (the saved Theme, or the default Theme). */
+/**
+ * The art set of the shown Theme: `data-theme` on the root (the saved Theme, or the default
+ * Theme).
+ */
 function shownArtSet(): ArtSet {
 	return artSetOf(shownTheme(document.documentElement));
 }

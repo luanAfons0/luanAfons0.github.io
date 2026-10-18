@@ -269,7 +269,10 @@ describe("Skip View builder (Seam 2)", () => {
 		const head = page.slice(0, page.indexOf("</head>"));
 		const scripts = [...head.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((match) => match[1] ?? "");
 
-		/** Runs the head scripts on the page root with the given saved settings (null: none; an Error: blocked storage). Returns the data-theme after them. */
+		/**
+		 * Runs the head scripts on the page root with the given saved settings (null: none; an Error:
+		 * blocked storage). Returns the data-theme after them.
+		 */
 		function shownTheme(saved: string | null | Error): string | undefined {
 			const dataset: { theme?: string } = { theme: parse(page).documentElement.dataset.theme };
 			const localStorage = {

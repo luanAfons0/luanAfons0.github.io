@@ -24,7 +24,10 @@ export function isTheme(value: unknown): value is Theme {
 	return typeof value === "string" && (THEMES as readonly string[]).includes(value);
 }
 
-/** The Theme a page shows: `data-theme` on its root (the saved Theme, else the default), or the default Theme. */
+/**
+ * The Theme a page shows: `data-theme` on its root (the saved Theme, else the default), or the
+ * default Theme.
+ */
 export function shownTheme(root: { readonly dataset: { readonly theme?: string } }): Theme {
 	const theme = root.dataset.theme;
 	return isTheme(theme) ? theme : DEFAULT_THEME;
@@ -101,8 +104,9 @@ export interface ArtSet {
 	/** The WAV file (with no extension) of each sound event. */
 	sounds: Readonly<Record<SoundEvent, string>>;
 	/**
-	 * The Flats: the PNG file (with no extension) in the textures folder of the ceiling texture and
-	 * of the floor texture. A Flat covers one tile and repeats on every tile.
+	 * The Flats: the PNG file (with no extension) in the textures folder of the ceiling Flat and of
+	 * the floor Flat. A Flat covers one tile and repeats on every tile. A Flat file name must not be
+	 * a texture role, as the Flats and the wall textures share one `textures` record in the Game core.
 	 */
 	flats: Readonly<{ ceiling: string; floor: string }>;
 	hud: Readonly<HudColors>;
@@ -198,7 +202,10 @@ const THEME_ART_SETS: Readonly<Record<Theme, ArtSet>> = {
 	dungeon: DUNGEON_ART_SET,
 };
 
-/** The art set of a Theme: the only place a caller gets an art set. No Theme gives the art set of the default Theme. */
+/**
+ * The art set of a Theme: the only place a caller gets an art set. No Theme gives the art set of
+ * the default Theme.
+ */
 export function artSetOf(theme: Theme | undefined): ArtSet {
 	return THEME_ART_SETS[theme ?? DEFAULT_THEME];
 }

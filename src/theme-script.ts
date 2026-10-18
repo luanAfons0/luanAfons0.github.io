@@ -8,8 +8,8 @@ export const THEME_SCRIPT_MARK = "<!--theme-script-->";
  * The Theme head script: a classic inline script that sets the saved Theme (`theme` in the settings)
  * as `data-theme` on the root, before the first paint, in place of the default Theme that the page
  * HTML puts there. It accepts only the ids in `THEMES`, so a new Theme is never missing from a page.
- * With no saved Theme, a Theme that is not in the list, or blocked storage, it changes nothing and the
- * page shows the default Theme.
+ * With no saved Theme, a Theme that is not in the list, or blocked storage, it changes nothing,
+ * and the page shows the default Theme.
  */
 export function themeScriptTag(): string {
 	return `<script>
