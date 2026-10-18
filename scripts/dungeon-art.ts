@@ -14,6 +14,7 @@
 import { join } from "node:path";
 import { type GeneratedFile, writeFiles } from "./art-kit/files.ts";
 import { bugs } from "./dungeon-art/bugs.ts";
+import { flats } from "./dungeon-art/flats.ts";
 import { plate } from "./dungeon-art/plate.ts";
 import { posters } from "./dungeon-art/posters.ts";
 import { sounds } from "./dungeon-art/sounds.ts";
@@ -24,7 +25,7 @@ import { tiles } from "./dungeon-art/tiles.ts";
 export const DUNGEON_ART_FOLDER = "public/dungeon";
 
 /** The asset kinds, in the order they are written. */
-const KINDS: readonly (() => GeneratedFile[])[] = [textures, bugs, () => posters(), sounds, tiles, plate];
+const KINDS: readonly (() => GeneratedFile[])[] = [textures, flats, bugs, () => posters(), sounds, tiles, plate];
 
 /** Writes every file of the dungeon art set into `outDir`. Returns their paths inside `outDir`, sorted. */
 export function generateDungeonArt(outDir: string): string[] {
