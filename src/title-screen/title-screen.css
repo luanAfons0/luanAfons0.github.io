@@ -58,8 +58,7 @@
 	--ts-picker-edge: 1px;
 }
 
-/* The Board layout. Keep the two blocks below the same: the first is the saved Theme, the second the
-   system setting when no Theme is saved. */
+/* The Board layout. */
 :root[data-theme="board"] .title-screen {
 	--ts-columns: 1.15fr 1fr;
 	--ts-align: center;
@@ -87,37 +86,6 @@
 	--ts-note-border: 2px;
 	--ts-chip-display: contents;
 	--ts-picker-edge: 2px;
-}
-
-@media (prefers-color-scheme: dark) {
-	:root:not([data-theme]) .title-screen {
-		--ts-columns: 1.15fr 1fr;
-		--ts-align: center;
-		--ts-texture: var(--board-traces);
-		--ts-main-padding: 0 1.6em 0 4.8em;
-		--ts-main-gap: 1.44em;
-		--ts-fig-padding: 0 4.8em 0 4em;
-		--ts-fig-gap: 1.92em;
-		--ts-fig-align: flex-start;
-		--ts-fig-justify: start;
-		--ts-name-font: 400 round(down, min(4.96em, var(--ts-name-cap)), 8px) / 1 var(--font-silk);
-		--ts-name-stretch: normal;
-		--ts-name-spacing: 0;
-		--ts-desc-size: 1.4em;
-		--ts-pinout-columns: auto;
-		--ts-pin-height: auto;
-		--ts-pin-gap: 1.12em;
-		--ts-menu-justify: flex-start;
-		--ts-item-size: 2.4em;
-		--ts-item-small: 0.667;
-		--ts-item-padding: 0;
-		--ts-item-trace: none;
-		--ts-option-pad: block;
-		--ts-silk-line: var(--silk-3);
-		--ts-note-border: 2px;
-		--ts-chip-display: contents;
-		--ts-picker-edge: 2px;
-	}
 }
 
 .title-screen[hidden] {

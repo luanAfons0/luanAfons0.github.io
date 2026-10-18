@@ -1,11 +1,11 @@
 /*
  * The Skip View in three looks. The palette, the faces, and the look tokens come from theme.css.
- * The Theme head script sets the saved Theme as data-theme on the root; with none, or with script
- * blocked, the system setting chooses Paper or Board.
- * Paper (light, the default): the full datasheet, with the LA-1 header and inked Part label blocks.
+ * The root carries the default Theme (Dungeon) as data-theme in the HTML, and the Theme head script
+ * replaces it with the saved Theme; with no saved Theme, or with script blocked, Dungeon shows.
+ * Paper (light, the base values): the full datasheet, with the LA-1 header and inked Part label blocks.
  * Board (dark): the same page on the quiet board, with silkscreen headings and outlined Part labels.
- * Dungeon (saved only): a pulp page column on the green cover, each Exhibit a numbered section. Its
- * rules are in the last section of this file.
+ * Dungeon (the default Theme): a pulp page column on the green cover, each Exhibit a numbered
+ * section. Its rules are in the last section of this file.
  * Colors use the look tokens, which follow the look through light-dark(); the other per-look values
  * (faces, the board background) are the --sv-* tokens below, with the Board values at the end.
  */
@@ -272,8 +272,7 @@ h3 {
 	text-underline-offset: 0.25em;
 }
 
-/* Board: the quiet board, silkscreen headings, and outlined Part labels. Keep the two blocks below
-   the same: the first is the saved Theme, the second the system setting when no Theme is saved. */
+/* Board: the quiet board, silkscreen headings, and outlined Part labels. */
 :root[data-theme="board"] {
 	--sv-page-color: var(--board);
 	--sv-sheet-color: transparent;
@@ -291,27 +290,6 @@ h3 {
 	--sv-exhibit-font: 400 24px / 1.2 var(--font-silk);
 	--sv-exhibit-stretch: normal;
 	--sv-link-weight: 400;
-}
-
-@media (prefers-color-scheme: dark) {
-	:root:not([data-theme]) {
-		--sv-page-color: var(--board);
-		--sv-sheet-color: transparent;
-		--sv-page-texture: var(--board-traces-quiet);
-		--sv-page-texture-size: 240px 240px;
-		--sv-name-font: 400 round(down, clamp(2rem, 6vw, 3.5rem), 8px) / 1 var(--font-silk);
-		--sv-name-stretch: normal;
-		--sv-name-spacing: 0;
-		--sv-lede-color: var(--text-2);
-		--sv-heading-font: 400 16px / 1.2 var(--font-silk);
-		--sv-room-heading-size: 32px;
-		--sv-part-background: none;
-		--sv-part-border: 2px solid var(--silk-2);
-		--sv-part-color: var(--silk);
-		--sv-exhibit-font: 400 24px / 1.2 var(--font-silk);
-		--sv-exhibit-stretch: normal;
-		--sv-link-weight: 400;
-	}
 }
 
 /* ---------- Dungeon: the whole book ----------
