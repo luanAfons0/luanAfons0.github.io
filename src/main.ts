@@ -28,7 +28,7 @@ import { type ArtSet, artSetOf, isTextureRole, posterPath, type TextureRole } fr
 // loadArt() loads the art of the shown Theme, so both are ready when the game can start.
 // startGame() runs the game. A Theme switch in the Pause Menu changes the art set during play.
 
-/** The decoded art of one art set: wall textures by texture role, Bug sprites, and Exhibit posters. */
+/** The decoded art of one art set: wall textures by texture role and Flats by file name, Bug sprites, and Exhibit posters. */
 interface GameArt {
 	textures: Record<string, Texture>;
 	sprites: Record<string, SpriteImage>;
@@ -40,7 +40,7 @@ const loadedArt = new Map<ArtSet, GameArt>();
 const artLoads = new Map<ArtSet, Promise<void>>();
 
 /**
- * Loads and decodes every wall texture, Bug sprite, and Exhibit poster of an art set, once, before
+ * Loads and decodes every wall texture, Flat, Bug sprite, and Exhibit poster of an art set, once, before
  * the first frame. A failed load is forgotten, so the next call tries again.
  */
 export function loadArt(artSet: ArtSet): Promise<void> {
@@ -62,11 +62,13 @@ export function loadArt(artSet: ArtSet): Promise<void> {
 
 /**
  * The art of an art set. All files are in the art set folders under public/. The Level names
- * texture roles, and the art set maps each role to its file. The poster of an Exhibit is named by its id.
+ * texture roles, and the art set maps each role to its file. The Flats are in the textures folder,
+ * named by their files. The poster of an Exhibit is named by its id.
  */
 async function fetchArt(artSet: ArtSet): Promise<GameArt> {
 	const base = import.meta.env.BASE_URL;
-	const [textureEntries, spriteEntries, posterEntries] = await Promise.all([
+	const flatNames = Object.values(artSet.flats ?? {});
+	const [textureEntries, flatEntries, spriteEntries, posterEntries] = await Promise.all([
 		Promise.all(
 			levelTextureNames(sampleLevel)
 				// createGame and game.changeArtSet name a texture that is not a role or has no file; load only the others.
@@ -76,11 +78,16 @@ async function fetchArt(artSet: ArtSet): Promise<GameArt> {
 						[role, await loadTexture(`${base}${artSet.folders.textures}/${artSet.textures[role]}.png`)] as const,
 				),
 		),
+		Promise.all(
+			flatNames.map(
+				async (name) => [name, await loadTexture(`${base}${artSet.folders.textures}/${name}.png`)] as const,
+			),
+		),
 		loadSprites(`${base}${artSet.folders.sprites}`, bugFrameNames(artSet)),
 		Promise.all(EXHIBITS.map(async ({ id }) => [id, await loadTexture(`${base}${posterPath(artSet, id)}`)] as const)),
 	]);
 	return {
-		textures: Object.fromEntries(textureEntries),
+		textures: Object.fromEntries([...textureEntries, ...flatEntries]),
 		sprites: Object.fromEntries(spriteEntries),
 		posters: Object.fromEntries(posterEntries),
 	};

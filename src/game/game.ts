@@ -40,6 +40,9 @@ const SHAKE_TICKS = 8;
 /** How fast the bob fades in when the player starts walking and fades out when it stops (0 to 1 per tick). */
 const BOB_EASE = 0.2;
 
+/** The art set of a Game core created with no art set (in tests): the machine art set with no Flats. */
+const TEST_ART_SET: ArtSet = (({ flats: _, ...art }) => art)(MACHINE_ART_SET);
+
 /** The Game core always renders at this size. The browser shell scales it up. */
 export const SCREEN_WIDTH = 640;
 export const SCREEN_HEIGHT = 360;
@@ -65,17 +68,20 @@ export interface GameOptions {
 	/**
 	 * The art set the Level, the Bugs, the posters, and the HUD use. When it is given, creating the
 	 * Game core fails with an error that names the art set and the missing item if the art set has no
-	 * file for a texture role or no sound for a sound event, and it fails if the Level names a texture
-	 * that is not a texture role. Leave it out only in tests that name their own textures: the Bugs,
-	 * the posters, and the HUD then use MACHINE_ART_SET, and the Level textures are not checked.
+	 * file for a texture role, no sound for a sound event, or no texture for a Flat it names (when
+	 * `textures` is given), and it fails if the Level names a texture that is not a texture role. Leave it out only in tests that name their own textures: the Bugs,
+	 * the posters, and the HUD then use MACHINE_ART_SET, the ceiling and the floor use its flat colors
+	 * (no Flats), and the Level textures are not checked.
 	 * With or without it, a Level with Bugs needs a Bug walk and fix frame, and given `sprites` and
 	 * `posters` must hold every Bug frame and every poster.
 	 */
 	artSet?: ArtSet;
 	/**
-	 * Decoded textures by the name the Level uses (with an art set, the texture role). It must hold
-	 * every wall, door, and track texture the Level names (see `levelTextureNames`).
-	 * Leave it out only when the walls do not matter (as in movement tests): walls then draw magenta.
+	 * Decoded textures by the name the Level uses (with an art set, the texture role), and the Flats
+	 * of the art set by their file names. It must hold every wall, door, and track texture the Level
+	 * names (see `levelTextureNames`) and every Flat the art set names.
+	 * Leave it out only when the walls do not matter (as in movement tests): walls then draw magenta,
+	 * and the ceiling and the floor draw their flat colors.
 	 */
 	textures?: Readonly<Record<string, Texture>>;
 	/**
@@ -181,7 +187,7 @@ export interface Game {
 export function createGame(options: GameOptions): Game {
 	const level: Level = loadLevel(options.level);
 	if (options.artSet) checkArtSet(level, options.artSet);
-	const art = options.artSet ?? MACHINE_ART_SET;
+	const art = options.artSet ?? TEST_ART_SET;
 	checkContent(level.exhibits, options.content ?? []);
 	const player: PlayerState = { ...level.playerStart };
 	let paused = false;
@@ -346,6 +352,7 @@ function artView(level: Level, art: ArtSet, files: Pick<GameOptions, "textures" 
 		wallTextures,
 		faceTextures: posterFacesFor(level, wallTextures, files.posters, art),
 		trackTextures: texturesFor(level.doorTracks, files.textures),
+		...flatsFor(art, files.textures),
 		ceilingColor: rgb(...art.ceiling),
 		floorColor: rgb(...art.floor),
 		viewHeight: SCREEN_HEIGHT - STATUS_BAR_HEIGHT,
@@ -410,6 +417,26 @@ function posterFacesFor(
 		faces.set(faceKey(level.walls, x, y, face), createPosterFace(wall, poster, x, y, face));
 	}
 	return faces;
+}
+
+/**
+ * The ceiling and floor Flats of an art set, from the textures by their file names. It fails with an
+ * error that names the art set and the Flat when a Flat is not in the textures. With no textures, or
+ * an art set with no Flats, the Renderer draws the flat colors.
+ */
+function flatsFor(art: ArtSet, textures: GameOptions["textures"]): { ceilingFlat?: Texture; floorFlat?: Texture } {
+	const { flats } = art;
+	if (!textures || !flats) return {};
+	const flat = (surface: keyof typeof flats): Texture => {
+		const texture = textures[flats[surface]];
+		if (!texture) {
+			throw new Error(
+				`Art set "${art.name}" names the ${surface} Flat "${flats[surface]}", but no texture has that name.`,
+			);
+		}
+		return texture;
+	};
+	return { ceilingFlat: flat("ceiling"), floorFlat: flat("floor") };
 }
 
 /** Looks up the texture of each cell value by name. */

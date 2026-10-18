@@ -102,7 +102,13 @@ export interface ArtSet {
 	bugFixFrames: readonly string[];
 	/** The WAV file (with no extension) of each sound event. */
 	sounds: Readonly<Record<SoundEvent, string>>;
-	/** The flat colors of the ceiling and the floor, shaded by distance like the walls. */
+	/**
+	 * The Flats: the PNG file (with no extension) in the textures folder of the ceiling texture and
+	 * of the floor texture. A Flat covers one tile and repeats on every tile. With no Flats, the
+	 * ceiling and the floor show the flat `ceiling` and `floor` colors.
+	 */
+	flats?: Readonly<{ ceiling: string; floor: string }>;
+	/** The flat colors of the ceiling and the floor, shaded by distance like the walls, when the art set has no Flats. */
 	ceiling: Rgb;
 	floor: Rgb;
 	hud: Readonly<HudColors>;
@@ -110,7 +116,7 @@ export interface ArtSet {
 
 /**
  * The machine art set, which the Paper and Board Themes share: a circuit board. Its wall textures,
- * Bug frames, posters, and sounds all come from `scripts/machine-art.ts`.
+ * Flats, Bug frames, posters, and sounds all come from `scripts/machine-art.ts`.
  */
 export const MACHINE_ART_SET: ArtSet = {
 	name: "machine",
@@ -133,6 +139,8 @@ export const MACHINE_ART_SET: ArtSet = {
 	bugWalkFrames: ["beetle-walk-1", "beetle-walk-2"],
 	bugFixFrames: ["beetle-fix-1", "beetle-fix-2", "beetle-fix-3", "beetle-patched", "beetle-patched", "beetle-patched"],
 	sounds: { shot: "shot", "door-open": "door-open" },
+	// A heat-sink panel grid above, and solder mask with copper traces and vias below.
+	flats: { ceiling: "heat-sink", floor: "solder-mask" },
 	ceiling: [11, 13, 15],
 	floor: [22, 27, 30],
 	// Silkscreen grey labels, copper values, silkscreen white hint and crosshair, on solder mask.

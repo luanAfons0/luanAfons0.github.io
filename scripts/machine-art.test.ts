@@ -43,6 +43,15 @@ describe("machine art generator", () => {
 		);
 	});
 
+	it("writes the ceiling Flat and the floor Flat of the art set into its textures folder", () => {
+		const { files } = generate();
+		const textures = inMachineFolder(MACHINE_ART_SET.folders.textures);
+		const { ceiling, floor } = MACHINE_ART_SET.flats ?? {};
+
+		expect(files).toContain(`${textures}/${ceiling}.png`);
+		expect(files).toContain(`${textures}/${floor}.png`);
+	});
+
 	it("writes every Bug frame of the art set into its sprites folder, each with an anchor", () => {
 		const { folder, files } = generate();
 		const sprites = inMachineFolder(MACHINE_ART_SET.folders.sprites);

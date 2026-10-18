@@ -373,7 +373,7 @@ The machine world is a near-neutral cool palette in two materials, plus one meta
 The game's colors live in `scripts/machine-art/palette.ts` and `src/game/theme.ts`, not in CSS. They are the same family as the Board tokens.
 - **Game Mask** (`game-mask`): the base of every wall texture and poster, and the HUD bar. It carries sparse light and dark specks for a matte look.
 - **Game Trace** (`game-trace`): raised copper under the mask on wall textures.
-- **Ceiling** (`game-ceiling`) and **Floor** (`game-floor`): flat fills, shaded by distance like the walls.
+- **Ceiling** and **Floor**: Flats (`heat-sink`, a heat-sink panel grid, and `solder-mask`, solder mask with traces and vias), one per tile, shaded by distance like the walls. `game-ceiling` and `game-floor` are the flat fills the art set keeps until every art set has Flats.
 - **Beetle Sheen** (`beetle-sheen`): the one off-palette hue, a muted green on the Bug's dark carapace, so the Bug reads as a living thing and not as board.
 - The HUD reuses the Board tokens: labels in Silkscreen Grey, values in Hot Copper, hint and crosshair in Silkscreen, outlines in Silkscreen Faint.
 

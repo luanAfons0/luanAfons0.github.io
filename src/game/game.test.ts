@@ -98,6 +98,12 @@ function shadesOf([red, green, blue]: readonly [number, number, number]): Set<nu
 	return shades;
 }
 
+/** The decoded Flats of an art set, keyed by file name as the browser shell loads them: each one solid color. */
+function flatTexturesOf(artSet: ArtSet, color: number): Record<string, Texture> {
+	if (!artSet.flats) return {};
+	return { [artSet.flats.ceiling]: solidTexture(color), [artSet.flats.floor]: solidTexture(color) };
+}
+
 const CEILING_SHADES = shadesOf(MACHINE_ART_SET.ceiling);
 const FLOOR_SHADES = shadesOf(MACHINE_ART_SET.floor);
 
@@ -474,7 +480,7 @@ describe("Art set", () => {
 	});
 
 	it.each([MACHINE_ART_SET, DUNGEON_ART_SET])(
-		"names only committed files in the $name art set: textures, Bug frames with anchors, posters, and sounds",
+		"names only committed files in the $name art set: textures, Flats, Bug frames with anchors, posters, and sounds",
 		(artSet) => {
 			const committed = Object.keys(import.meta.glob(["/public/**/*.png", "/public/**/*.wav", "/public/**/*.json"]));
 			const { folders } = artSet;
@@ -486,6 +492,9 @@ describe("Art set", () => {
 
 			for (const role of TEXTURE_ROLES) {
 				expect(committed).toContain(`/public/${folders.textures}/${artSet.textures[role]}.png`);
+			}
+			for (const flat of Object.values(artSet.flats ?? {})) {
+				expect(committed).toContain(`/public/${folders.textures}/${flat}.png`);
 			}
 			for (const name of bugFrameNames(artSet)) {
 				expect(committed).toContain(`/public/${folders.sprites}/${name}.png`);
@@ -523,11 +532,17 @@ describe("Art set", () => {
 			return { texture: createTexture(30, 39, rgba), left: 15, top: 35 };
 		}
 
-		/** The decoded art of an art set: every texture and poster in one color, every Bug frame in another. */
+		/**
+		 * The decoded art of an art set: every texture and poster in one color, every Bug frame in
+		 * another, and the Flats (if the art set has them) white.
+		 */
 		function artOf(artSet: ArtSet, wall: number, bug: number) {
 			return {
 				artSet,
-				textures: Object.fromEntries(TEXTURE_ROLES.map((role) => [role, solidTexture(wall)])),
+				textures: {
+					...Object.fromEntries(TEXTURE_ROLES.map((role) => [role, solidTexture(wall)])),
+					...flatTexturesOf(artSet, WHITE),
+				},
 				sprites: Object.fromEntries(bugFrameNames(artSet).map((name) => [name, spriteOf(bug)])),
 				posters: Object.fromEntries(EXHIBITS.map(({ id }) => [id, solidTexture(wall)])),
 			};
@@ -578,7 +593,7 @@ describe("Art set", () => {
 			const machine = render(game);
 			expect(lit(pixelAt(machine, SCREEN_WIDTH / 2, HORIZON))).toBe("b");
 			expect(lit(pixelAt(machine, wall.x, wall.y))).toBe("r");
-			expect(shadesOf(MACHINE_ART_SET.floor).has(pixelAt(machine, floor.x, floor.y))).toBe(true);
+			expect(shadesOf([255, 255, 255]).has(pixelAt(machine, floor.x, floor.y))).toBe(true);
 
 			game.changeArtSet(artOf(DUNGEON_ART_SET, GREEN, RED));
 
@@ -882,6 +897,171 @@ describe("Textured walls", () => {
 	});
 });
 
+describe("Flats", () => {
+	// A big open room. The player looks east at a wall 11 tiles away, so the wall is short
+	// and most of the view is floor and ceiling.
+	const room = Array.from({ length: 25 }, (_, y) =>
+		y === 0 || y === 24 ? "#".repeat(14) : y === 12 ? "#P...........#" : `#${".".repeat(12)}#`,
+	);
+	const FLAT_ART_SET: ArtSet = { ...MACHINE_ART_SET, flats: { ceiling: "TEST_CEILING", floor: "TEST_FLOOR" } };
+
+	/** A Game core in the open room with the given Flats, and white walls. */
+	function flatGame(ceiling: Texture, floor: Texture, options: Partial<Parameters<typeof createGame>[0]> = {}): Game {
+		return createGame({
+			level: tiledLevel({ rows: room, wallTextures: { "#": "wall-a" } }),
+			artSet: FLAT_ART_SET,
+			textures: { "wall-a": solidTexture(WHITE), TEST_CEILING: ceiling, TEST_FLOOR: floor },
+			...options,
+		});
+	}
+
+	function render(game: Game): Framebuffer {
+		const frame = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+		game.render(frame);
+		return frame;
+	}
+
+	it("draws the ceiling Flat and the floor Flat at the shade of their distance", () => {
+		const frame = render(flatGame(solidTexture(RED), solidTexture(GREEN)));
+
+		// The top and bottom rows of the view are 159.5 rows from the horizon. The eye is half a
+		// tile above the floor, so they show the floor and the ceiling 1.11 tiles away, where the
+		// light is 1 - 1.11 / 12 (232 / 256): 255 shades to 231.
+		for (const x of [0, SCREEN_WIDTH / 2, SCREEN_WIDTH - 1]) {
+			expect(pixelAt(frame, x, 0)).toBe(rgb(231, 0, 0));
+			expect(pixelAt(frame, x, VIEW_HEIGHT - 1)).toBe(rgb(0, 231, 0));
+		}
+	});
+
+	it("keeps the floor Flat fixed to the world when the player walks and turns", () => {
+		// Each quarter of a tile has its own color: red in the north-west, green in the north-east,
+		// blue in the south-west, and white in the south-east (y grows to the south).
+		const rgba = new Uint8Array(new Uint32Array([RED, GREEN, BLUE, WHITE]).buffer);
+		const quarters = createTexture(2, 2, rgba);
+		const game = flatGame(solidTexture(RED), quarters, { settings: { reducedMotion: true } });
+		// The bottom row of the view shows the floor 1.11 tiles ahead (see the test above), at light 231.
+		const AHEAD = 1.115;
+		const SHADED = { red: rgb(231, 0, 0), green: rgb(0, 231, 0), blue: rgb(0, 0, 231), white: rgb(231, 231, 231) };
+		const quarterAt = (x: number, y: number) => {
+			const east = x - Math.floor(x) >= 0.5;
+			const south = y - Math.floor(y) >= 0.5;
+			if (south) return east ? SHADED.white : SHADED.blue;
+			return east ? SHADED.green : SHADED.red;
+		};
+		/** True when a point is too near the line between two quarters to say which one it is in. */
+		const onEdge = (value: number) => Math.abs(((value * 2) % 1) - 0.5) > 0.45;
+		const TURN: InputSnapshot = { ...IDLE, turn: 1 };
+		let checked = 0;
+
+		for (let tick = 0; tick < 90; tick++) {
+			game.step(tick % 3 === 0 ? TURN : FORWARD);
+			const { x, y, angle } = game.state().player;
+			const floorX = x + AHEAD * Math.cos(angle);
+			const floorY = y + AHEAD * Math.sin(angle);
+			if (onEdge(floorX) || onEdge(floorY)) continue;
+			expect(pixelAt(render(game), SCREEN_WIDTH / 2, VIEW_HEIGHT - 1)).toBe(quarterAt(floorX, floorY));
+			checked++;
+		}
+
+		expect(checked).toBeGreaterThan(40);
+	});
+
+	it("draws a far row of a Flat darker than a near row", () => {
+		const frame = render(flatGame(solidTexture(RED), solidTexture(GREEN)));
+		const [, far] = channels(pixelAt(frame, SCREEN_WIDTH / 2, HORIZON + 30));
+		const [, near] = channels(pixelAt(frame, SCREEN_WIDTH / 2, VIEW_HEIGHT - 1));
+		const [farCeiling] = channels(pixelAt(frame, SCREEN_WIDTH / 2, HORIZON - 30));
+		const [nearCeiling] = channels(pixelAt(frame, SCREEN_WIDTH / 2, 0));
+
+		expect(far).toBeGreaterThan(0);
+		expect(far).toBeLessThan(near);
+		expect(farCeiling).toBeGreaterThan(0);
+		expect(farCeiling).toBeLessThan(nearCeiling);
+	});
+
+	describe("horizon", () => {
+		const STRAFE_RIGHT: InputSnapshot = { ...IDLE, strafe: 1 };
+		const SHOOT: InputSnapshot = { ...IDLE, shoot: true };
+
+		/**
+		 * The colors of a floor row and a ceiling row 30 rows from the horizon, once per tick. The wall
+		 * 11 tiles away is only 32 rows high, so they always show the Flats. A row nearer the horizon
+		 * shows the Flat farther away and darker, so a new color means the Flat rows moved.
+		 */
+		function flatRowColors(game: Game, first: InputSnapshot, then: InputSnapshot, ticks: number) {
+			const floor = new Set<number>();
+			const ceiling = new Set<number>();
+			game.step(first);
+			for (let tick = 0; tick < ticks; tick++) {
+				const frame = render(game);
+				floor.add(pixelAt(frame, SCREEN_WIDTH / 2, HORIZON + 30));
+				ceiling.add(pixelAt(frame, SCREEN_WIDTH / 2, HORIZON - 30));
+				game.step(then);
+			}
+			for (const pixel of floor) expect(shadesOf([0, 255, 0]).has(pixel)).toBe(true);
+			for (const pixel of ceiling) expect(shadesOf([255, 0, 0]).has(pixel)).toBe(true);
+			return { floor: floor.size, ceiling: ceiling.size };
+		}
+
+		it("moves the Flat rows with the head bob, and keeps them still with reduced motion on", () => {
+			const bob = flatRowColors(flatGame(solidTexture(RED), solidTexture(GREEN)), STRAFE_RIGHT, STRAFE_RIGHT, 30);
+			const still = flatRowColors(
+				flatGame(solidTexture(RED), solidTexture(GREEN), { settings: { reducedMotion: true } }),
+				STRAFE_RIGHT,
+				STRAFE_RIGHT,
+				30,
+			);
+
+			expect(bob.floor).toBeGreaterThan(2);
+			expect(bob.ceiling).toBeGreaterThan(2);
+			expect(still).toEqual({ floor: 1, ceiling: 1 });
+		});
+
+		it("moves the Flat rows with the shake after a shot, and keeps them still with reduced motion on", () => {
+			const shake = flatRowColors(flatGame(solidTexture(RED), solidTexture(GREEN)), SHOOT, IDLE, 20);
+			const still = flatRowColors(
+				flatGame(solidTexture(RED), solidTexture(GREEN), { settings: { reducedMotion: true } }),
+				SHOOT,
+				IDLE,
+				20,
+			);
+
+			expect(shake.floor).toBeGreaterThan(1);
+			expect(shake.ceiling).toBeGreaterThan(1);
+			expect(still).toEqual({ floor: 1, ceiling: 1 });
+		});
+	});
+
+	it.each(["ceiling", "floor"] as const)(
+		"fails with an error that names the art set and the %s Flat when its file is not in the textures",
+		(surface) => {
+			const name = surface === "ceiling" ? "TEST_CEILING" : "TEST_FLOOR";
+			const textures = {
+				"wall-a": solidTexture(WHITE),
+				TEST_CEILING: solidTexture(RED),
+				TEST_FLOOR: solidTexture(GREEN),
+			};
+			const { [name]: _, ...withoutFlat } = textures;
+			const error = new RegExp(`art set "machine".*${surface} Flat "${name}"`, "i");
+
+			expect(() => flatGame(solidTexture(RED), solidTexture(GREEN), { textures: withoutFlat })).toThrow(error);
+
+			const game = flatGame(solidTexture(RED), solidTexture(GREEN));
+			const before = render(game);
+			expect(() => game.changeArtSet({ artSet: FLAT_ART_SET, textures: withoutFlat })).toThrow(error);
+			expect(render(game).pixels).toEqual(before.pixels);
+		},
+	);
+
+	it("draws the flat colors of an art set with no Flats", () => {
+		const { flats: _, ...noFlats } = FLAT_ART_SET;
+		const frame = render(flatGame(solidTexture(RED), solidTexture(GREEN), { artSet: noFlats }));
+
+		expect(isCeiling(pixelAt(frame, SCREEN_WIDTH / 2, 0))).toBe(true);
+		expect(isFloor(pixelAt(frame, SCREEN_WIDTH / 2, VIEW_HEIGHT - 1))).toBe(true);
+	});
+});
+
 describe("Bugs", () => {
 	// One Room, 9 tiles wide. The player starts at the west end and faces east.
 	const rows = ["###########", "#P........#", "#.........#", "#.........#", "###########"];
@@ -1171,7 +1351,7 @@ describe("Bugs", () => {
 			);
 			const game = createGame({
 				level: bugLevel([{ x: 3.5, y: 1.5 }], { rooms: [closet], wall: "wall-a" }),
-				textures: { "wall-a": solidTexture(GREEN) },
+				textures: { "wall-a": solidTexture(GREEN), ...flatTexturesOf(MACHINE_ART_SET, rgb(0, 0, 0)) },
 				artSet: {
 					...MACHINE_ART_SET,
 					bugWalkFrames: ["W1", "W2"],
