@@ -14,7 +14,7 @@ describe("60 FPS target", () => {
 	it("renders a frame of the sample Level inside the frame budget", async ({ bench }) => {
 		// Node cannot decode the PNGs, so each wall gets a noise texture of the machine art size, each
 		// Flat one of the Flat size, and each poster one of the sample poster size.
-		const flats = Object.values(MACHINE_ART_SET.flats ?? {}).map((name) => [name, noiseTexture(64, 64)]);
+		const flats = Object.values(MACHINE_ART_SET.flats).map((name) => [name, noiseTexture(64, 64)]);
 		const textures = Object.fromEntries([
 			...levelTextureNames(sampleLevel).map((name) => [name, noiseTexture(64, 64)]),
 			...flats,

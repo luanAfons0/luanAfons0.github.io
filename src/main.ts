@@ -67,7 +67,7 @@ export function loadArt(artSet: ArtSet): Promise<void> {
  */
 async function fetchArt(artSet: ArtSet): Promise<GameArt> {
 	const base = import.meta.env.BASE_URL;
-	const flatNames = Object.values(artSet.flats ?? {});
+	const flatNames = Object.values(artSet.flats);
 	const [textureEntries, flatEntries, spriteEntries, posterEntries] = await Promise.all([
 		Promise.all(
 			levelTextureNames(sampleLevel)

@@ -104,13 +104,9 @@ export interface ArtSet {
 	sounds: Readonly<Record<SoundEvent, string>>;
 	/**
 	 * The Flats: the PNG file (with no extension) in the textures folder of the ceiling texture and
-	 * of the floor texture. A Flat covers one tile and repeats on every tile. With no Flats, the
-	 * ceiling and the floor show the flat `ceiling` and `floor` colors.
+	 * of the floor texture. A Flat covers one tile and repeats on every tile.
 	 */
-	flats?: Readonly<{ ceiling: string; floor: string }>;
-	/** The flat colors of the ceiling and the floor, shaded by distance like the walls, when the art set has no Flats. */
-	ceiling: Rgb;
-	floor: Rgb;
+	flats: Readonly<{ ceiling: string; floor: string }>;
 	hud: Readonly<HudColors>;
 }
 
@@ -141,8 +137,6 @@ export const MACHINE_ART_SET: ArtSet = {
 	sounds: { shot: "shot", "door-open": "door-open" },
 	// A heat-sink panel grid above, and solder mask with copper traces and vias below.
 	flats: { ceiling: "heat-sink", floor: "solder-mask" },
-	ceiling: [11, 13, 15],
-	floor: [22, 27, 30],
 	// Silkscreen grey labels, copper values, silkscreen white hint and crosshair, on solder mask.
 	hud: {
 		value: [224, 138, 79],
@@ -184,8 +178,6 @@ export const DUNGEON_ART_SET: ArtSet = {
 	sounds: { shot: "shot", "door-open": "door-open" },
 	// Timber beams over oak planks above, and flagstones of the cut stone of the walls below.
 	flats: { ceiling: "timber", floor: "flagstone" },
-	ceiling: [14, 13, 12],
-	floor: [34, 32, 29],
 	// A pulp paper bar with ink lines, labels, and values, and an ink tick box per Bug next to the
 	// Bugs fixed value. The hint and the crosshair are paper with an ink outline.
 	hud: {

@@ -10,6 +10,7 @@ import {
 	type DoorState,
 	type Game,
 	levelTextureNames,
+	NO_FLAT_COLORS,
 	SCREEN_HEIGHT,
 	SCREEN_WIDTH,
 	STATUS_BAR_HEIGHT,
@@ -63,7 +64,7 @@ function aspect(indexes: number[]): number {
 /** The HUD colors of the machine art set, which the Game core uses by default. */
 const HUD_VALUE_COLOR = rgb(...MACHINE_ART_SET.hud.value);
 const CROSSHAIR_COLOR = rgb(...MACHINE_ART_SET.hud.crosshair);
-const FLOOR_COLOR = rgb(...MACHINE_ART_SET.floor);
+const FLOOR_COLOR = rgb(...NO_FLAT_COLORS.floor);
 
 const RED = rgb(255, 0, 0);
 const GREEN = rgb(0, 255, 0);
@@ -100,19 +101,19 @@ function shadesOf([red, green, blue]: readonly [number, number, number]): Set<nu
 
 /** The decoded Flats of an art set, keyed by file name as the browser shell loads them: each one solid color. */
 function flatTexturesOf(artSet: ArtSet, color: number): Record<string, Texture> {
-	if (!artSet.flats) return {};
 	return { [artSet.flats.ceiling]: solidTexture(color), [artSet.flats.floor]: solidTexture(color) };
 }
 
-const CEILING_SHADES = shadesOf(MACHINE_ART_SET.ceiling);
-const FLOOR_SHADES = shadesOf(MACHINE_ART_SET.floor);
+// A Game core with no Flat textures (a test that leaves them out) shows the no-Flat colors.
+const CEILING_SHADES = shadesOf(NO_FLAT_COLORS.ceiling);
+const FLOOR_SHADES = shadesOf(NO_FLAT_COLORS.floor);
 
-/** The ceiling is the art set's ceiling color at any shade. */
+/** The ceiling with no Flat: its no-Flat color at any shade. */
 function isCeiling(pixel: number): boolean {
 	return CEILING_SHADES.has(pixel);
 }
 
-/** The floor is the art set's floor color at any shade. */
+/** The floor with no Flat: its no-Flat color at any shade. */
 function isFloor(pixel: number): boolean {
 	return FLOOR_SHADES.has(pixel);
 }
@@ -493,7 +494,7 @@ describe("Art set", () => {
 			for (const role of TEXTURE_ROLES) {
 				expect(committed).toContain(`/public/${folders.textures}/${artSet.textures[role]}.png`);
 			}
-			for (const flat of Object.values(artSet.flats ?? {})) {
+			for (const flat of Object.values(artSet.flats)) {
 				expect(committed).toContain(`/public/${folders.textures}/${flat}.png`);
 			}
 			for (const name of bugFrameNames(artSet)) {
@@ -611,7 +612,7 @@ describe("Art set", () => {
 			["a sound event", { artSet: without("sounds", "shot") }, /art set "machine".*sound event "shot"/i],
 			["a Bug frame image", { sprites: {} }, /art set "dungeon".*Bug frame/i],
 			["a poster", { posters: {} }, /art set "dungeon".*poster image for Exhibit/i],
-			["a texture the Level uses", { textures: {} }, /texture "wall-a"/],
+			["a texture the Level uses", { textures: flatTexturesOf(DUNGEON_ART_SET, WHITE) }, /texture "wall-a"/],
 		])("fails on an art set with no %s, and keeps the old art set", (_, broken, error) => {
 			const game = createGame({ level: corridor, content, ...artOf(MACHINE_ART_SET, RED, BLUE) });
 			play(game);
@@ -854,34 +855,6 @@ describe("Textured walls", () => {
 		expect(mixed).toEqual([]);
 	});
 
-	it("draws the floor and ceiling as flat colors that get darker toward the horizon", () => {
-		// A big open room. The player looks east at a wall 11 tiles away, so the wall is short
-		// and most of the view is floor and ceiling.
-		const rows = Array.from({ length: 25 }, (_, y) =>
-			y === 0 || y === 24 ? "#".repeat(14) : y === 12 ? "#P...........#" : `#${".".repeat(12)}#`,
-		);
-		const game = createGame({ level: tiledLevel({ rows }), textures: { [TEST_WALL_TEXTURE]: solidTexture(WHITE) } });
-		const frame = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
-		game.render(frame);
-		const center = SCREEN_WIDTH / 2;
-
-		for (const y of [0, HORIZON - 20]) {
-			expect(isCeiling(pixelAt(frame, center, y))).toBe(true);
-			// Flat: one row of ceiling has one color from the left edge to the right edge.
-			expect(pixelAt(frame, 0, y)).toBe(pixelAt(frame, center, y));
-			expect(pixelAt(frame, SCREEN_WIDTH - 1, y)).toBe(pixelAt(frame, center, y));
-		}
-		for (const y of [VIEW_HEIGHT - 1, HORIZON + 20]) {
-			expect(isFloor(pixelAt(frame, center, y))).toBe(true);
-			expect(pixelAt(frame, 0, y)).toBe(pixelAt(frame, center, y));
-			expect(pixelAt(frame, SCREEN_WIDTH - 1, y)).toBe(pixelAt(frame, center, y));
-		}
-		expect(brightness(pixelAt(frame, center, HORIZON - 20))).toBeLessThan(brightness(pixelAt(frame, center, 0)));
-		expect(brightness(pixelAt(frame, center, HORIZON + 20))).toBeLessThan(
-			brightness(pixelAt(frame, center, VIEW_HEIGHT - 1)),
-		);
-	});
-
 	it("fails with a clear error when a texture the Level uses is missing", () => {
 		const level = tiledLevel({ rows: ["###", "#P#", "###"], wallTextures: { "#": "STARTAN9" } });
 		expect(() => createGame({ level, textures: {} })).toThrow(/STARTAN9/);
@@ -1049,14 +1022,6 @@ describe("Flats", () => {
 			expect(render(game).pixels).toEqual(before.pixels);
 		},
 	);
-
-	it("draws the flat colors of an art set with no Flats", () => {
-		const { flats: _, ...noFlats } = FLAT_ART_SET;
-		const frame = render(flatGame(solidTexture(RED), solidTexture(GREEN), { artSet: noFlats }));
-
-		expect(isCeiling(pixelAt(frame, SCREEN_WIDTH / 2, 0))).toBe(true);
-		expect(isFloor(pixelAt(frame, SCREEN_WIDTH / 2, VIEW_HEIGHT - 1))).toBe(true);
-	});
 });
 
 describe("Flats of the art sets", () => {
@@ -1071,8 +1036,8 @@ describe("Flats of the art sets", () => {
 	function texturesOf(artSet: ArtSet, ceiling: number, floor: number): Record<string, Texture> {
 		return {
 			...Object.fromEntries(TEXTURE_ROLES.map((role) => [role, solidTexture(WHITE)])),
-			[`${artSet.flats?.ceiling}`]: solidTexture(ceiling),
-			[`${artSet.flats?.floor}`]: solidTexture(floor),
+			[artSet.flats.ceiling]: solidTexture(ceiling),
+			[artSet.flats.floor]: solidTexture(floor),
 		};
 	}
 
@@ -1094,7 +1059,7 @@ describe("Flats of the art sets", () => {
 
 	it("keeps the machine Flats when a change to the dungeon art set fails", () => {
 		const game = createGame({ level, artSet: MACHINE_ART_SET, textures: texturesOf(MACHINE_ART_SET, RED, GREEN) });
-		const { [`${DUNGEON_ART_SET.flats?.floor}`]: _, ...noFloorFlat } = texturesOf(DUNGEON_ART_SET, BLUE, WHITE);
+		const { [DUNGEON_ART_SET.flats.floor]: _, ...noFloorFlat } = texturesOf(DUNGEON_ART_SET, BLUE, WHITE);
 
 		expect(() => game.changeArtSet({ artSet: DUNGEON_ART_SET, textures: noFloorFlat })).toThrow(
 			/art set "dungeon".*floor Flat/i,
@@ -1102,6 +1067,24 @@ describe("Flats of the art sets", () => {
 
 		expect(ceilingAndFloor(game)).toEqual([rgb(231, 0, 0), rgb(0, 231, 0)]);
 	});
+
+	it.each(["ceiling", "floor"] as const)(
+		"fails with an error that names the art set and the %s Flat when the art set names no file for it",
+		(surface) => {
+			// An art set built at run time can lack a Flat its type requires.
+			const { [surface]: _, ...otherFlat } = DUNGEON_ART_SET.flats;
+			const broken = { ...DUNGEON_ART_SET, flats: otherFlat } as ArtSet;
+			const error = new RegExp(`art set "dungeon".*${surface} Flat`, "i");
+
+			expect(() => createGame({ level, artSet: broken })).toThrow(error);
+
+			const game = createGame({ level, artSet: MACHINE_ART_SET, textures: texturesOf(MACHINE_ART_SET, RED, GREEN) });
+			expect(() => game.changeArtSet({ artSet: broken, textures: texturesOf(DUNGEON_ART_SET, BLUE, WHITE) })).toThrow(
+				error,
+			);
+			expect(ceilingAndFloor(game)).toEqual([rgb(231, 0, 0), rgb(0, 231, 0)]);
+		},
+	);
 });
 
 describe("Bugs", () => {

@@ -48,7 +48,7 @@ describe("dungeon art generator", () => {
 	it("writes the ceiling Flat and the floor Flat of the art set into its textures folder, 64x64", () => {
 		const { folder, files } = generate();
 		const textures = inDungeonFolder(DUNGEON_ART_SET.folders.textures);
-		const { ceiling, floor } = DUNGEON_ART_SET.flats ?? {};
+		const { ceiling, floor } = DUNGEON_ART_SET.flats;
 
 		for (const name of [ceiling, floor]) {
 			const file = `${textures}/${name}.png`;
