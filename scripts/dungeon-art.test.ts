@@ -45,6 +45,18 @@ describe("dungeon art generator", () => {
 		}
 	});
 
+	it("writes the ceiling Flat and the floor Flat of the art set into its textures folder, 64x64", () => {
+		const { folder, files } = generate();
+		const textures = inDungeonFolder(DUNGEON_ART_SET.folders.textures);
+		const { ceiling, floor } = DUNGEON_ART_SET.flats ?? {};
+
+		for (const name of [ceiling, floor]) {
+			const file = `${textures}/${name}.png`;
+			expect(files).toContain(file);
+			expect(pngSize(readFileSync(join(folder, file))), file).toEqual([64, 64]);
+		}
+	});
+
 	it("writes every Slime frame of the art set into its sprites folder, each with an anchor", () => {
 		const { folder, files } = generate();
 		const sprites = inDungeonFolder(DUNGEON_ART_SET.folders.sprites);

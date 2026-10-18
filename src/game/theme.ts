@@ -158,8 +158,8 @@ export const MACHINE_ART_SET: ArtSet = {
 };
 
 /**
- * The dungeon art set, of the Dungeon Theme: a torch-lit stone keep. Its wall textures, Slime Bug
- * frames, banner posters, and sounds all come from `scripts/dungeon-art.ts`.
+ * The dungeon art set, of the Dungeon Theme: a torch-lit stone keep. Its wall textures, Flats, Slime
+ * Bug frames, banner posters, and sounds all come from `scripts/dungeon-art.ts`.
  */
 export const DUNGEON_ART_SET: ArtSet = {
 	name: "dungeon",
@@ -182,6 +182,8 @@ export const DUNGEON_ART_SET: ArtSet = {
 	bugWalkFrames: ["slime-walk-1", "slime-walk-2"],
 	bugFixFrames: ["slime-fix-1", "slime-fix-2", "slime-fix-3", "slime-cleared", "slime-cleared", "slime-cleared"],
 	sounds: { shot: "shot", "door-open": "door-open" },
+	// Timber beams over oak planks above, and flagstones of the cut stone of the walls below.
+	flats: { ceiling: "timber", floor: "flagstone" },
 	ceiling: [14, 13, 12],
 	floor: [34, 32, 29],
 	// A pulp paper bar with ink lines, labels, and values, and an ink tick box per Bug next to the

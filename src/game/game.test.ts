@@ -532,16 +532,13 @@ describe("Art set", () => {
 			return { texture: createTexture(30, 39, rgba), left: 15, top: 35 };
 		}
 
-		/**
-		 * The decoded art of an art set: every texture and poster in one color, every Bug frame in
-		 * another, and the Flats (if the art set has them) white.
-		 */
+		/** The decoded art of an art set: every texture, Flat, and poster in one color, every Bug frame in another. */
 		function artOf(artSet: ArtSet, wall: number, bug: number) {
 			return {
 				artSet,
 				textures: {
 					...Object.fromEntries(TEXTURE_ROLES.map((role) => [role, solidTexture(wall)])),
-					...flatTexturesOf(artSet, WHITE),
+					...flatTexturesOf(artSet, wall),
 				},
 				sprites: Object.fromEntries(bugFrameNames(artSet).map((name) => [name, spriteOf(bug)])),
 				posters: Object.fromEntries(EXHIBITS.map(({ id }) => [id, solidTexture(wall)])),
@@ -593,14 +590,14 @@ describe("Art set", () => {
 			const machine = render(game);
 			expect(lit(pixelAt(machine, SCREEN_WIDTH / 2, HORIZON))).toBe("b");
 			expect(lit(pixelAt(machine, wall.x, wall.y))).toBe("r");
-			expect(shadesOf([255, 255, 255]).has(pixelAt(machine, floor.x, floor.y))).toBe(true);
+			expect(lit(pixelAt(machine, floor.x, floor.y))).toBe("r");
 
 			game.changeArtSet(artOf(DUNGEON_ART_SET, GREEN, RED));
 
 			const dungeon = render(game);
 			expect(lit(pixelAt(dungeon, SCREEN_WIDTH / 2, HORIZON))).toBe("r");
 			expect(lit(pixelAt(dungeon, wall.x, wall.y))).toBe("g");
-			expect(shadesOf(DUNGEON_ART_SET.floor).has(pixelAt(dungeon, floor.x, floor.y))).toBe(true);
+			expect(lit(pixelAt(dungeon, floor.x, floor.y))).toBe("g");
 			// The status bar is filled with the bar color of the art set.
 			const barPixels = (frame: Framebuffer, artSet: ArtSet) =>
 				frame.pixels.subarray(VIEW_HEIGHT * SCREEN_WIDTH).filter((pixel) => pixel === rgb(...artSet.hud.bar)).length;
@@ -1059,6 +1056,51 @@ describe("Flats", () => {
 
 		expect(isCeiling(pixelAt(frame, SCREEN_WIDTH / 2, 0))).toBe(true);
 		expect(isFloor(pixelAt(frame, SCREEN_WIDTH / 2, VIEW_HEIGHT - 1))).toBe(true);
+	});
+});
+
+describe("Flats of the art sets", () => {
+	// A big open room. The player looks east at a wall 11 tiles away, so the top and bottom rows of
+	// the view show the ceiling and the floor 1.11 tiles away, where 255 shades to 231.
+	const room = Array.from({ length: 25 }, (_, y) =>
+		y === 0 || y === 24 ? "#".repeat(14) : y === 12 ? "#P...........#" : `#${".".repeat(12)}#`,
+	);
+	const level = tiledLevel({ rows: room, wallTextures: { "#": "wall-a" } });
+
+	/** The wall textures of every texture role, white, and the two Flats of an art set, each in its own color. */
+	function texturesOf(artSet: ArtSet, ceiling: number, floor: number): Record<string, Texture> {
+		return {
+			...Object.fromEntries(TEXTURE_ROLES.map((role) => [role, solidTexture(WHITE)])),
+			[`${artSet.flats?.ceiling}`]: solidTexture(ceiling),
+			[`${artSet.flats?.floor}`]: solidTexture(floor),
+		};
+	}
+
+	/** The colors of the top row (the ceiling) and of the bottom row (the floor) of the view. */
+	function ceilingAndFloor(game: Game): [ceiling: number, floor: number] {
+		const frame = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+		game.render(frame);
+		return [pixelAt(frame, SCREEN_WIDTH / 2, 0), pixelAt(frame, SCREEN_WIDTH / 2, VIEW_HEIGHT - 1)];
+	}
+
+	it("shows the dungeon Flats on the ceiling and the floor after a change to the dungeon art set", () => {
+		const game = createGame({ level, artSet: MACHINE_ART_SET, textures: texturesOf(MACHINE_ART_SET, RED, GREEN) });
+		expect(ceilingAndFloor(game)).toEqual([rgb(231, 0, 0), rgb(0, 231, 0)]);
+
+		game.changeArtSet({ artSet: DUNGEON_ART_SET, textures: texturesOf(DUNGEON_ART_SET, BLUE, WHITE) });
+
+		expect(ceilingAndFloor(game)).toEqual([rgb(0, 0, 231), rgb(231, 231, 231)]);
+	});
+
+	it("keeps the machine Flats when a change to the dungeon art set fails", () => {
+		const game = createGame({ level, artSet: MACHINE_ART_SET, textures: texturesOf(MACHINE_ART_SET, RED, GREEN) });
+		const { [`${DUNGEON_ART_SET.flats?.floor}`]: _, ...noFloorFlat } = texturesOf(DUNGEON_ART_SET, BLUE, WHITE);
+
+		expect(() => game.changeArtSet({ artSet: DUNGEON_ART_SET, textures: noFloorFlat })).toThrow(
+			/art set "dungeon".*floor Flat/i,
+		);
+
+		expect(ceilingAndFloor(game)).toEqual([rgb(231, 0, 0), rgb(0, 231, 0)]);
 	});
 });
 
