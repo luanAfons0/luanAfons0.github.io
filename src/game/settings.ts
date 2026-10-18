@@ -8,7 +8,7 @@ import { isTheme, type Theme } from "./theme";
  * The Title Screen reads and writes them too (the Theme), so this module imports only the Theme module.
  */
 export interface Settings {
-	/** Multiplies the mouse turn. 1 is the default speed. */
+	/** Multiplies the mouse turn and the mouse pitch. 1 is the default speed. */
 	mouseSensitivity: number;
 	/** Mouse movement to the right turns the player left. */
 	invertMouse: boolean;

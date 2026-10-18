@@ -363,6 +363,77 @@ describe("Game core", () => {
 		});
 	});
 
+	describe("mouse pitch", () => {
+		// The player faces a far wall down a wide corridor, so the wall stays in the view
+		// at every pitch. The middle of the wall in one column near the center is the horizon
+		// (the center column has the crosshair).
+		const rows = ["#############", "#...........#", "#P..........#", "#...........#", "#############"];
+		const LOOK_UP: InputSnapshot = { ...IDLE, lookUp: 10 };
+
+		/** The screen row of the horizon: the middle of the far wall, 20 pixels right of the center. */
+		function horizonRow(game: Game): number {
+			const framebuffer = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+			game.render(framebuffer);
+			const x = SCREEN_WIDTH / 2 + 20;
+			let top = 0;
+			while (isCeiling(pixelAt(framebuffer, x, top))) top++;
+			let bottom = VIEW_HEIGHT - 1;
+			while (isFloor(pixelAt(framebuffer, x, bottom))) bottom--;
+			return (top + bottom) / 2;
+		}
+
+		function pitchGame(settings?: Parameters<typeof createGame>[0]["settings"]): Game {
+			return createGame({ level: tiledLevel({ rows }), settings });
+		}
+
+		it("moves the view up (the horizon down) when the mouse moves up, and down when it moves down", () => {
+			const level = horizonRow(pitchGame());
+
+			const up = pitchGame();
+			up.step(LOOK_UP);
+			const down = pitchGame();
+			down.step({ ...IDLE, lookUp: -10 });
+
+			expect(horizonRow(up)).toBeGreaterThan(level);
+			expect(horizonRow(down)).toBeLessThan(level);
+		});
+
+		it("stops the pitch at 40% of the view height, up and down", () => {
+			// The view is 320 pixels high, so the horizon moves 128 pixels at most each way.
+			const level = horizonRow(pitchGame());
+			const game = pitchGame();
+
+			stepTicks(game, { ...IDLE, lookUp: 1000 }, 3);
+			expect(horizonRow(game)).toBe(level + 128);
+
+			stepTicks(game, { ...IDLE, lookUp: -1000 }, 3);
+			expect(horizonRow(game)).toBe(level - 128);
+
+			// The clamp keeps no extra pitch: the first move back moves the view at once.
+			game.step(LOOK_UP);
+			expect(horizonRow(game)).toBeGreaterThan(level - 128);
+		});
+
+		it("moves the view twice as far at sensitivity 2 as at sensitivity 1", () => {
+			const level = horizonRow(pitchGame());
+			const normal = pitchGame({ mouseSensitivity: 1 });
+			normal.step(LOOK_UP);
+			const doubled = pitchGame({ mouseSensitivity: 2 });
+			doubled.step(LOOK_UP);
+
+			expect(horizonRow(normal) - level).toBe(10);
+			expect(horizonRow(doubled) - level).toBe(20);
+		});
+
+		it("still moves the view when reduced motion is on: the player moves the pitch", () => {
+			const level = horizonRow(pitchGame({ reducedMotion: true }));
+			const game = pitchGame({ reducedMotion: true });
+			game.step(LOOK_UP);
+
+			expect(horizonRow(game) - level).toBe(10);
+		});
+	});
+
 	it("loads the real sample Level", () => {
 		const game = createGame({ level: sampleLevel, content: EXHIBITS });
 		expect(game.state().player).toEqual({ x: 1.5, y: 1.5, angle: 0 });
