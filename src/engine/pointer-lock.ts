@@ -4,6 +4,8 @@ const MAX_DELTA_PX = 500;
 export interface MouseLook {
 	/** The mouse movement to the right since the last call, in pixels. 0 while the mouse is not captured. */
 	takeLook(): number;
+	/** The mouse movement up since the last call, in pixels. 0 while the mouse is not captured. */
+	takeLookUp(): number;
 	/**
 	 * True when the player pressed the left button since the last call, while the mouse was captured.
 	 * The click that captures the mouse does not count.
@@ -24,17 +26,19 @@ export interface MouseLook {
  */
 export function createMouseLook(element: HTMLElement, onLockChange: (locked: boolean) => void): MouseLook {
 	let look = 0;
+	let lookUp = 0;
 	let shot = false;
 	let skipNext = false;
 	const isLocked = () => document.pointerLockElement === element;
 
 	const onMouseMove = (event: MouseEvent) => {
 		if (!isLocked()) return;
-		if (skipNext || Math.abs(event.movementX) > MAX_DELTA_PX) {
+		if (skipNext || Math.abs(event.movementX) > MAX_DELTA_PX || Math.abs(event.movementY) > MAX_DELTA_PX) {
 			skipNext = false;
 			return;
 		}
 		look += event.movementX;
+		lookUp -= event.movementY; // movementY grows downward.
 	};
 	// The capturing click presses the button before the lock starts, so it never shoots.
 	const onMouseDown = (event: MouseEvent) => {
@@ -42,6 +46,7 @@ export function createMouseLook(element: HTMLElement, onLockChange: (locked: boo
 	};
 	const onChange = () => {
 		look = 0;
+		lookUp = 0;
 		shot = false;
 		skipNext = isLocked();
 		onLockChange(isLocked());
@@ -55,6 +60,11 @@ export function createMouseLook(element: HTMLElement, onLockChange: (locked: boo
 		takeLook() {
 			const value = look;
 			look = 0;
+			return value;
+		},
+		takeLookUp() {
+			const value = lookUp;
+			lookUp = 0;
 			return value;
 		},
 		takeShot() {
