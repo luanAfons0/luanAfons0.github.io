@@ -4,7 +4,7 @@ import { join, relative } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import { EXHIBITS, type Exhibit, partLabel } from "../src/game/content.ts";
 import { MACHINE_ART_SET } from "../src/game/theme.ts";
-import { readPng, sameContent } from "./art-kit/read-files.ts";
+import { pngSize, readPng, sameContent } from "./art-kit/read-files.ts";
 import { posters } from "./machine-art/posters.ts";
 import { generateMachineArt, MACHINE_ART_FOLDER } from "./machine-art.ts";
 
@@ -43,13 +43,16 @@ describe("machine art generator", () => {
 		);
 	});
 
-	it("writes the ceiling Flat and the floor Flat of the art set into its textures folder", () => {
-		const { files } = generate();
+	it("writes the ceiling Flat and the floor Flat of the art set into its textures folder, 64x64", () => {
+		const { folder, files } = generate();
 		const textures = inMachineFolder(MACHINE_ART_SET.folders.textures);
 		const { ceiling, floor } = MACHINE_ART_SET.flats;
 
-		expect(files).toContain(`${textures}/${ceiling}.png`);
-		expect(files).toContain(`${textures}/${floor}.png`);
+		for (const name of [ceiling, floor]) {
+			const file = `${textures}/${name}.png`;
+			expect(files).toContain(file);
+			expect(pngSize(readFileSync(join(folder, file))), file).toEqual([64, 64]);
+		}
 	});
 
 	it("writes every Bug frame of the art set into its sprites folder, each with an anchor", () => {

@@ -19,6 +19,11 @@ export function readPng(png: Buffer): { texts: Record<string, string>; data: Buf
 	return { texts, data: inflateSync(Buffer.concat(compressed)) };
 }
 
+/** The size of a PNG, from its header. */
+export function pngSize(png: Buffer): [width: number, height: number] {
+	return [png.readUInt32BE(16), png.readUInt32BE(20)];
+}
+
 /** The same file content. PNGs compare by image data and text, as another zlib may compress them differently. */
 export function sameContent(file: string, a: Buffer, b: Buffer): boolean {
 	if (!file.endsWith(".png")) return a.equals(b);

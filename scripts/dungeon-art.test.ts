@@ -4,7 +4,7 @@ import { join, relative } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import { EXHIBITS, type Exhibit, partLabel } from "../src/game/content.ts";
 import { DUNGEON_ART_SET, TEXTURE_ROLES } from "../src/game/theme.ts";
-import { readPng, sameContent } from "./art-kit/read-files.ts";
+import { pngSize, readPng, sameContent } from "./art-kit/read-files.ts";
 import { posters } from "./dungeon-art/posters.ts";
 import { DUNGEON_ART_FOLDER, generateDungeonArt } from "./dungeon-art.ts";
 
@@ -27,11 +27,6 @@ function inDungeonFolder(folder: string): string {
 	const inside = relative(DUNGEON_ART_FOLDER, join("public", folder));
 	expect(inside.startsWith(".."), `${folder} is not in ${DUNGEON_ART_FOLDER}`).toBe(false);
 	return inside;
-}
-
-/** The size of a PNG, from its header. */
-function pngSize(png: Buffer): [width: number, height: number] {
-	return [png.readUInt32BE(16), png.readUInt32BE(20)];
 }
 
 describe("dungeon art generator", () => {
