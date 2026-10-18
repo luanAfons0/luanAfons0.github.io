@@ -21,8 +21,6 @@ colors:
   scrim: "#070909"
   game-mask: "#1a2024"
   game-trace: "#2c363c"
-  game-ceiling: "#0b0d0f"
-  game-floor: "#161b1e"
   beetle-sheen: "#5f7a6a"
   dungeon-cover: "#1d4a33"
   dungeon-cover-ink: "#0f2a1c"
@@ -41,8 +39,6 @@ colors:
   dungeon-oak: "#5a3b22"
   dungeon-flame: "#f39a32"
   dungeon-slime: "#5fae4e"
-  dungeon-game-ceiling: "#0e0d0c"
-  dungeon-game-floor: "#22201d"
 typography:
   display:
     fontFamily: "Archivo, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif"
@@ -373,7 +369,7 @@ The machine world is a near-neutral cool palette in two materials, plus one meta
 The game's colors live in `scripts/machine-art/palette.ts` and `src/game/theme.ts`, not in CSS. They are the same family as the Board tokens.
 - **Game Mask** (`game-mask`): the base of every wall texture and poster, and the HUD bar. It carries sparse light and dark specks for a matte look.
 - **Game Trace** (`game-trace`): raised copper under the mask on wall textures.
-- **Ceiling** and **Floor**: Flats (`heat-sink`, a heat-sink panel grid, and `solder-mask`, solder mask with traces and vias), one per tile, shaded by distance like the walls. `game-ceiling` and `game-floor` are the flat fills the art set keeps until every art set has Flats.
+- **Ceiling** and **Floor**: Flats (`heat-sink`, a heat-sink panel grid, and `solder-mask`, solder mask with traces and vias), one per tile, shaded by distance like the walls.
 - **Beetle Sheen** (`beetle-sheen`): the one off-palette hue, a muted green on the Bug's dark carapace, so the Bug reads as a living thing and not as board.
 - The HUD reuses the Board tokens: labels in Silkscreen Grey, values in Hot Copper, hint and crosshair in Silkscreen, outlines in Silkscreen Faint.
 
@@ -397,7 +393,7 @@ The game colors live in `scripts/dungeon-art/palette.ts` and `src/game/theme.ts`
 - **Oak** (`dungeon-oak`): the door planks and the shelf, with wrought iron.
 - **Torch Flame** (`dungeon-flame`): the one warm light, only in the torch (with an outer `#c4521f` and a core `#ffd27a`).
 - **Slime** (`dungeon-slime`): the Bug body (light `#a6dc78`, shade `#4f9a42`, rim `#2f6b2c`).
-- **Ceiling** (`dungeon-game-ceiling`) and **Floor** (`dungeon-game-floor`): flat fills, shaded by distance.
+- **Ceiling** and **Floor**: Flats, one per tile, shaded by distance like the walls. The ceiling is `timber`: sooty oak planks (`#2c2118`) under a timber beam (`#3b2a1c`), darker than the floor so it reads as above. The floor is `flagstone`: the Cut Stone blocks laid as big flagstones, darker and warmer (`#3a3732`), in deep seams (`#171513`).
 - The HUD and the banners use the book colors: Pulp Page, Black Ink, and Grey Ink.
 
 ### Named Rules

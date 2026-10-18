@@ -57,7 +57,7 @@ The named look of the whole portfolio: Paper, Board, or Dungeon. A Theme is an a
 _Avoid_: Skin, mode
 
 **Art set**:
-Everything the game draws and plays for a Theme: the wall texture of each texture role, the Flats, the Bug frames, the posters, the sound of each sound event, and the ceiling, floor, and HUD colors (an art set with no Flats shows the ceiling and floor colors). The look of the HTML screens is not part of it. Paper and Board use the machine art set; Dungeon uses the dungeon art set.
+Everything the game draws and plays for a Theme: the wall texture of each texture role, the ceiling Flat and the floor Flat, the Bug frames, the posters, the sound of each sound event, and the HUD colors. Every art set has both Flats. The look of the HTML screens is not part of it. Paper and Board use the machine art set; Dungeon uses the dungeon art set.
 _Avoid_: Asset pack, texture pack, tileset
 
 **Texture role**:

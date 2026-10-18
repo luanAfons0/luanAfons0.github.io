@@ -308,38 +308,6 @@
           "#e4f1f9"
         ]
       },
-      "game-ceiling": {
-        "role": "neutral",
-        "displayName": "Ceiling",
-        "canonical": "#0b0d0f",
-        "oklch": "oklch(15.8% 0.005 248.2)",
-        "tonalRamp": [
-          "#090b0d",
-          "#222427",
-          "#3e4042",
-          "#5b5e61",
-          "#7e8083",
-          "#a2a5a8",
-          "#c8cbce",
-          "#eceff2"
-        ]
-      },
-      "game-floor": {
-        "role": "neutral",
-        "displayName": "Floor",
-        "canonical": "#161b1e",
-        "oklch": "oklch(21.8% 0.010 234.2)",
-        "tonalRamp": [
-          "#070c0f",
-          "#202528",
-          "#3b4144",
-          "#595f62",
-          "#7b8185",
-          "#9fa6aa",
-          "#c5ccd0",
-          "#e9f0f4"
-        ]
-      },
       "beetle-sheen": {
         "role": "tertiary",
         "displayName": "Beetle Sheen",
@@ -626,38 +594,6 @@
           "#6cbc5c",
           "#90e17f",
           "#cefec4"
-        ]
-      },
-      "dungeon-game-ceiling": {
-        "role": "neutral",
-        "displayName": "Dungeon Ceiling",
-        "canonical": "#0e0d0c",
-        "oklch": "oklch(16.0% 0.003 67.6)",
-        "tonalRamp": [
-          "#0c0b0a",
-          "#262524",
-          "#434240",
-          "#626160",
-          "#838281",
-          "#a6a5a3",
-          "#cac9c7",
-          "#f0eeec"
-        ]
-      },
-      "dungeon-game-floor": {
-        "role": "neutral",
-        "displayName": "Dungeon Floor",
-        "canonical": "#22201d",
-        "oklch": "oklch(24.5% 0.006 78.2)",
-        "tonalRamp": [
-          "#0d0b08",
-          "#272522",
-          "#44423e",
-          "#63615d",
-          "#84827e",
-          "#a7a5a1",
-          "#cbc9c5",
-          "#f1eeea"
         ]
       }
     },
@@ -953,8 +889,10 @@
         "bar": "game-mask",
         "outline": "silk-3"
       },
-      "ceiling": "game-ceiling",
-      "floor": "game-floor"
+      "flats": {
+        "ceiling": "heat-sink",
+        "floor": "solder-mask"
+      }
     },
     "dungeonArtSet": {
       "name": "dungeon",
@@ -1002,8 +940,10 @@
         "outline": "dungeon-ink",
         "tally": "dungeon-ink"
       },
-      "ceiling": "dungeon-game-ceiling",
-      "floor": "dungeon-game-floor"
+      "flats": {
+        "ceiling": "timber",
+        "floor": "flagstone"
+      }
     }
   },
   "components": [
