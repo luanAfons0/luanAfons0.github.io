@@ -88,6 +88,17 @@ export interface Renderer {
 	): void;
 }
 
+/** The eye is this high above the floor, in tiles. The floor is at 0 and the ceiling at 1. */
+export const EYE_HEIGHT = 0.5;
+
+/**
+ * The height on screen, in pixels, of one tile at distance 1, for a view `width` pixels wide with
+ * a view plane `planeHalfWidth` tiles wide on each side at distance 1 (square pixels).
+ */
+export function projectionOf(width: number, planeHalfWidth: number): number {
+	return width / 2 / planeHalfWidth;
+}
+
 const MIN_SHADE = 0.15;
 /** Walls that face north or south are a bit darker, so corners are easy to see. */
 const Y_SIDE_SHADE = 0.75;
@@ -111,19 +122,20 @@ export function createRenderer(options: RendererOptions): Renderer {
 	const planeHalfWidth = options.planeHalfWidth ?? 0.9;
 	const shadeDistance = options.shadeDistance ?? 12;
 	const spriteTexelSize = options.spriteTexelSize ?? 1 / 128;
-	// Wall height on screen for a wall at distance 1, with square pixels.
-	const projection = width / 2 / planeHalfWidth;
+	// Wall height on screen for a wall at distance 1.
+	const projection = projectionOf(width, planeHalfWidth);
 	const lightAt = (distance: number) => Math.max(MIN_SHADE, 1 - distance / shadeDistance);
 
 	// The floor and ceiling are flat, so each row has one distance and one light level. The eye is
-	// half a tile above the floor, so the row k rows away from the horizon shows the floor (or
-	// ceiling) at distance projection / 2 / (k + 0.5). Computed once here, so frames allocate nothing.
+	// half a tile above the floor (and below the ceiling), so the row k rows away from the horizon
+	// shows the floor (or ceiling) at distance projection * EYE_HEIGHT / (k + 0.5). Computed once
+	// here, so frames allocate nothing.
 	const rowDistances = new Float64Array(viewHeight);
 	const rowLevels = new Int32Array(viewHeight);
 	const ceilingRows = new Uint32Array(viewHeight);
 	const floorRows = new Uint32Array(viewHeight);
 	for (let k = 0; k < viewHeight; k++) {
-		const distance = projection / 2 / (k + 0.5);
+		const distance = (projection * EYE_HEIGHT) / (k + 0.5);
 		const level = Math.round(lightAt(distance) * 256);
 		rowDistances[k] = distance;
 		rowLevels[k] = level;
@@ -276,7 +288,7 @@ export function createRenderer(options: RendererOptions): Renderer {
 				const across =
 					((sprite.x - camera.x) * planeX + (sprite.y - camera.y) * planeY) / (planeHalfWidth * planeHalfWidth) / depth;
 				const screenLeft = ((across + 1) * width) / 2 - left * texelPixels;
-				const screenTop = horizon + ((0.5 - sprite.z) * projection) / depth - top * texelPixels;
+				const screenTop = horizon + ((EYE_HEIGHT - sprite.z) * projection) / depth - top * texelPixels;
 				const firstColumn = Math.max(0, Math.ceil(screenLeft - 0.5));
 				const endColumn = Math.min(width, Math.ceil(screenLeft + textureWidth * texelPixels - 0.5));
 				const firstRow = Math.max(0, Math.ceil(screenTop - 0.5));

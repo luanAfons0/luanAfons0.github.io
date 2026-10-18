@@ -4,7 +4,7 @@ import { type Framebuffer, rgb } from "../engine/framebuffer";
 import { cellAt } from "../engine/grid";
 import type { InputSnapshot } from "../engine/input";
 import { castRay, createRayHit, faceKey } from "../engine/raycast";
-import { type Camera, createRenderer, type Renderer, type SpriteImage } from "../engine/renderer";
+import { type Camera, createRenderer, projectionOf, type Renderer, type SpriteImage } from "../engine/renderer";
 import type { Texture } from "../engine/texture";
 import { type BugArt, type BugFrames, type BugState, bugFrameNames, bugFramesOf, createBugs } from "./bugs";
 import { checkContent, type Exhibit } from "./content";
@@ -67,7 +67,7 @@ const MAX_PITCH = Math.round(0.4 * VIEW_HEIGHT);
 /** Half the width of the view plane, in tiles at distance 1 (about a 84 degree field of view). */
 const PLANE_HALF_WIDTH = 0.9;
 /** The height on screen, in pixels, of one tile at distance 1, as the Renderer draws it. */
-const PROJECTION = SCREEN_WIDTH / 2 / PLANE_HALF_WIDTH;
+const PROJECTION = projectionOf(SCREEN_WIDTH, PLANE_HALF_WIDTH);
 /** Sprites are drawn at 72 texels per tile, so a Bug (39 texels high) is about half a wall high. */
 const SPRITE_TEXEL_SIZE = 1 / 72;
 

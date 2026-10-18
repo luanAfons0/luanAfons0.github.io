@@ -1,7 +1,7 @@
 import { moveCircle } from "../engine/collision";
 import type { Grid } from "../engine/grid";
 import { castRay, createRayHit } from "../engine/raycast";
-import type { Sprite, SpriteImage } from "../engine/renderer";
+import { EYE_HEIGHT, type Sprite, type SpriteImage } from "../engine/renderer";
 import type { BugSpawn, Room } from "./level";
 import type { ArtSet } from "./theme";
 import { TICKS_PER_SECOND } from "./ticks";
@@ -32,8 +32,6 @@ const FLOAT_HEIGHT = 0.2;
 
 /** A shot hits a Bug that passes this close to the line of fire, in tiles. */
 const HIT_RADIUS = 0.25;
-/** The eye is half a tile above the floor, as in the Renderer. Shots leave from it. */
-const EYE_HEIGHT = 0.5;
 
 /** What the Game core shows of one Bug. Positions are in tiles. */
 export interface BugState {
@@ -68,7 +66,8 @@ export interface Bugs {
 	 * Fires a shot from (x, y) in the direction `angle`. It fixes the nearest Bug in the line of
 	 * fire, if no wall is in front of it, and returns true when it fixed one. `aimSlope` is the
 	 * climb of the line of fire, in tiles of height per tile of distance (0 shoots level from the
-	 * eye; positive aims up). The line must pass through the picture of the Bug, top to bottom.
+	 * eye, at `EYE_HEIGHT`; positive aims up). The line must pass through the picture of the Bug, top
+	 * to bottom.
 	 */
 	shoot(walls: Grid, x: number, y: number, angle: number, aimSlope?: number): boolean;
 	/** One sprite per Bug, reused every frame. Draw the first `updateSprites()` of them. */
