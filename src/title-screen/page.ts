@@ -1,15 +1,17 @@
 import { type Level, loadLevel } from "../game/level";
 import sampleLevel from "../game/levels/sample.json";
-import { THEME_LABELS, THEMES } from "../game/theme";
+import { DEFAULT_THEME, THEME_LABELS, THEMES } from "../game/theme";
 
 /**
  * The real Title Screen page: index.html with the Features counts (Rooms, Exhibits, Bugs) of the
  * Level put in, so they never go stale: the Features line of Paper (`<!--level-features-->`) and the
  * stat boxes of Dungeon (`<!--level-rooms-->`, `<!--level-exhibits-->`, `<!--level-bugs-->`). It
  * also puts one option per Theme (`THEMES`, named by `THEME_LABELS`) into the Theme item
- * (`<!--theme-options-->`), so the select never misses a Theme. Vite runs it at build time, and the
- * tests run it on the real index.html. It has game code, so the Title Screen page never imports it.
- * It fails when the page has no mark for a count or for the Theme options.
+ * (`<!--theme-options-->`), so the select never misses a Theme, and the default Theme into the
+ * `data-theme` of the root (`<!--default-theme-->`), so the page shows it with JavaScript off. Vite
+ * runs it at build time, and the tests run it on the real index.html. It has game code, so the
+ * Title Screen page never imports it. It fails when the page has no mark for a count, for the Theme
+ * options, or for the default Theme.
  */
 export function titleScreenPage(
 	html: string,
@@ -22,6 +24,7 @@ export function titleScreenPage(
 		"level-exhibits": `${exhibits}`,
 		"level-bugs": `${bugs}`,
 		"theme-options": THEMES.map((theme) => `<option value="${theme}">${THEME_LABELS[theme]}</option>`).join(""),
+		"default-theme": DEFAULT_THEME,
 	};
 	let page = html;
 	for (const [name, value] of Object.entries(marks)) {

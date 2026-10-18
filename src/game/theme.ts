@@ -14,22 +14,20 @@ export const THEME_LABELS: Readonly<Record<Theme, string>> = {
 	dungeon: "Dungeon",
 };
 
+/**
+ * The default Theme: the Theme a visitor with no saved Theme sees (ADR 0004). Both pages carry it as
+ * `data-theme` on their root in the HTML, so it shows with JavaScript off too.
+ */
+export const DEFAULT_THEME: Theme = "dungeon";
+
 export function isTheme(value: unknown): value is Theme {
 	return typeof value === "string" && (THEMES as readonly string[]).includes(value);
 }
 
-/**
- * The Theme a page shows: the saved Theme in `data-theme` on its root, or, with none, the system
- * look (a dark system setting gives Board, a light one Paper). Pass the page root and the
- * `(prefers-color-scheme: dark)` media query.
- */
-export function shownTheme(
-	root: { readonly dataset: { readonly theme?: string } },
-	darkSystem: { readonly matches: boolean },
-): Theme {
+/** The Theme a page shows: `data-theme` on its root (the saved Theme, else the default), or the default Theme. */
+export function shownTheme(root: { readonly dataset: { readonly theme?: string } }): Theme {
 	const theme = root.dataset.theme;
-	if (isTheme(theme)) return theme;
-	return darkSystem.matches ? "board" : "paper";
+	return isTheme(theme) ? theme : DEFAULT_THEME;
 }
 
 /** A color as red, green, and blue values from 0 to 255. */
@@ -200,12 +198,9 @@ const THEME_ART_SETS: Readonly<Record<Theme, ArtSet>> = {
 	dungeon: DUNGEON_ART_SET,
 };
 
-/**
- * The art set of a Theme: the only place a caller gets an art set. With no Theme, the system
- * setting chooses Paper or Board, which both use the machine art set.
- */
+/** The art set of a Theme: the only place a caller gets an art set. No Theme gives the art set of the default Theme. */
 export function artSetOf(theme: Theme | undefined): ArtSet {
-	return THEME_ART_SETS[theme ?? "paper"];
+	return THEME_ART_SETS[theme ?? DEFAULT_THEME];
 }
 
 /** The poster of an Exhibit in an art set: a PNG path relative to `public/`, named by the Exhibit id. */

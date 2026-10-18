@@ -145,14 +145,13 @@ describe("Skip View builder (Seam 2)", () => {
 		expect(buildSkipView({ content: [exhibit("orca")], level, base: BASE })).not.toContain("\u2014");
 	});
 
-	it("follows the system light or dark setting: Paper for light, Board for dark", () => {
+	it("shows the default Theme, Dungeon, with no script: the root carries it in the HTML", () => {
 		const level = loadLevel(
 			tiledLevel({ rows: ROWS, extraObjects: [WEST, tiledExhibit("orca", { x: 4, y: 1 }, "west")] }),
 		);
 		const doc = parse(buildSkipView({ content: [exhibit("orca")], level, base: BASE }));
-		expect(doc.querySelector('meta[name="color-scheme"]')?.getAttribute("content")).toBe("light dark");
-		// The script did not run (as when script is blocked): no data-theme, so the CSS follows the system.
-		expect(doc.documentElement.hasAttribute("data-theme")).toBe(false);
+		// The script did not run (as when script is blocked): the root still has the default Theme.
+		expect(doc.documentElement.getAttribute("data-theme")).toBe("dungeon");
 	});
 
 	it("opens with the datasheet header: part number LA-1, then the name and the lede", () => {
@@ -270,9 +269,9 @@ describe("Skip View builder (Seam 2)", () => {
 		const head = page.slice(0, page.indexOf("</head>"));
 		const scripts = [...head.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((match) => match[1] ?? "");
 
-		/** Runs the head scripts with the given saved settings (null: none; an Error: blocked storage). Returns the data-theme they set. */
+		/** Runs the head scripts on the page root with the given saved settings (null: none; an Error: blocked storage). Returns the data-theme after them. */
 		function shownTheme(saved: string | null | Error): string | undefined {
-			const dataset: { theme?: string } = {};
+			const dataset: { theme?: string } = { theme: parse(page).documentElement.dataset.theme };
 			const localStorage = {
 				getItem(key: string) {
 					if (saved instanceof Error) throw saved;
@@ -301,8 +300,8 @@ describe("Skip View builder (Seam 2)", () => {
 			["a saved Theme that is not a Theme", JSON.stringify({ theme: "neon" })],
 			["broken saved settings", "{not json"],
 			["blocked storage", new Error("Blocked site data.")],
-		])("follows the system setting with %s", (_case, saved) => {
-			expect(shownTheme(saved)).toBeUndefined();
+		])("keeps the default Theme, Dungeon, with %s", (_case, saved) => {
+			expect(shownTheme(saved)).toBe("dungeon");
 		});
 
 		it("still shows every Exhibit when script is blocked", () => {

@@ -211,17 +211,16 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 		});
 	};
 
-	// The Theme: data-theme on the root, set by the Theme head script from the saved settings. With no
-	// data-theme, the CSS follows the system setting, so the Theme select follows it too.
+	// The Theme: data-theme on the root. The page HTML sets the default Theme there, and the Theme
+	// head script replaces it with the saved Theme.
 	const page = themeItem.ownerDocument.documentElement;
-	const darkSystem = matchMedia("(prefers-color-scheme: dark)");
 	/** Where the dive grows from in each look: the chip, the selected pad, or the ink plate. */
 	const diveFrom: Record<Theme, HTMLElement | null> = {
 		paper: chip,
 		board: newGame.querySelector<HTMLElement>(".title-screen__pad"),
 		dungeon: plate,
 	};
-	const shownTheme = () => themeOf(page, darkSystem);
+	const shownTheme = () => themeOf(page);
 	/** Shows the shown Theme in the Theme select. */
 	const showTheme = () => {
 		themeItem.value = shownTheme();
@@ -319,7 +318,6 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 	themeItem.addEventListener("change", switchTheme);
 	themeRow.addEventListener("click", onThemeRowClick);
 	themeItem.addEventListener("pointermove", onOptionPointer);
-	darkSystem.addEventListener("change", showTheme);
 	// A click on the SKIP link follows the link by itself; the Enter key goes through choose().
 	const onSkipClick = () => track("skip");
 	skip.addEventListener("click", onSkipClick);
@@ -334,7 +332,6 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 		themeItem.removeEventListener("change", switchTheme);
 		themeRow.removeEventListener("click", onThemeRowClick);
 		themeItem.removeEventListener("pointermove", onOptionPointer);
-		darkSystem.removeEventListener("change", showTheme);
 		skip.removeEventListener("click", onSkipClick);
 		document.removeEventListener("keydown", onKeyDown);
 	}

@@ -62,10 +62,10 @@ describe("Pause Menu", () => {
 		expect(radio("paper").checked).toBe(true);
 	});
 
-	it("shows Paper when no Theme is saved and the system is light", () => {
+	it("shows the default Theme, Dungeon, when the page root has no Theme", () => {
 		const { menu, radio } = setup();
 		menu.open(BUGS);
-		expect(radio("paper").checked).toBe(true);
+		expect(radio("dungeon").checked).toBe(true);
 	});
 
 	it("switches the page Theme, reports the setting, and sends the analytics event", () => {
@@ -128,15 +128,16 @@ describe("Pause Menu", () => {
 		expect(message()?.getAttribute("role")).toBe("alert");
 	});
 
-	it("goes back to the system look when no Theme was saved before the failed load", async () => {
+	it("goes back to the default Theme when no Theme was saved before the failed load", async () => {
 		quietErrors();
+		page.dataset.theme = "dungeon";
 		const { menu, radio, changes } = setup({ onThemeChange: () => Promise.reject(new Error("offline")) });
 		menu.open(BUGS);
-		radio("dungeon").click();
+		radio("board").click();
 		await settle();
 
-		expect(page.dataset.theme).toBeUndefined();
-		expect(radio("paper").checked).toBe(true);
+		expect(page.dataset.theme).toBe("dungeon");
+		expect(radio("dungeon").checked).toBe(true);
 		expect(changes.at(-1)).toEqual(DEFAULT_SETTINGS);
 	});
 
@@ -156,9 +157,10 @@ describe("Pause Menu", () => {
 
 	it("reports no Theme on the M key after a failed load set the Theme back to none", async () => {
 		quietErrors();
+		page.dataset.theme = "dungeon";
 		const { menu, radio, changes } = setup({ onThemeChange: () => Promise.reject(new Error("offline")) });
 		menu.open(BUGS);
-		radio("dungeon").click();
+		radio("board").click();
 		await settle();
 
 		menu.toggleSound();
@@ -168,29 +170,30 @@ describe("Pause Menu", () => {
 
 	it("keeps the line of a load that failed after Resume until the player chooses a Theme again", async () => {
 		quietErrors();
-		let failDungeon: (error: Error) => void = () => {};
+		page.dataset.theme = "dungeon";
+		let failBoard: (error: Error) => void = () => {};
 		const { menu, radio, message } = setup({
 			onThemeChange: () =>
 				new Promise((_, reject) => {
-					failDungeon = reject;
+					failBoard = reject;
 				}),
 		});
 		menu.open(BUGS);
-		radio("dungeon").click();
+		radio("board").click();
 		menu.close();
-		failDungeon(new Error("offline"));
+		failBoard(new Error("offline"));
 		await settle();
 
 		menu.open(BUGS);
 
-		expect(page.dataset.theme).toBeUndefined();
-		expect(radio("paper").checked).toBe(true);
+		expect(page.dataset.theme).toBe("dungeon");
+		expect(radio("dungeon").checked).toBe(true);
 		expect(message()?.hidden).toBe(false);
-		expect(message()?.textContent).toBe("The Dungeon art did not load. Check your connection and try again.");
+		expect(message()?.textContent).toBe("The Board art did not load. Check your connection and try again.");
 		menu.close();
 		menu.open(BUGS);
 		expect(message()?.hidden).toBe(false);
-		radio("board").click();
+		radio("paper").click();
 		expect(message()?.hidden).toBe(true);
 	});
 

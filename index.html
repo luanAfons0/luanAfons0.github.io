@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="<!--default-theme-->">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,7 +11,8 @@
 			   loop. The page is hidden, so the Title Screen does not paint while the browser goes to the Skip View.
 			2. The Theme head script (src/theme-script.ts), at the theme-script mark: the theme-script plugin in
 			   vite.config.ts puts it here and in the Skip View. It sets the saved Theme as data-theme on the
-			   root, so the page never flashes the wrong look.
+			   root, in place of the default Theme (titleScreenPage fills it in from DEFAULT_THEME), so the
+			   page never flashes the wrong look.
 		-->
 		<script>
 			if (matchMedia("(pointer: coarse)").matches && !matchMedia("(any-pointer: fine)").matches) {

@@ -14,8 +14,8 @@ export interface Settings {
 	invertMouse: boolean;
 	sound: boolean;
 	/**
-	 * The Theme the visitor chose. Missing means "follow the system": a light system setting shows
-	 * Paper and a dark one shows Board. The Theme head script of both pages reads it from the same key.
+	 * The Theme the visitor chose. Missing means the default Theme (`DEFAULT_THEME`, Dungeon). The
+	 * Theme head script of both pages reads it from the same key.
 	 */
 	theme?: Theme;
 }

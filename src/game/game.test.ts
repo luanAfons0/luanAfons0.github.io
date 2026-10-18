@@ -482,11 +482,11 @@ describe("Art set", () => {
 		expect(game.state().room).toBe("Lobby");
 	});
 
-	it("maps Paper and Board (and no saved Theme) to the machine art set, and Dungeon to the dungeon art set", () => {
+	it("maps Paper and Board to the machine art set, and Dungeon (and no saved Theme) to the dungeon art set", () => {
 		expect(artSetOf("paper")).toBe(MACHINE_ART_SET);
 		expect(artSetOf("board")).toBe(MACHINE_ART_SET);
-		expect(artSetOf(undefined)).toBe(MACHINE_ART_SET);
 		expect(artSetOf("dungeon")).toBe(DUNGEON_ART_SET);
+		expect(artSetOf(undefined)).toBe(DUNGEON_ART_SET);
 		expect(DUNGEON_ART_SET.name).toBe("dungeon");
 	});
 

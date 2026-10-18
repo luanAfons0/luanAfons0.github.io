@@ -1,5 +1,6 @@
 import { checkContent, type Exhibit, KIND_LABELS, partLabel } from "../game/content";
 import { FACE_OFFSETS, type Level, type Room, roomAt } from "../game/level";
+import { DEFAULT_THEME } from "../game/theme";
 import { THEME_SCRIPT_MARK } from "../theme-script";
 
 export interface SkipViewInput {
@@ -20,7 +21,8 @@ export interface SkipViewInput {
  * The Skip View builder (Seam 2). It makes the Skip View page from the Content and the Rooms, at
  * build time: static, semantic HTML with every Exhibit under its Room. It writes no script: its head
  * has the mark where the `theme-script` plugin puts the Theme head script, and the page works fully
- * without it.
+ * without it: its root carries the default Theme as `data-theme`, which the script replaces with a
+ * saved Theme.
  * An Exhibit is in the Room the player stands in to see it: the cell in front of its poster.
  * It fails with an error that names the Exhibit when the Content and the Level do not match, or
  * when the Content is not valid (see `checkContent`).
@@ -35,7 +37,7 @@ export function buildSkipView({ content, level, base, stylesheet }: SkipViewInpu
 		.map(([room, exhibits], index) => ({ room, exhibits, anchor: `room-${index + 1}` }));
 
 	return `<!doctype html>
-<html lang="en">
+<html lang="en" data-theme="${DEFAULT_THEME}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">

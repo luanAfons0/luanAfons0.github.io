@@ -133,17 +133,15 @@ export function createPauseMenu(options: PauseMenuOptions): PauseMenu {
 		tally.replaceChildren(...boxes, count);
 	};
 
-	// The Theme shown is data-theme on the page root. With none, the CSS follows the system
-	// setting (light gives Paper, dark gives Board), so the switch follows it too.
+	// The Theme shown is data-theme on the page root: the saved Theme, or the default Theme.
 	const page = options.parent.ownerDocument.documentElement;
-	const darkSystem = matchMedia("(prefers-color-scheme: dark)");
 
 	const showSettings = () => {
 		sensitivity.value = String(settings.mouseSensitivity);
 		sensitivityValue.value = settings.mouseSensitivity.toFixed(1);
 		invertMouse.checked = settings.invertMouse;
 		sound.checked = settings.sound;
-		const theme = shownTheme(page, darkSystem);
+		const theme = shownTheme(page);
 		for (const input of themes) input.checked = input.value === theme;
 	};
 	showSettings();
