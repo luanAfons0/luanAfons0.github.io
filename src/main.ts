@@ -67,27 +67,24 @@ export function loadArt(artSet: ArtSet): Promise<void> {
  */
 async function fetchArt(artSet: ArtSet): Promise<GameArt> {
 	const base = import.meta.env.BASE_URL;
-	const flatNames = Object.values(artSet.flats);
-	const [textureEntries, flatEntries, spriteEntries, posterEntries] = await Promise.all([
+	const roles = levelTextureNames(sampleLevel)
+		// createGame and game.changeArtSet name a texture that is not a role or has no file; load only the others.
+		.filter((name): name is TextureRole => isTextureRole(name) && Boolean(artSet.textures[name]));
+	const textureFiles = [
+		...roles.map((role) => [role, artSet.textures[role]] as const),
+		...Object.values(artSet.flats).map((name) => [name, name] as const),
+	];
+	const [textureEntries, spriteEntries, posterEntries] = await Promise.all([
 		Promise.all(
-			levelTextureNames(sampleLevel)
-				// createGame and game.changeArtSet name a texture that is not a role or has no file; load only the others.
-				.filter((name): name is TextureRole => isTextureRole(name) && Boolean(artSet.textures[name]))
-				.map(
-					async (role) =>
-						[role, await loadTexture(`${base}${artSet.folders.textures}/${artSet.textures[role]}.png`)] as const,
-				),
-		),
-		Promise.all(
-			flatNames.map(
-				async (name) => [name, await loadTexture(`${base}${artSet.folders.textures}/${name}.png`)] as const,
+			textureFiles.map(
+				async ([key, file]) => [key, await loadTexture(`${base}${artSet.folders.textures}/${file}.png`)] as const,
 			),
 		),
 		loadSprites(`${base}${artSet.folders.sprites}`, bugFrameNames(artSet)),
 		Promise.all(EXHIBITS.map(async ({ id }) => [id, await loadTexture(`${base}${posterPath(artSet, id)}`)] as const)),
 	]);
 	return {
-		textures: Object.fromEntries([...textureEntries, ...flatEntries]),
+		textures: Object.fromEntries(textureEntries),
 		sprites: Object.fromEntries(spriteEntries),
 		posters: Object.fromEntries(posterEntries),
 	};
