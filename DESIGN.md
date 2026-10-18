@@ -2,20 +2,22 @@
 name: Luan Afonso, portfolio
 description: A portfolio you read as a part datasheet or as a gamebook, then walk inside as a circuit board or as a stone keep.
 colors:
-  paper: "#f2f3f0"
+  paper: "#f9faf7"
   paper-2: "#e7e9e4"
   ink: "#16181a"
   ink-2: "#4b5155"
-  rule: "#c8ccc5"
+  rule: "#b1b4ae"
+  pin: "#8b8f92"
   board: "#0f1214"
-  board-2: "#161a1d"
+  board-2: "#1a1f22"
   mask-trace: "#1f262a"
-  silk: "#e9ebe6"
-  silk-2: "#9aa1a5"
-  silk-3: "#3a4045"
+  silk: "#f8f9f7"
+  silk-2: "#a6acaf"
+  silk-3: "#676c70"
   pad: "#aeb3b6"
   copper: "#c06a36"
-  copper-hot: "#e08a4f"
+  copper-deep: "#aa5e30"
+  copper-hot: "#ef9354"
   scrim: "#070909"
   game-mask: "#1a2024"
   game-trace: "#2c363c"
@@ -214,7 +216,7 @@ components:
     rounded: "{rounded.none}"
     padding: "8px 0 6px"
   part-label-board-open:
-    backgroundColor: "{colors.board}"
+    backgroundColor: "{colors.board-2}"
     textColor: "{colors.copper-hot}"
     typography: "{typography.label}"
     padding: "0.35em 0.6em"
@@ -239,7 +241,7 @@ components:
     rounded: "{rounded.none}"
     padding: "0.55em 0.9em"
   button-board:
-    backgroundColor: "{colors.board}"
+    backgroundColor: "{colors.board-2}"
     textColor: "{colors.silk}"
     typography: "{typography.label}"
     rounded: "{rounded.none}"
@@ -247,7 +249,7 @@ components:
   button-board-hover:
     textColor: "{colors.copper-hot}"
   pause-item:
-    backgroundColor: "{colors.board}"
+    backgroundColor: "{colors.board-2}"
     textColor: "{colors.silk}"
     typography: "{typography.label}"
     padding: "0.7em 0.9em"
@@ -345,24 +347,26 @@ The Dungeon look is printed honestly: one ink, impression, hatch, rules, and box
 The machine world is a near-neutral cool palette in two materials, plus one metal: copper. The Dungeon world is one black ink on warm pulp, on a deep green cloth (see "Dungeon" below). Copper is a machine-world color only.
 
 ### Primary
-- **Copper** (`copper`): traces, pins, pads, underlines, lit LEDs, slider thumbs, "on" switch levers, and the Paper focus ring. On Paper it is never text.
-- **Hot Copper** (`copper-hot`): copper as text and as the Board focus ring. Used for the selected Board menu label, the Board link text, the open Exhibit's Part label on Board, the HUD values, and the Board "Fault." label.
+- **Copper** (`copper`): Board traces, pads, underlines, lit LEDs, slider thumbs, and "on" switch levers (4.2:1 on the Lifted Mask). On Paper it is never text.
+- **Deep Copper** (`copper-deep`): the Paper copper: traces, pins, underlines, and the Paper focus ring, through `--live-trace` and `--focus` (4.6:1 on Datasheet Paper). Also the Paper `::selection` block, with paper text.
+- **Hot Copper** (`copper-hot`): copper as text and as the Board focus ring. Used for the selected Board menu label, the Board link text, the open Exhibit's Part label on Board, and the Board "Fault." label (7.1:1 on the Lifted Mask). The HUD values are the same color family, but the HUD keeps its own value (`#e08a4f`, `COPPER_LIT` in `scripts/machine-art/palette.ts`).
 
 ### Neutral (Paper: the datasheet)
-- **Datasheet Paper** (`paper`): the Paper page and panel surface. Also the text color on any inked block.
-- **Paper Shade** (`paper-2`): the Paper fill of the load error note.
+- **Datasheet Paper** (`paper`): the Paper sheet and panel surface (`--surface`): the Title Screen sheet, the Skip View page column, and the Exhibit Panel. Also the text color on any inked block.
+- **Paper Shade** (`paper-2`): the Paper ground around the sheet (`--ground`, 1.17:1 against the sheet), and the fill of the load error note.
 - **Black Ink** (`ink`): Paper text, the strong 3px header rule, inked Part label blocks, the chip body, the selected Paper menu item, and Paper buttons.
 - **Grey Ink** (`ink-2`): secondary Paper text: header notes, the kind of an Exhibit, footers, pin numbers.
-- **Hairline** (`rule`): quiet Paper separators between Exhibits and above the footer.
+- **Hairline** (`rule`): quiet Paper separators between Exhibits and above the footer (2.0:1 on the sheet).
+- **Pin Grey** (`pin`): unselected Paper pins (3.1:1 on the sheet), through `--idle-pad`.
 
 ### Neutral (Board: the circuit board)
-- **Solder Mask** (`board`): the Board page, panel, and overlay surface, and the color of the NEW GAME dive.
-- **Mask Shade** (`board-2`): the well of DIP and Theme switches.
+- **Solder Mask** (`board`): the Board ground (`--ground`): the page under the trace tiles, the wells of the DIP and Theme switches, and the color of the NEW GAME dive.
+- **Lifted Mask** (`board-2`): the Board panel and keep-out surface (`--surface`, and `.board-surface--quiet`): the Pause Menu and Exhibit Panel, the chip outline, and the menu keep-out of the Title Screen. It is lighter than the ground (1.13:1, about 6 points of OKLCH lightness), so a panel lifts off the board; the traces of the ground tile stay close to it.
 - **Trace Under Mask** (`mask-trace`): the traces in the board tile; never a text color.
 - **Silkscreen** (`silk`): Board text and Board headings.
 - **Silkscreen Grey** (`silk-2`): secondary Board text, switch legends, outlined Part labels in the Skip View, the "off" lever.
-- **Silkscreen Faint** (`silk-3`): Board outlines and separators: the chip keep-out outline, pad traces, panel borders, dashed separators, unlit LEDs.
-- **Tinned Pad** (`pad`): unselected pads and pins in both Themes.
+- **Silkscreen Faint** (`silk-3`): Board outlines and separators: the chip keep-out outline, pad traces, panel borders, dashed separators, unlit LEDs. 3.5:1 on the board and 3.1:1 on the Lifted Mask, so an edge reads well above the traces (Trace Under Mask is 1.23:1).
+- **Tinned Pad** (`pad`): unselected Board pads, through `--idle-pad`.
 - **Scrim** (`scrim`): the dimmer behind overlays, at 62% (Exhibit Panel, Pause Menu) or 50% (resume prompt).
 
 ### Machine art set (game only)
@@ -401,7 +405,7 @@ The game colors live in `scripts/dungeon-art/palette.ts` and `src/game/theme.ts`
 
 **The No Copper Ink Rule.** Copper text fails contrast on Paper. On Paper, copper is a trace, pin, underline, or focus ring; the text it marks stays ink. Use the look tokens `--live-text` (text) and `--live-trace` (lines), never raw copper for text.
 
-**The Look Token Rule.** HTML surfaces use the look tokens (`--surface`, `--surface-2`, `--text`, `--text-2`, `--line`, `--line-2`, `--live-text`, `--live-trace`, `--focus`), which resolve per Theme with `light-dark()`. A surface that is Board in both machine Themes sets `color-scheme: dark` on itself or uses the palette tokens directly.
+**The Look Token Rule.** HTML surfaces use the look tokens (`--ground`, `--surface`, `--surface-2`, `--text`, `--text-2`, `--line`, `--line-2`, `--live-text`, `--live-trace`, `--idle-pad`, `--focus`), which resolve per Theme with `light-dark()`. A sheet, panel, or keep-out is `--surface` on `--ground`: in Paper a light sheet on the Paper Shade, in Board the Lifted Mask on the bare board, with a silkscreen edge of 3:1 or more. A surface that is Board in both machine Themes sets `color-scheme: dark` on itself or uses the palette tokens directly.
 
 **The Selected Means Inked Rule.** In Dungeon, a live, selected, hovered, or focused thing is inked: an ink block with Pulp Page text, as one step. There is no copper, no second ink, and no glow. Hover inverts only on a fine pointer (`(hover: hover) and (pointer: fine)`), so a tap never leaves a block inked; focus inverts and adds an ink ring.
 
@@ -460,9 +464,9 @@ The Title Screen, Pause Menu, and Exhibit Panel size in em of their own font: th
 
 **The 16:9 sheet.** The Title Screen is a 16:9 sheet that fits the window like the game view (`--u: min(1vw, 1.7778vh)`). Its font is `max(14px, 1.25 × --u)`, and every size inside is in em of that font, so the whole sheet scales as one. The Exhibit Panel uses the same idea: its font is `clamp(14px, min(1.25vw, 2.2222vh), 22px)` and its width is 51em (Paper) or 48em (Board).
 
-**Paper layout.** A datasheet: a header with the part number block left and a document note right, on a 3px ink rule; content in two columns (name, description, and Features left; the pin configuration figure right); a footer above a hairline. Margins are 3.52em of the sheet.
+**Paper layout.** A datasheet: a header with the part number block left and a document note right, on a 3px ink rule; content in two columns (name, description, and Features left; the pin configuration figure, then Table 1 of the controls after a hairline, right); a footer above a hairline. Margins are 3.52em of the sheet. The 16:9 sheet is Datasheet Paper on the Paper Shade ground, which shows where the window is not 16:9.
 
-**Board layout.** The name sits inside a chip keep-out outline labeled LA-1; the menu is pads joined by 3px traces to that outline. Columns are 1.15fr and 1fr.
+**Board layout.** The sheet has no fill: the trace tile on Solder Mask runs edge to edge. The name sits inside a chip keep-out outline (Lifted Mask) labeled LA-1; the menu is pads joined by 3px traces to that outline. Columns are 1.15fr and 1fr.
 
 **The Skip View.** One column, max 50rem, 16px side padding. Each Exhibit is a two-column row: a 72px gutter for the Part label and kind, then the text (64px gutter and 16px gap below 35rem). The contents list uses dotted leaders, as a datasheet table of contents.
 
@@ -477,7 +481,7 @@ The Title Screen, Pause Menu, and Exhibit Panel size in em of their own font: th
 ### Named Rules
 **The Declared Tier Rule.** At narrow sizes, ornament drops in declared steps and content keeps its size. The Title Screen has two tiers: at an aspect ratio of 1:1 or taller it goes to one column, drops the chip outline, and joins the pad traces to a vertical bus; below 600px wide, Paper drops pins 6 to 10 and lists their controls in text instead.
 
-**The Keep-Out Rule.** Board traces never run under text. Text sits on a keep-out (a solid `--surface` area with a silkscreen edge) or on the quiet board tile, whose traces are close to the mask color. The busy tile is for open background only.
+**The Keep-Out Rule.** Board traces never run under text. Text sits on a keep-out (a solid `--surface` area, the Lifted Mask in Board, with a silkscreen edge) or on the quiet board tile, whose traces are close to the mask color. The busy tile is for open background only.
 
 ## Elevation & Depth
 
@@ -515,7 +519,8 @@ The reference designator of an Exhibit (U project, J contact, R skill, Q job). T
 - **Poster:** the label in silkscreen above the component, a copper outline around it; the component shows the kind (IC, connector, resistor, transistor).
 
 ### Title Screen menu (pins and pads)
-- **Paper:** menu items are pin labels of a 10-pin chip; pins 1 to 3 are the menu (NEW GAME, SKIP, Theme), pins 4 to 10 list the controls, pin 6 is NC. The selected item is an inked block; its pin turns copper and a 3px copper trace joins label to pin.
+- **Paper:** menu items are pin labels of a 6-pin chip; pins 1 to 3 are the menu (NEW GAME, SKIP, Theme), pins 4 to 6 are NC. The selected item is an inked block; its pin turns copper and a 3px copper trace joins label to pin. The controls are Table 1, under the figure: key and action twice per row, a 2px ink rule over the head, hairlines between rows, the actions in Silkscreen.
+- **Theme picker (open select):** an attached dropdown under the select, its left edge on the select's, at least as wide, one option per row. Paper: Datasheet Paper, 1px ink border, the active row an ink block with paper text. Board: Lifted Mask, 2px Silkscreen Grey edge, a pad on every row, the active row Hot Copper with a copper pad. Dungeon: a pulp slip with a double ink rule, the active row inked. The current Theme has a check at the right of its row: a 7×5 pixel check in Paper and Board, an ink tick in Dungeon.
 - **Board:** each item is a pad (2.4em × 1.6em, 1px radius, Tinned Pad) with a 3px silkscreen trace to the chip outline. The selected pad and its trace turn copper; the label turns Hot Copper.
 - **Focus:** 2px `--focus` outline, 4px offset. **Press:** 1px down.
 - **NEW GAME dive:** a Solder Mask layer grows from the chip (Paper) or the selected pad (Board) to the full window in 420ms (`cubic-bezier(0.77, 0, 0.175, 1)`). Reduced motion skips it.
@@ -527,18 +532,18 @@ The reference designator of an Exhibit (U project, J contact, R skill, Q job). T
 
 ### Buttons
 - **Shape:** square (0 radius).
-- **Paper:** inked block, paper Silkscreen label; hover adds a 2px copper outline at 2px offset.
+- **Paper:** inked block, paper Silkscreen label; hover adds a 2px Deep Copper outline at 2px offset.
 - **Board:** 1px Silkscreen Grey outline, Silkscreen label; hover and focus turn border and text Hot Copper.
 - **Press:** 1px down, everywhere.
 
 ### Links
-- **Paper:** ink text with a 2px copper underline at 0.25em offset, weight 600. Hover and focus invert to an inked block with paper text.
+- **Paper:** ink text with a 2px Deep Copper underline at 0.25em offset, weight 600. Hover and focus invert to an inked block with paper text.
 - **Board:** Hot Copper text with a 2px copper underline, weight 400.
 
 ### Pause Menu
-A board panel in both Themes: the quiet board tile, a 2px Silkscreen Faint border, 28px × 30px padding, max 460px wide.
+A board panel in both Themes: the Lifted Mask with the quiet board tile, a 2px Silkscreen Faint border, 28px × 30px padding, max 460px wide.
 - **Items (Resume, Skip View):** a 1px silkscreen outline with a square pad at the right; hover or focus brightens the border to Silkscreen and turns the pad copper.
-- **DIP switch (checkbox):** a 1.5em × 2.4em well; the lever is down and grey when off, up and copper when on. The legend reads "On" or "Off" from the state.
+- **DIP switch (checkbox):** a 1.5em × 2.4em well of Solder Mask, darker than the panel; the lever is down and grey when off, up and copper when on. The legend reads "On" or "Off" from the state.
 - **Theme switch:** one sideways two-position DIP switch, Paper left (grey lever), Board right (copper lever).
 - **Slider:** a 2px silkscreen track with a copper thumb (Hot Copper while dragged).
 - **Focus:** one 2px Hot Copper ring, 2px offset, on every control.
@@ -546,14 +551,14 @@ A board panel in both Themes: the quiet board tile, a 2px Silkscreen Faint borde
 
 ### Exhibit Panel
 - **Paper:** a datasheet page over the paused game: the Part label block and the kind on a 3px header rule, then title, summary, "Description" and "Links" sections with 1px rules, and an inked close button.
-- **Board:** a board panel on the quiet tile with a 2px silkscreen border: copper Part label, Silkscreen title; section headings stay for screen readers only.
+- **Board:** a board panel of Lifted Mask on the quiet tile with a 2px Silkscreen Faint border: copper Part label, Silkscreen title; section headings stay for screen readers only.
 - **Motion:** rises 12px over 140ms with the same ease-out; closes at once.
 
 ### Resume prompt
 A full-screen button on a 50% scrim, Board in both Themes. A Silkscreen label in a 2px silkscreen box; hover and focus turn the box Hot Copper.
 
 ### Skip View
-The full datasheet, Room by Room. Paper: LA-1 header, condensed Archivo name, inked Part labels. Board (system dark): the quiet board tile, Silkscreen headings, outlined Part labels. Its Theme head script shows the saved Theme; with none, or with script blocked, the system setting picks the look. The back link is a Silkscreen label with an 8x8 pixel arrow; phones do not see it.
+The full datasheet, Room by Room. Paper: the page column is a Datasheet Paper sheet on the Paper Shade ground (the ground shows only when the window is wider than the column), LA-1 header, condensed Archivo name, inked Part labels. Board (system dark): the quiet board tile, Silkscreen headings, outlined Part labels. Its Theme head script shows the saved Theme; with none, or with script blocked, the system setting picks the look. The back link is a Silkscreen label with an 8x8 pixel arrow; phones do not see it.
 
 ### HUD (game)
 A 40px Game Mask bar with a 1px Silkscreen Faint top edge. Sections (ROOM, BUGS FIXED) are 1px outlined boxes, no fill, no bevel; small Silkscreen Grey labels over 2x Hot Copper values in the engine's 5x7 pixel font. The hint ("Press E") is Silkscreen with a one-pixel outline in eight directions so it reads on any wall. The crosshair is four 1px Silkscreen arms.

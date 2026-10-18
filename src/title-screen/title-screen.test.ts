@@ -58,13 +58,24 @@ interface HappyDomWindow {
 
 const newGame = () => item("new-game");
 const skip = () => item("skip");
-const themeItem = () => item("theme");
+const themeItem = () => item<HTMLSelectElement>("theme");
 
-function item(name: string): HTMLElement {
-	const element = document.querySelector<HTMLElement>(`[data-menu-item="${name}"]`);
+function item<T extends HTMLElement = HTMLElement>(name: string): T {
+	const element = document.querySelector<T>(`[data-menu-item="${name}"]`);
 	if (!element) throw new Error(`index.html has no ${name} menu item.`);
 	return element;
 }
+
+/** The box that shows a menu item: the item itself, or the row around the Theme select. */
+function box(element: HTMLElement): HTMLElement {
+	return element.closest<HTMLElement>(".title-screen__item") ?? element;
+}
+
+/** Whether a menu item shows the selection marker. */
+const isSelected = (element: HTMLElement) => box(element).classList.contains("is-selected");
+
+/** Moves the mouse onto a menu item: the pointer enters its box. */
+const pointAt = (element: HTMLElement) => box(element).dispatchEvent(new Event("pointerenter"));
 
 /** A loadGame() whose promise the test settles by hand. */
 function deferredLoad<T = string>() {
@@ -101,8 +112,8 @@ describe("Title Screen loading", () => {
 		const { load } = setUp();
 		expect(load).not.toHaveBeenCalled();
 
-		newGame().dispatchEvent(new Event("pointerenter"));
-		newGame().dispatchEvent(new Event("pointerenter"));
+		pointAt(newGame());
+		pointAt(newGame());
 
 		expect(load).toHaveBeenCalledTimes(1);
 	});
@@ -125,16 +136,16 @@ function press(code: string): KeyboardEvent {
 describe("Title Screen keyboard", () => {
 	it("moves the selection and the focus across all three items with the arrow keys, and wraps at both ends", () => {
 		setUp();
-		expect(newGame().classList.contains("is-selected")).toBe(true);
+		expect(isSelected(newGame())).toBe(true);
 
 		press("ArrowDown");
 		expect(document.activeElement).toBe(skip());
-		expect(skip().classList.contains("is-selected")).toBe(true);
-		expect(newGame().classList.contains("is-selected")).toBe(false);
+		expect(isSelected(skip())).toBe(true);
+		expect(isSelected(newGame())).toBe(false);
 
 		press("ArrowDown");
 		expect(document.activeElement).toBe(themeItem());
-		expect(themeItem().classList.contains("is-selected")).toBe(true);
+		expect(isSelected(themeItem())).toBe(true);
 
 		press("ArrowDown");
 		expect(document.activeElement).toBe(newGame());
@@ -147,19 +158,19 @@ describe("Title Screen keyboard", () => {
 
 		press("ArrowUp");
 		expect(document.activeElement).toBe(newGame());
-		expect(newGame().classList.contains("is-selected")).toBe(true);
+		expect(isSelected(newGame())).toBe(true);
 	});
 
 	it("selects the item the visitor points at or focuses", () => {
 		setUp();
 
-		themeItem().dispatchEvent(new Event("pointerenter"));
-		expect(themeItem().classList.contains("is-selected")).toBe(true);
-		expect(newGame().classList.contains("is-selected")).toBe(false);
+		pointAt(themeItem());
+		expect(isSelected(themeItem())).toBe(true);
+		expect(isSelected(newGame())).toBe(false);
 
 		skip().focus();
-		expect(skip().classList.contains("is-selected")).toBe(true);
-		expect(themeItem().classList.contains("is-selected")).toBe(false);
+		expect(isSelected(skip())).toBe(true);
+		expect(isSelected(themeItem())).toBe(false);
 	});
 
 	it("keeps the arrow keys from scrolling the page", () => {
@@ -206,7 +217,7 @@ describe("NEW GAME", () => {
 
 	it("starts at once with no loading bar when the game loaded on hover", async () => {
 		const { resolve, startGame } = setUp();
-		newGame().dispatchEvent(new Event("pointerenter"));
+		pointAt(newGame());
 		resolve("the game");
 		await settle();
 
@@ -282,7 +293,7 @@ describe("NEW GAME", () => {
 			});
 			const { resolve, navigate, reload } = setUp({ startGame });
 			vi.spyOn(console, "error").mockImplementation(() => {});
-			if (onHover) newGame().dispatchEvent(new Event("pointerenter"));
+			if (onHover) pointAt(newGame());
 			if (onHover) resolve("the game");
 			await settle();
 
@@ -320,7 +331,7 @@ describe("NEW GAME", () => {
 
 	it("shows a failed load from a hover only when the visitor chooses NEW GAME", async () => {
 		const { reject, reload } = setUp();
-		newGame().dispatchEvent(new Event("pointerenter"));
+		pointAt(newGame());
 		reject(new Error("offline"));
 		await settle();
 		expect(loadError()?.hidden).toBe(true);
@@ -376,24 +387,55 @@ function runHeadScript() {
 }
 
 const shownTheme = () => document.documentElement.getAttribute("data-theme");
-/** The text of the Theme item that a screen reader reads: the Dungeon hint beside it is hidden. */
+
+/** The text of the label of the Theme select that a screen reader reads (its colon is hidden). */
 const themeLabel = () => {
-	const label = themeItem().cloneNode(true) as HTMLElement;
-	for (const hidden of label.querySelectorAll('[aria-hidden="true"]')) hidden.remove();
-	return label.textContent?.replace(/\s+/g, " ").trim();
+	const label = themeItem().closest("label")?.cloneNode(true) as HTMLElement | undefined;
+	for (const hidden of label?.querySelectorAll('select, [aria-hidden="true"]') ?? []) hidden.remove();
+	return label?.textContent?.replace(/\s+/g, " ").trim();
 };
+
+/** Chooses a Theme in the Theme select, as the native picker does: a new value, then a change event. */
+function chooseTheme(theme: string) {
+	themeItem().value = theme;
+	themeItem().dispatchEvent(new Event("change", { bubbles: true }));
+}
+
+/** Gives the Theme select a showPicker() (happy-dom has none), which the test watches. */
+function stubPicker(open: () => void = () => {}) {
+	const showPicker = vi.fn(open);
+	Object.defineProperty(themeItem(), "showPicker", { value: showPicker, configurable: true });
+	return showPicker;
+}
 
 describe("Theme", () => {
 	it.each([
-		["light", "Paper"],
-		["dark", "Board"],
-	] as const)("follows a %s system setting when no Theme is saved: the Theme item shows %s", (scheme, label) => {
+		["light", "paper"],
+		["dark", "board"],
+	] as const)("follows a %s system setting when no Theme is saved: the Theme select shows %s", (scheme, theme) => {
 		systemScheme(scheme);
 		runHeadScript();
 		setUp();
 
 		expect(shownTheme()).toBeNull();
-		expect(themeLabel()).toBe(`Theme: ${label}`);
+		expect(themeItem().value).toBe(theme);
+	});
+
+	it("is a native select labelled Theme", () => {
+		setUp();
+
+		expect(themeItem().tagName).toBe("SELECT");
+		expect(themeLabel()).toBe("Theme");
+	});
+
+	it("keeps the Theme select in step with the system setting when no Theme is saved", () => {
+		setUp();
+		expect(themeItem().value).toBe("paper");
+
+		systemScheme("dark");
+		window.dispatchEvent(new Event("resize"));
+
+		expect(themeItem().value).toBe("board");
 	});
 
 	it("applies a saved Theme in the head script, before the first paint", () => {
@@ -403,7 +445,7 @@ describe("Theme", () => {
 		expect(shownTheme()).toBe("board");
 
 		setUp();
-		expect(themeLabel()).toBe("Theme: Board");
+		expect(themeItem().value).toBe("board");
 	});
 
 	it.each(THEMES)("accepts the saved %s Theme in the head script", (theme) => {
@@ -430,7 +472,7 @@ describe("Theme", () => {
 		setUp();
 
 		expect(shownTheme()).toBeNull();
-		expect(themeLabel()).toBe("Theme: Board");
+		expect(themeItem().value).toBe("board");
 	});
 
 	it("ignores a saved Theme that is not a Theme", () => {
@@ -441,57 +483,128 @@ describe("Theme", () => {
 
 		expect(shownTheme()).toBeNull();
 		expect(loadSettings().theme).toBeUndefined();
-		expect(themeLabel()).toBe("Theme: Paper");
+		expect(themeItem().value).toBe("paper");
 	});
 
-	it("switches the look when the visitor chooses the Theme item, saves it, keeps the item selected, and sends theme/<id>", () => {
+	it("switches the look when the visitor chooses a Theme, saves it, keeps the item selected, and sends theme/<id>", () => {
 		saveSettings({ ...DEFAULT_SETTINGS, sound: false });
 		const track = vi.fn();
 		setUp({ track });
-
 		press("ArrowUp");
-		press("Enter");
+
+		chooseTheme("board");
 
 		expect(shownTheme()).toBe("board");
 		expect(loadSettings()).toEqual({ ...DEFAULT_SETTINGS, sound: false, theme: "board" });
-		expect(themeLabel()).toBe("Theme: Board");
-		expect(themeItem().classList.contains("is-selected")).toBe(true);
+		expect(themeItem().value).toBe("board");
+		expect(isSelected(themeItem())).toBe(true);
 		expect(document.activeElement).toBe(themeItem());
 		expect(track).toHaveBeenCalledExactlyOnceWith("theme/board");
 
-		themeItem().click();
+		chooseTheme("dungeon");
 
 		expect(shownTheme()).toBe("dungeon");
 		expect(loadSettings().theme).toBe("dungeon");
-		expect(themeLabel()).toBe("Theme: Dungeon");
 		expect(track).toHaveBeenLastCalledWith("theme/dungeon");
 
-		themeItem().click();
+		chooseTheme("paper");
 
 		expect(shownTheme()).toBe("paper");
 		expect(loadSettings().theme).toBe("paper");
-		expect(themeLabel()).toBe("Theme: Paper");
 		expect(track).toHaveBeenLastCalledWith("theme/paper");
 	});
 
-	it("shows a saved Dungeon Theme on the Theme item", () => {
+	it.each(["Enter", "Space"])("opens the Theme picker on %s, and leaves the Theme as it is", (key) => {
+		const track = vi.fn();
+		setUp({ track });
+		const showPicker = stubPicker();
+		press("ArrowUp");
+
+		const event = press(key);
+
+		expect(showPicker).toHaveBeenCalledTimes(1);
+		expect(event.defaultPrevented).toBe(true);
+		expect(shownTheme()).toBeNull();
+		expect(themeItem().value).toBe("paper");
+		expect(track).not.toHaveBeenCalled();
+	});
+
+	it("lets the browser open the picker its own way when showPicker() fails", () => {
+		setUp();
+		stubPicker(() => {
+			throw new DOMException("No user activation.", "NotAllowedError");
+		});
+		press("ArrowUp");
+
+		expect(press("Enter").defaultPrevented).toBe(false);
+		expect(press("Space").defaultPrevented).toBe(false);
+	});
+
+	it("moves the menu selection, not the Theme, with the arrow keys on the Theme select", () => {
+		setUp();
+		press("ArrowUp");
+		expect(document.activeElement).toBe(themeItem());
+
+		const down = press("ArrowDown");
+
+		expect(down.defaultPrevented).toBe(true);
+		expect(document.activeElement).toBe(newGame());
+		expect(themeItem().value).toBe("paper");
+	});
+
+	it("opens the Theme picker on Enter when the mouse selected the Theme item", () => {
+		setUp();
+		const showPicker = stubPicker();
+
+		pointAt(themeItem());
+		press("Enter");
+
+		expect(document.activeElement).toBe(themeItem());
+		expect(showPicker).toHaveBeenCalledTimes(1);
+	});
+
+	it("opens the Theme picker on a click on the Theme label; a click on the select itself opens it natively", () => {
+		setUp();
+		const showPicker = stubPicker();
+
+		themeItem().closest("label")?.querySelector("span")?.click();
+		expect(document.activeElement).toBe(themeItem());
+		expect(showPicker).toHaveBeenCalledTimes(1);
+
+		themeItem().click();
+		expect(showPicker).toHaveBeenCalledTimes(1);
+	});
+
+	it("moves the focus to the option under the pointer in the open picker, so one row is active", () => {
+		setUp();
+		const board = themeItem().querySelector<HTMLOptionElement>('option[value="board"]');
+		const dungeon = themeItem().querySelector<HTMLOptionElement>('option[value="dungeon"]');
+
+		board?.dispatchEvent(new PointerEvent("pointermove", { bubbles: true, pointerType: "mouse" }));
+		expect(document.activeElement).toBe(board);
+
+		dungeon?.dispatchEvent(new PointerEvent("pointermove", { bubbles: true, pointerType: "touch" }));
+		expect(document.activeElement).toBe(board);
+	});
+
+	it("shows a saved Dungeon Theme on the Theme select", () => {
 		saveSettings({ ...DEFAULT_SETTINGS, theme: "dungeon" });
 		runHeadScript();
 		setUp();
 
 		expect(loadSettings().theme).toBe("dungeon");
 		expect(shownTheme()).toBe("dungeon");
-		expect(themeLabel()).toBe("Theme: Dungeon");
+		expect(themeItem().value).toBe("dungeon");
 	});
 
 	it("loads the game again after a Theme change, so the game gets the art of the new Theme", async () => {
 		const loads: ((game: string) => void)[] = [];
 		const load = vi.fn(() => new Promise<string>((resolve) => loads.push(resolve)));
 		const { startGame } = setUp({ loadGame: load });
-		newGame().dispatchEvent(new Event("pointerenter"));
+		pointAt(newGame());
 
-		themeItem().click();
-		themeItem().click();
+		chooseTheme("board");
+		chooseTheme("dungeon");
 		loads[0]?.("paper game");
 		await Promise.resolve();
 		newGame().click();
@@ -512,19 +625,21 @@ describe("Theme", () => {
 		});
 		const started: string[] = [];
 		setUp({ loadGame: load, track, startGame: (game) => started.push(`${game}, shown ${shownTheme() ?? "paper"}`) });
+		const showPicker = stubPicker();
 
 		newGame().click();
-		expect(themeItem().getAttribute("aria-disabled")).toBe("true");
-		themeItem().click();
-		themeItem().focus();
+		expect(themeItem().disabled).toBe(true);
+		chooseTheme("board");
+		pointAt(themeItem());
 		press("Enter");
 		loads[0]?.();
 		await vi.waitFor(() => expect(started).toHaveLength(1));
 
 		expect(started).toEqual(["paper game, shown paper"]);
 		expect(load).toHaveBeenCalledTimes(1);
+		expect(showPicker).not.toHaveBeenCalled();
 		expect(loadSettings().theme).toBeUndefined();
-		expect(themeLabel()).toBe("Theme: Paper");
+		expect(themeItem().value).toBe("paper");
 		expect(track).not.toHaveBeenCalledWith(expect.stringMatching(/^theme\//));
 	});
 
@@ -535,9 +650,9 @@ describe("Theme", () => {
 		reject(new Error("offline"));
 		await vi.waitFor(() => expect(loadError()?.hidden).toBe(false));
 
-		themeItem().click();
+		chooseTheme("board");
 
-		expect(themeItem().hasAttribute("aria-disabled")).toBe(false);
+		expect(themeItem().disabled).toBe(false);
 		expect(shownTheme()).toBe("board");
 	});
 
@@ -545,7 +660,7 @@ describe("Theme", () => {
 		systemScheme("dark");
 		const { load, navigate } = setUp();
 
-		themeItem().click();
+		chooseTheme("dungeon");
 
 		expect(shownTheme()).toBe("dungeon");
 		expect(load).not.toHaveBeenCalled();
@@ -558,10 +673,10 @@ describe("Theme", () => {
 		});
 		setUp();
 
-		themeItem().click();
+		chooseTheme("board");
 
 		expect(shownTheme()).toBe("board");
-		expect(themeLabel()).toBe("Theme: Board");
+		expect(themeItem().value).toBe("board");
 	});
 });
 
@@ -579,11 +694,30 @@ describe("Title Screen Features", () => {
 		};
 
 		const page = titleScreenPage(
-			"<li><!--level-features--></li><dd><!--level-rooms--></dd><dd><!--level-exhibits--></dd><dd><!--level-bugs--></dd>",
+			"<li><!--level-features--></li><dd><!--level-rooms--></dd><dd><!--level-exhibits--></dd><dd><!--level-bugs--></dd><select><!--theme-options--></select>",
 			level,
 		);
 
-		expect(page).toBe("<li>1 Room, 2 Exhibits, 1 Bug to fix</li><dd>1</dd><dd>2</dd><dd>1</dd>");
+		expect(page).toMatch(/^<li>1 Room, 2 Exhibits, 1 Bug to fix<\/li><dd>1<\/dd><dd>2<\/dd><dd>1<\/dd><select>/);
+	});
+
+	it("fills the Theme options from the Themes, so the Theme item never misses a Theme", () => {
+		const options = [...document.querySelectorAll<HTMLOptionElement>('[data-menu-item="theme"] option')];
+
+		expect(PAGE).not.toContain("<!--theme-options-->");
+		expect(options.map((option) => [option.value, option.textContent])).toEqual([
+			["paper", "Paper"],
+			["board", "Board"],
+			["dungeon", "Dungeon"],
+		]);
+	});
+
+	it("fails on a page with no mark for the Theme options", () => {
+		expect(() =>
+			titleScreenPage(
+				"<li><!--level-features--></li><dd><!--level-rooms--></dd><dd><!--level-exhibits--></dd><dd><!--level-bugs--></dd>",
+			),
+		).toThrow(/theme-options/);
 	});
 
 	it("fails on a page with no mark for a count, so a count never goes missing", () => {
@@ -621,14 +755,27 @@ describe("Title Screen page", () => {
 		expect(PAGE).not.toContain("&mdash;");
 	});
 
-	it("lists in Features every control of pins 6 to 10, which narrow windows drop", () => {
-		const features = document.querySelector(".title-screen__features")?.textContent?.toLowerCase() ?? "";
-		const keys = [...document.querySelectorAll(".pinout__label--r")]
-			.filter((label) => label.querySelector(".pinout__name")?.textContent !== "NC")
-			.map((label) => label.querySelector(".pinout__key")?.textContent?.toLowerCase() ?? "");
+	it("keeps the Paper chip for the menu: pins 1 to 3 are the menu items, and the other pins are NC", () => {
+		const pins = [...document.querySelectorAll(".pinout__label")];
+		const menu = pins.filter((pin) => pin.querySelector("[data-menu-item]"));
+		const others = pins.filter((pin) => !pin.querySelector("[data-menu-item]"));
 
-		expect(keys).toEqual(["e", "click", "esc", "m"]);
-		for (const key of keys) expect(features).toMatch(new RegExp(`\\b${key}\\b`));
+		expect(menu.map((pin) => pin.querySelector(".pinout__num")?.textContent)).toEqual(["1", "2", "3"]);
+		expect(others.map((pin) => pin.querySelector(".pinout__name")?.textContent)).toEqual(["NC", "NC", "NC"]);
+		expect(document.querySelector(".pinout")?.querySelector("kbd")).toBeNull();
+	});
+
+	it("lists in the Paper Table 1 the same controls as the Dungeon How to Play", () => {
+		const table = document.querySelector("table.title-screen__controls");
+		const cells = [...(table?.querySelectorAll("tbody td") ?? [])].map((cell) => cell.textContent ?? "");
+		const paperKeys = cells.filter((_, i) => i % 2 === 0);
+		const dungeonKeys = [...document.querySelectorAll(".title-screen__rules dt")].map((term) =>
+			[...term.querySelectorAll("kbd")].map((key) => key.textContent).join(""),
+		);
+
+		expect(table?.querySelector("caption")?.textContent).toBe("Table 1. Controls");
+		expect(table?.closest("figure")).toBeNull();
+		expect(paperKeys.sort()).toEqual(dungeonKeys.sort());
 	});
 });
 
@@ -651,7 +798,7 @@ describe("NEW GAME dive", () => {
 
 	async function click() {
 		const setup = setUp();
-		newGame().dispatchEvent(new Event("pointerenter"));
+		pointAt(newGame());
 		setup.resolve("the game");
 		await flush();
 		newGame().click();
@@ -741,7 +888,7 @@ describe("NEW GAME dive", () => {
 	it("shows no dive and starts at once under reduced motion", async () => {
 		motion("reduce");
 		const setup = setUp();
-		newGame().dispatchEvent(new Event("pointerenter"));
+		pointAt(newGame());
 		setup.resolve("the game");
 		await flush();
 
@@ -831,13 +978,13 @@ describe("Title Screen in every look", () => {
 		document.documentElement.dataset.theme = theme;
 		const { navigate } = setUp();
 
-		themeItem().dispatchEvent(new Event("pointerenter"));
-		expect(themeItem().classList.contains("is-selected")).toBe(true);
+		pointAt(themeItem());
+		expect(isSelected(themeItem())).toBe(true);
 		newGame().focus();
-		expect(newGame().classList.contains("is-selected")).toBe(true);
+		expect(isSelected(newGame())).toBe(true);
 		press("ArrowDown");
 		expect(document.activeElement).toBe(skip());
-		expect(skip().classList.contains("is-selected")).toBe(true);
+		expect(isSelected(skip())).toBe(true);
 		press("Enter");
 		expect(navigate).toHaveBeenCalledTimes(1);
 	});

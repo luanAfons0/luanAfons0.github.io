@@ -1,6 +1,6 @@
 import { type AnalyticsEvent, track as sendEvent } from "../analytics/analytics";
 import { loadSettings, saveSettings } from "../game/settings";
-import { THEME_LABELS, THEMES, type Theme, shownTheme as themeOf } from "../game/theme";
+import { THEMES, type Theme, shownTheme as themeOf } from "../game/theme";
 
 export interface TitleScreenOptions<Game> {
 	/** The document (or part of it) that holds the Title Screen markup from index.html. */
@@ -44,12 +44,18 @@ const DIVE_FALLBACK_MS = 600;
 const DIE_FACES = ["3", "6", "1", "5", "2", "4"] as const;
 const DIE_STEP_MS = 140;
 
-/** The menu keys. The arrow keys move the selection (and wrap); Enter chooses the selected item. */
+/**
+ * The menu keys. The arrow keys move the selection (and wrap); Enter chooses the selected item. On
+ * the Theme select (with its picker closed), the arrow keys still move the selection, and Enter or
+ * Space opens the picker.
+ */
 const MOVES: Record<string, number> = { ArrowUp: -1, ArrowDown: 1 };
+const OPEN_KEYS: ReadonlySet<string> = new Set(["Enter", "NumpadEnter", "Space"]);
 
 /**
  * The Title Screen: NEW GAME, SKIP, or Theme. It loads the game code only when the visitor points at or
- * focuses NEW GAME. The Theme item cycles through the Themes (Paper, Board, Dungeon) at once and saves the choice.
+ * focuses NEW GAME. The Theme item is a native select of the Themes (Paper, Board, Dungeon): a choice
+ * switches the look at once and saves it.
  */
 export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): TitleScreen {
 	const track = options.track ?? sendEvent;
@@ -57,9 +63,11 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 	const reload = options.reload ?? (() => location.reload());
 	const newGame = query<HTMLElement>(options.root, '[data-menu-item="new-game"]');
 	const skip = query<HTMLAnchorElement>(options.root, '[data-menu-item="skip"]');
-	const themeItem = query<HTMLElement>(options.root, '[data-menu-item="theme"]');
-	const themeName = query<HTMLElement>(options.root, "[data-theme-name]");
+	const themeItem = query<HTMLSelectElement>(options.root, '[data-menu-item="theme"]');
 	const items: readonly HTMLElement[] = [newGame, skip, themeItem];
+	// The box that shows each item (its selection marker and hover): the item, or the row around the Theme select.
+	const boxes = items.map((item) => item.closest<HTMLElement>(".title-screen__item") ?? item);
+	const themeRow = boxes[2] ?? themeItem;
 	const screen = query<HTMLElement>(options.root, "[data-title-screen]");
 	const loadingBar = query<HTMLElement>(options.root, "[data-loading-bar]");
 	const loadError = query<HTMLElement>(options.root, "[data-load-error]");
@@ -113,7 +121,7 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 	const fail = (error: unknown) => {
 		console.error(error);
 		starting = false;
-		themeItem.removeAttribute("aria-disabled");
+		themeItem.disabled = false;
 		loadFailed = true;
 		hideDive();
 		screen.hidden = false;
@@ -167,7 +175,7 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 		starting = true;
 		if (loadFailed) return reload();
 		// The game starts with the art of the shown Theme, so the Theme stays until it starts or fails.
-		themeItem.setAttribute("aria-disabled", "true");
+		themeItem.disabled = true;
 		track("new-game");
 		try {
 			options.onNewGame?.();
@@ -198,13 +206,13 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 	let selected = 0;
 	const select = (index: number) => {
 		selected = index;
-		items.forEach((item, i) => {
-			item.classList.toggle("is-selected", i === index);
+		boxes.forEach((box, i) => {
+			box.classList.toggle("is-selected", i === index);
 		});
 	};
 
 	// The Theme: data-theme on the root, set by the Theme head script from the saved settings. With no
-	// data-theme, the CSS follows the system setting, so the label follows it too.
+	// data-theme, the CSS follows the system setting, so the Theme select follows it too.
 	const page = themeItem.ownerDocument.documentElement;
 	const darkSystem = matchMedia("(prefers-color-scheme: dark)");
 	/** Where the dive grows from in each look: the chip, the selected pad, or the ink plate. */
@@ -214,63 +222,104 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 		dungeon: plate,
 	};
 	const shownTheme = () => themeOf(page, darkSystem);
-	const showThemeName = () => {
-		themeName.textContent = THEME_LABELS[shownTheme()];
+	/** Shows the shown Theme in the Theme select. */
+	const showTheme = () => {
+		themeItem.value = shownTheme();
 	};
-	showThemeName();
+	showTheme();
 	/**
-	 * Switches to the next Theme (in `THEMES` order, wrapping) at once and saves it. The Theme item
+	 * Switches to the Theme the visitor chose in the Theme select at once and saves it. The Theme item
 	 * keeps the selection and the focus. The game loaded so far has the art of the old Theme, so the
 	 * next hover, focus, or NEW GAME loads it again. After NEW GAME, until the game starts or fails to
-	 * load, it does nothing: the game and the Audio start with the art of the Theme NEW GAME saw.
+	 * load, the select is disabled and a choice does nothing: the game and the Audio start with the art
+	 * of the Theme NEW GAME saw.
 	 */
 	const switchTheme = () => {
-		if (starting) return;
-		const theme = THEMES[(THEMES.indexOf(shownTheme()) + 1) % THEMES.length] as Theme;
+		const theme = THEMES.find((id) => id === themeItem.value);
+		if (starting || !theme || theme === shownTheme()) return showTheme();
 		page.dataset.theme = theme;
 		saveSettings({ ...loadSettings(), theme });
-		showThemeName();
 		track(`theme/${theme}`);
 		loading = undefined;
 		loaded = undefined;
 	};
+	/**
+	 * Opens the picker of the Theme select. It returns false when the browser does not let the page
+	 * open it (no showPicker(), or no user gesture): the key then does what the browser does.
+	 */
+	const openPicker = (): boolean => {
+		if (themeItem.disabled) return true;
+		themeItem.focus();
+		try {
+			themeItem.showPicker();
+			return true;
+		} catch {
+			return false;
+		}
+	};
+	/** A click on the Theme row outside the select (the label, the caret) opens the picker; the select opens it itself. */
+	const onThemeRowClick = (event: MouseEvent) => {
+		if (event.target === themeItem) return;
+		event.preventDefault();
+		openPicker();
+	};
 
-	const choose = () => {
+	/**
+	 * In the open picker (the customizable select), the pointer moves the focus to the option under it,
+	 * so the focused option is the one active row, for the keys and the pointer alike, as in a native
+	 * menu. A closed select shows no options, and an OS picker sends no pointer events to the page.
+	 */
+	const onOptionPointer = (event: PointerEvent) => {
+		if (event.pointerType === "touch" || !(event.target instanceof Element)) return;
+		const option = event.target.closest("option");
+		if (option && option !== option.ownerDocument.activeElement) option.focus({ preventScroll: true });
+	};
+
+	/** Chooses the selected item. It returns false when the browser should handle the key (see `openPicker`). */
+	const choose = (): boolean => {
 		const item = items[selected];
+		if (item === themeItem) return openPicker();
 		if (item === skip) {
 			track("skip");
 			navigate(skip.href);
-		} else if (item === themeItem) switchTheme();
-		else startNewGame();
+		} else startNewGame();
+		return true;
 	};
 
 	const onKeyDown = (event: KeyboardEvent) => {
+		// With the native picker open, the keys belong to the picker.
+		if (pickerOpen(themeItem)) return;
 		const move = MOVES[event.code];
 		if (move !== undefined) {
+			// This also keeps a closed Theme select from changing its value.
 			event.preventDefault();
 			const next = (selected + move + items.length) % items.length;
 			select(next);
 			items[next]?.focus();
 		} else if (event.code === "Enter" || event.code === "NumpadEnter") {
-			event.preventDefault();
-			choose();
+			if (choose()) event.preventDefault();
+		} else if (OPEN_KEYS.has(event.code) && event.target === themeItem) {
+			if (openPicker()) event.preventDefault();
 		}
 	};
 
 	const listeners = items.map((item, index) => {
+		const box = boxes[index] ?? item;
 		const onPoint = () => select(index);
-		item.addEventListener("pointerenter", onPoint);
+		box.addEventListener("pointerenter", onPoint);
 		item.addEventListener("focus", onPoint);
 		return () => {
-			item.removeEventListener("pointerenter", onPoint);
+			box.removeEventListener("pointerenter", onPoint);
 			item.removeEventListener("focus", onPoint);
 		};
 	});
 	newGame.addEventListener("pointerenter", preloadQuietly);
 	newGame.addEventListener("focus", preloadQuietly);
 	newGame.addEventListener("click", startNewGame);
-	themeItem.addEventListener("click", switchTheme);
-	darkSystem.addEventListener("change", showThemeName);
+	themeItem.addEventListener("change", switchTheme);
+	themeRow.addEventListener("click", onThemeRowClick);
+	themeItem.addEventListener("pointermove", onOptionPointer);
+	darkSystem.addEventListener("change", showTheme);
 	// A click on the SKIP link follows the link by itself; the Enter key goes through choose().
 	const onSkipClick = () => track("skip");
 	skip.addEventListener("click", onSkipClick);
@@ -282,13 +331,24 @@ export function createTitleScreen<Game>(options: TitleScreenOptions<Game>): Titl
 		newGame.removeEventListener("pointerenter", preloadQuietly);
 		newGame.removeEventListener("focus", preloadQuietly);
 		newGame.removeEventListener("click", startNewGame);
-		themeItem.removeEventListener("click", switchTheme);
-		darkSystem.removeEventListener("change", showThemeName);
+		themeItem.removeEventListener("change", switchTheme);
+		themeRow.removeEventListener("click", onThemeRowClick);
+		themeItem.removeEventListener("pointermove", onOptionPointer);
+		darkSystem.removeEventListener("change", showTheme);
 		skip.removeEventListener("click", onSkipClick);
 		document.removeEventListener("keydown", onKeyDown);
 	}
 
 	return { dispose };
+}
+
+/** Whether the native picker of a select is open (`:open`); false where the browser does not know `:open`. */
+function pickerOpen(select: HTMLSelectElement): boolean {
+	try {
+		return select.matches(":open");
+	} catch {
+		return false;
+	}
 }
 
 function query<T extends Element>(root: ParentNode, selector: string): T {

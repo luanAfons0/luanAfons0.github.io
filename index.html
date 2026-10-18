@@ -33,7 +33,7 @@
 	<body>
 		<!--
 			The Title Screen: plain HTML and CSS. The game code loads only when the visitor points at or focuses NEW GAME.
-			One markup serves the three Themes: Paper (a datasheet cover with a chip pinout), Board (the name in
+			One markup serves the three Themes: Paper (a datasheet cover with a chip pinout for the menu and a table of the controls), Board (the name in
 			silkscreen and the menu as copper pads), and Dungeon (an open gamebook on its green cover: the ink plate
 			and How to Play on the left page, the name, the stats, and the menu as choices on the right page).
 			Elements with only-paper, only-board, or only-dungeon show in one look only.
@@ -78,8 +78,6 @@
 							<li><!--level-features--></li>
 							<li>A raycasting engine I wrote from scratch in TypeScript</li>
 							<li>Skip View: every project, job, and skill on one page</li>
-							<!-- Narrow windows drop pins 6 to 10, so this item lists their controls. -->
-							<li class="title-screen__narrow"><kbd>E</kbd> to use, click to fix a Bug, <kbd>Esc</kbd> to pause, <kbd>M</kbd> to mute</li>
 						</ul>
 					</section>
 					<!-- Dungeon: the Features as the stat boxes of an Adventure Sheet, counted from the Level. -->
@@ -96,76 +94,51 @@
 						</ul>
 					</section>
 				</div>
-				<figure class="title-screen__fig">
-					<!-- The chip pinout. Pins 1 to 3 are the menu; the other pins list the controls (Paper only). -->
-					<nav class="pinout" aria-label="Title Screen">
-						<h2 class="title-screen__choose only-dungeon">Now choose:</h2>
-						<span class="pinout__label pinout__label--menu" style="--row: 1">
-							<svg class="title-screen__hand only-dungeon" aria-hidden="true"><use href="#title-hand" /></svg>
-							<button class="title-screen__item is-selected" type="button" data-menu-item="new-game"><span class="title-screen__pad only-board" aria-hidden="true"></span><span>New Game</span><span class="title-screen__lead only-dungeon" aria-hidden="true"></span><span class="title-screen__to only-dungeon" aria-hidden="true">turn to 1</span></button>
-							<span class="pinout__num only-paper" aria-hidden="true">1</span>
-						</span>
-						<span class="pinout__pin pinout__pin--l only-paper" style="--row: 1"></span>
-						<span class="pinout__label pinout__label--menu" style="--row: 2">
-							<svg class="title-screen__hand only-dungeon" aria-hidden="true"><use href="#title-hand" /></svg>
-							<a class="title-screen__item" href="%BASE_URL%skip/" data-menu-item="skip"><span class="title-screen__pad only-board" aria-hidden="true"></span><span>Skip</span><span class="title-screen__lead only-dungeon" aria-hidden="true"></span><span class="title-screen__to only-dungeon" aria-hidden="true">read every page</span></a>
-							<span class="pinout__num only-paper" aria-hidden="true">2</span>
-						</span>
-						<span class="pinout__pin pinout__pin--l only-paper" style="--row: 2"></span>
-						<span class="pinout__label pinout__label--menu" style="--row: 3">
-							<svg class="title-screen__hand only-dungeon" aria-hidden="true"><use href="#title-hand" /></svg>
-							<button class="title-screen__item title-screen__item--small" type="button" data-menu-item="theme"><span class="title-screen__pad only-board" aria-hidden="true"></span><span>Theme: <span data-theme-name></span></span><span class="title-screen__lead only-dungeon" aria-hidden="true"></span><span class="title-screen__to only-dungeon" aria-hidden="true">Paper, Board, Dungeon</span></button>
-							<span class="pinout__num only-paper" aria-hidden="true">3</span>
-						</span>
-						<span class="pinout__pin pinout__pin--l only-paper" style="--row: 3"></span>
-						<span class="pinout__label only-paper" style="--row: 4">
-							<span class="pinout__key"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span>
-							<span class="pinout__name">Move</span>
-							<span class="pinout__num" aria-hidden="true">4</span>
-						</span>
-						<span class="pinout__pin pinout__pin--l only-paper" style="--row: 4"></span>
-						<span class="pinout__label only-paper" style="--row: 5">
-							<span class="pinout__key">Mouse</span>
-							<span class="pinout__name">Look</span>
-							<span class="pinout__num" aria-hidden="true">5</span>
-						</span>
-						<span class="pinout__pin pinout__pin--l only-paper" style="--row: 5"></span>
-						<!-- The chip body: the NEW GAME dive grows from it in Paper (from the selected pad in Board). -->
-						<span class="pinout__body only-paper" data-chip aria-hidden="true">
-							<span class="pinout__marking">LA-1<small>Luan Afonso</small></span>
-						</span>
-						<span class="pinout__pin pinout__pin--r only-paper" style="--row: 1"></span>
-						<span class="pinout__label pinout__label--r only-paper" style="--row: 1">
-							<span class="pinout__num" aria-hidden="true">10</span>
-							<span class="pinout__name">Use</span>
-							<span class="pinout__key"><kbd>E</kbd></span>
-						</span>
-						<span class="pinout__pin pinout__pin--r only-paper" style="--row: 2"></span>
-						<span class="pinout__label pinout__label--r only-paper" style="--row: 2">
-							<span class="pinout__num" aria-hidden="true">9</span>
-							<span class="pinout__name">Fix Bug</span>
-							<span class="pinout__key">Click</span>
-						</span>
-						<span class="pinout__pin pinout__pin--r only-paper" style="--row: 3"></span>
-						<span class="pinout__label pinout__label--r only-paper" style="--row: 3">
-							<span class="pinout__num" aria-hidden="true">8</span>
-							<span class="pinout__name">Pause</span>
-							<span class="pinout__key"><kbd>Esc</kbd></span>
-						</span>
-						<span class="pinout__pin pinout__pin--r only-paper" style="--row: 4"></span>
-						<span class="pinout__label pinout__label--r only-paper" style="--row: 4">
-							<span class="pinout__num" aria-hidden="true">7</span>
-							<span class="pinout__name">Mute</span>
-							<span class="pinout__key"><kbd>M</kbd></span>
-						</span>
-						<span class="pinout__pin pinout__pin--r only-paper" style="--row: 5"></span>
-						<span class="pinout__label pinout__label--r only-paper" style="--row: 5">
-							<span class="pinout__num" aria-hidden="true">6</span>
-							<span class="pinout__name pinout__name--nc">NC</span>
-							<span class="pinout__key">No connection</span>
-						</span>
-					</nav>
-					<figcaption class="title-screen__caption only-paper">Figure 1. Pin configuration <span>(pins 1 to 3 are the menu)</span></figcaption>
+				<div class="title-screen__fig">
+					<!-- Paper: the chip pinout, a 6-pin package. Pins 1 to 3 are the menu (the Theme item is a select; titleScreenPage puts in its options); pins 4 to 6 are NC. -->
+					<figure class="title-screen__chip">
+						<nav class="pinout" aria-label="Title Screen">
+							<h2 class="title-screen__choose only-dungeon">Now choose:</h2>
+							<span class="pinout__label pinout__label--menu" style="--row: 1">
+								<svg class="title-screen__hand only-dungeon" aria-hidden="true"><use href="#title-hand" /></svg>
+								<button class="title-screen__item is-selected" type="button" data-menu-item="new-game"><span class="title-screen__pad only-board" aria-hidden="true"></span><span>New Game</span><span class="title-screen__lead only-dungeon" aria-hidden="true"></span><span class="title-screen__to only-dungeon" aria-hidden="true">turn to 1</span></button>
+								<span class="pinout__num only-paper" aria-hidden="true">1</span>
+							</span>
+							<span class="pinout__pin pinout__pin--l only-paper" style="--row: 1"></span>
+							<span class="pinout__label pinout__label--menu" style="--row: 2">
+								<svg class="title-screen__hand only-dungeon" aria-hidden="true"><use href="#title-hand" /></svg>
+								<a class="title-screen__item" href="%BASE_URL%skip/" data-menu-item="skip"><span class="title-screen__pad only-board" aria-hidden="true"></span><span>Skip</span><span class="title-screen__lead only-dungeon" aria-hidden="true"></span><span class="title-screen__to only-dungeon" aria-hidden="true">read every page</span></a>
+								<span class="pinout__num only-paper" aria-hidden="true">2</span>
+							</span>
+							<span class="pinout__pin pinout__pin--l only-paper" style="--row: 2"></span>
+							<span class="pinout__label pinout__label--menu" style="--row: 3">
+								<svg class="title-screen__hand only-dungeon" aria-hidden="true"><use href="#title-hand" /></svg>
+								<label class="title-screen__item title-screen__item--small"><span class="title-screen__pad only-board" aria-hidden="true"></span><span class="title-screen__theme">Theme<span aria-hidden="true">:</span> <select class="title-screen__select" data-menu-item="theme"><!--theme-options--></select><span class="title-screen__caret" aria-hidden="true"></span></span><span class="title-screen__lead only-dungeon" aria-hidden="true"></span><span class="title-screen__to only-dungeon" aria-hidden="true">Paper, Board, Dungeon</span></label>
+								<span class="pinout__num only-paper" aria-hidden="true">3</span>
+							</span>
+							<span class="pinout__pin pinout__pin--l only-paper" style="--row: 3"></span>
+							<!-- The chip body: the NEW GAME dive grows from it in Paper (from the selected pad in Board). -->
+							<span class="pinout__body only-paper" data-chip aria-hidden="true">
+								<span class="pinout__marking">LA-1<small>Luan Afonso</small></span>
+							</span>
+							<span class="pinout__pin pinout__pin--r only-paper" style="--row: 1"></span>
+							<span class="pinout__label pinout__label--r only-paper" style="--row: 1">
+								<span class="pinout__num" aria-hidden="true">6</span>
+								<span class="pinout__name pinout__name--nc">NC</span>
+							</span>
+							<span class="pinout__pin pinout__pin--r only-paper" style="--row: 2"></span>
+							<span class="pinout__label pinout__label--r only-paper" style="--row: 2">
+								<span class="pinout__num" aria-hidden="true">5</span>
+								<span class="pinout__name pinout__name--nc">NC</span>
+							</span>
+							<span class="pinout__pin pinout__pin--r only-paper" style="--row: 3"></span>
+							<span class="pinout__label pinout__label--r only-paper" style="--row: 3">
+								<span class="pinout__num" aria-hidden="true">4</span>
+								<span class="pinout__name pinout__name--nc">NC</span>
+							</span>
+						</nav>
+						<figcaption class="title-screen__caption only-paper">Figure 1. Pin configuration <span>(pins 1 to 3 are the menu)</span></figcaption>
+					</figure>
 
 					<!-- No progress events come from a dynamic import, so the loading state shows that work goes on, not how much. -->
 					<div class="title-screen__loading" data-loading-bar role="progressbar" aria-label="Loading the game" hidden>
@@ -196,7 +169,20 @@
 						<kbd>&uarr;</kbd> <kbd>&darr;</kbd> to choose, <kbd>Enter</kbd> to select<br />
 						Skip to read every project, job, and skill without playing.
 					</p>
-				</figure>
+
+					<!-- Paper: the controls, as a datasheet table under the pinout. -->
+					<table class="title-screen__controls only-paper">
+						<caption>Table 1. Controls</caption>
+						<thead>
+							<tr><th scope="col">Key</th><th scope="col">Action</th><th scope="col">Key</th><th scope="col">Action</th></tr>
+						</thead>
+						<tbody>
+							<tr><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></td><td>Move</td><td><kbd>E</kbd></td><td>Use</td></tr>
+							<tr><td>Mouse</td><td>Look</td><td>Click</td><td>Fix Bug</td></tr>
+							<tr><td><kbd>Esc</kbd></td><td>Pause</td><td><kbd>M</kbd></td><td>Mute</td></tr>
+						</tbody>
+					</table>
+				</div>
 				<p class="title-screen__book-foot only-dungeon"><span><kbd>Up</kbd> <kbd>Down</kbd> to choose, <kbd>Enter</kbd> to select</span><span class="title-screen__folio" aria-hidden="true">iii</span></p>
 				<footer class="title-screen__foot only-paper">
 					<span><kbd>&uarr;</kbd> <kbd>&darr;</kbd> to choose, <kbd>Enter</kbd> to select</span>

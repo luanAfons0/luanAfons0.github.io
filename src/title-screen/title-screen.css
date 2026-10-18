@@ -1,7 +1,7 @@
 /*
  * The Title Screen in two looks (src/theme.css chooses one):
- * - Paper: a datasheet cover. Part number LA-1, the name, a Features list, and a chip pinout where
- *   pins 1 to 3 are the menu and the other pins list the controls.
+ * - Paper: a datasheet cover. Part number LA-1, the name, a Features list, a 6-pin chip pinout where
+ *   pins 1 to 3 are the menu (pins 4 to 6 are NC), and under it Table 1, the controls.
  * - Board: the name in silkscreen inside the outline of part LA-1, and the menu as pads that traces
  *   join to the outline.
  * One markup serves both. Colors come from the look tokens in theme.css; the sizes and the layout
@@ -23,7 +23,7 @@
 	width: 100vw;
 	height: 100dvh;
 	overflow-y: auto;
-	background-color: var(--surface);
+	background-color: var(--ground);
 	background-image: var(--ts-texture);
 	background-size: 240px 240px;
 	color: var(--text);
@@ -54,6 +54,8 @@
 	--ts-trace: 3.2em; /* Board: the trace from the chip outline to each pad, in em of the sheet. */
 	--ts-silk-line: transparent; /* A silkscreen line that only Board draws: keep-out edges, the bus. */
 	--ts-note-border: 1px;
+	--ts-chip-display: flex; /* Paper: Figure 1 is its own block. Board and Dungeon lay out its parts in the menu column. */
+	--ts-picker-edge: 1px;
 }
 
 /* The Board layout. Keep the two blocks below the same: the first is the saved Theme, the second the
@@ -80,8 +82,11 @@
 	--ts-item-small: 0.667;
 	--ts-item-padding: 0;
 	--ts-item-trace: none;
+	--ts-option-pad: block;
 	--ts-silk-line: var(--silk-3);
 	--ts-note-border: 2px;
+	--ts-chip-display: contents;
+	--ts-picker-edge: 2px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -107,8 +112,11 @@
 		--ts-item-small: 0.667;
 		--ts-item-padding: 0;
 		--ts-item-trace: none;
+		--ts-option-pad: block;
 		--ts-silk-line: var(--silk-3);
 		--ts-note-border: 2px;
+		--ts-chip-display: contents;
+		--ts-picker-edge: 2px;
 	}
 }
 
@@ -123,7 +131,7 @@
 }
 
 .title-screen ::selection {
-	background: var(--copper);
+	background: var(--live-trace);
 	color: var(--paper);
 }
 
@@ -143,6 +151,8 @@
 	width: calc(100 * var(--u));
 	min-height: calc(56.25 * var(--u));
 	overflow-x: clip;
+	/* Paper: the light sheet on the paper shade. Board: no fill, the board runs under it. */
+	background-color: light-dark(var(--surface), transparent);
 	font-size: var(--ts-font);
 }
 
@@ -238,11 +248,6 @@
 	background: currentColor;
 }
 
-/* The controls of pins 6 to 10, in text for narrow windows that drop those pins. */
-.title-screen__narrow {
-	display: none;
-}
-
 /* Board: the chip outline around the name, with its part number. It is a keep-out: the background
    traces stop at its edge. Its right edge is where the pad traces start: the figure column starts at
    1.15 / 2.15 of the sheet (--ts-columns), the pads 4em into it (--ts-fig-padding), and each trace
@@ -281,6 +286,15 @@
 	gap: var(--ts-fig-gap);
 	margin: 0;
 	padding: var(--ts-fig-padding);
+}
+
+/* Figure 1: the chip pinout and its caption. */
+.title-screen__chip {
+	display: var(--ts-chip-display);
+	flex-direction: column;
+	align-items: center;
+	gap: var(--ts-fig-gap);
+	margin: 0;
 }
 
 .title-screen__caption {
@@ -336,7 +350,7 @@
 	line-height: 1.8;
 }
 
-/* The pinout: a 10-pin chip. Paper shows it all; Board keeps only the menu labels, as pads. */
+/* The pinout: a 6-pin chip. Paper shows it all; Board keeps only the menu labels, as pads. */
 .pinout {
 	display: grid;
 	grid-template-columns: var(--ts-pinout-columns);
@@ -371,7 +385,7 @@
 	grid-row: var(--row);
 	width: 100%;
 	height: 0.8em;
-	background: var(--pad);
+	background: var(--idle-pad);
 }
 
 .pinout__pin--l {
@@ -391,7 +405,7 @@
 
 .pinout__body {
 	position: relative;
-	grid-row: 1 / span 5;
+	grid-row: 1 / span 3;
 	grid-column: 3;
 	align-self: stretch;
 	display: grid;
@@ -442,9 +456,63 @@
 	color: var(--text-2);
 }
 
-.pinout__key {
+/* Paper: Table 1, the controls, under Figure 1 after clear space and a hairline. A datasheet table
+   in two halves (key and action, twice): a 2px ink rule over the head, hairlines between the rows,
+   and a 1px ink rule at the end. The actions are pin names. */
+.title-screen__controls {
+	width: min(100%, 30em);
+	margin-top: 1.6em;
+	border-collapse: collapse;
+	font-size: 0.95em;
+}
+
+.title-screen__controls caption {
+	padding: 1em 0 0.6em;
+	border-top: 1px solid var(--line-2);
+	font-weight: 700;
+	text-align: left;
+}
+
+.title-screen__controls th,
+.title-screen__controls td {
+	padding: 0.35em 0.6em 0.35em 0;
+	text-align: left;
+	white-space: nowrap;
+}
+
+.title-screen__controls th {
+	padding-block: 0.55em 0.45em;
+	border-top: 2px solid var(--line);
+	border-bottom: 1px solid var(--line);
 	color: var(--text-2);
-	font-size: 0.9em;
+	font: 400 max(8px, round(nearest, 0.75em, 8px)) / 1 var(--font-silk);
+}
+
+.title-screen__controls td {
+	border-bottom: 1px solid var(--line-2);
+	color: var(--text-2);
+}
+
+.title-screen__controls tr:last-child td {
+	border-bottom-color: var(--line);
+}
+
+/* The second half starts after a gap. */
+.title-screen__controls :is(th, td):nth-child(3) {
+	padding-left: 1.2em;
+}
+
+.title-screen__controls td:nth-child(even) {
+	color: var(--text);
+	font: 400 max(8px, round(nearest, 1em, 8px)) / 1 var(--font-silk);
+}
+
+.title-screen__controls kbd {
+	color: var(--text);
+}
+
+.title-screen__controls kbd + kbd {
+	margin-left: 0.25em;
 }
 
 /* A menu item: a pin label in Paper, a pad in Board. Selection is a step change. */
@@ -487,13 +555,200 @@
 	width: calc(0.8 * var(--ts-font) + 1px);
 }
 
-.title-screen__item:focus-visible {
+.title-screen__item:focus-visible,
+.title-screen__item:has(.title-screen__select:focus-visible) {
 	outline: 2px solid var(--focus);
 	outline-offset: 4px;
 }
 
 .title-screen__item:active {
 	translate: 0 1px;
+}
+
+/* The Theme item: the label "Theme:" and a native select. The closed select has no look of its own:
+   it is item text, as wide as the shown Theme, and the row shows the selection and the focus ring.
+   It keeps the look while NEW GAME starts it (disabled). The caret marks it, in the look of each Theme:
+   a pixel triangle on the Silkscreen grid (1 pixel is 1/8 em) in Paper and Board. */
+.title-screen__theme {
+	white-space: nowrap;
+}
+
+.title-screen__select {
+	appearance: none;
+	field-sizing: content;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	outline: none;
+	background: none;
+	color: inherit;
+	font: inherit;
+	letter-spacing: inherit;
+	cursor: pointer;
+}
+
+.title-screen__select:disabled {
+	opacity: 1;
+	color: inherit;
+}
+
+/* The open picker. Where the browser can style it (the customizable select, appearance: base-select),
+   each Theme draws its own picker below. Elsewhere the OS draws it, and the options only take the
+   colors of the page. */
+@supports not (appearance: base-select) {
+	.title-screen__select option {
+		background-color: var(--surface);
+		color: var(--text);
+	}
+}
+
+/* The customizable picker: a classic attached dropdown. It is in the top layer, anchored to the select
+   by name (--theme-select): its left edge is the select's left edge, its top is just under the select
+   (above it when the window has no room below), and it is at least as wide as the select. Name the
+   anchor: with position-area off, an anchor() with no name finds no anchor in newer Chrome, and the
+   picker falls back to the left edge of the window. It is a real select: the browser keeps the keys
+   (the arrows move the focus, Enter chooses, Esc closes and gives the focus back to the select).
+   One option per full-width row. The active row (the focused option: the keys and the fine pointer
+   move the focus, see title-screen.ts) has the active look of the Theme; the current Theme has a check
+   mark at the right of its row. The browser's own picker icon is off: the caret says the same. The
+   picker fades in for 120ms and closes at once. */
+@supports (appearance: base-select) {
+	.title-screen__select,
+	.title-screen__select::picker(select) {
+		appearance: base-select;
+	}
+
+	/* The closed select keeps the look of item text. */
+	.title-screen__select {
+		display: inline;
+		min-block-size: 0;
+		min-inline-size: 0;
+		gap: 0;
+		align-items: baseline;
+		anchor-name: --theme-select;
+	}
+
+	.title-screen__select::picker-icon {
+		display: none;
+	}
+
+	.title-screen__select::picker(select) {
+		--option-pad: 0.75em;
+		--option-pad-block: 0.5em;
+
+		position-anchor: --theme-select;
+		position-area: block-end span-inline-end;
+		position-try-order: normal;
+		position-try-fallbacks: flip-block;
+		inset: auto;
+		box-sizing: border-box;
+		max-block-size: none; /* Too tall below: flip above, not scroll. */
+		min-inline-size: anchor-size(width);
+		margin: 0;
+		margin-block-start: 6px; /* flip-block moves it to the other side. */
+		padding: 0;
+		border: var(--ts-picker-edge, 1px) solid var(--line);
+		border-radius: 0;
+		background: var(--surface);
+		color: var(--text);
+		font: inherit;
+		letter-spacing: inherit;
+	}
+
+	.title-screen__select:open::picker(select) {
+		transition: opacity 120ms cubic-bezier(0.23, 1, 0.32, 1);
+
+		@starting-style {
+			opacity: 0;
+		}
+	}
+
+	.title-screen__select option {
+		display: flex;
+		align-items: center;
+		gap: 0.75em;
+		min-block-size: 0;
+		padding: var(--option-pad-block) var(--option-pad);
+		border: 0;
+		outline: none;
+		background: none;
+		color: inherit;
+		font: inherit;
+		white-space: nowrap;
+		cursor: pointer;
+	}
+
+	/* Board: every option has a pad, like the menu; the active option's pad is copper. */
+	.title-screen__select option::before {
+		content: "";
+		display: var(--ts-option-pad, none);
+		flex: none;
+		width: 0.75em;
+		height: 0.5em;
+		border-radius: 1px;
+		background: var(--idle-pad);
+	}
+
+	/* The check mark of the current Theme, at the right of its row: in Paper and Board a pixel check on
+	   the Silkscreen grid (7 by 5 pixels, 1 pixel is 1/8 em). Every row keeps its place, so the rows
+	   have one width. */
+	.title-screen__select option::checkmark {
+		content: "";
+		order: 1;
+		flex: none;
+		width: 0.875em;
+		height: 0.625em;
+		margin-inline-start: auto;
+		background: currentColor;
+		mask:
+			url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 5' shape-rendering='crispEdges'%3E%3Cpath d='M6 0h1v1H6zM5 1h1v1H5zM0 2h1v1H0zM4 2h1v1H4zM1 3h1v1H1zM3 3h1v1H3zM2 4h1v1H2z'/%3E%3C/svg%3E")
+			center / 100% 100% no-repeat;
+		visibility: hidden;
+	}
+
+	.title-screen__select option:checked::checkmark {
+		visibility: visible;
+	}
+
+	/* The active look: an ink block with paper text in Paper, Hot Copper text and a copper pad in Board. */
+	.title-screen__select option:focus {
+		background: light-dark(var(--ink), transparent);
+		color: light-dark(var(--paper), var(--copper-hot));
+	}
+
+	.title-screen__select option:focus::before {
+		background: var(--live-trace);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.title-screen__select:open::picker(select) {
+			transition: none;
+		}
+	}
+}
+
+.title-screen__caret {
+	display: inline-block;
+	width: 0.625em;
+	height: 0.375em;
+	margin-left: 0.25em;
+	vertical-align: 0.125em;
+	background: currentColor;
+	clip-path: polygon(
+		0 0,
+		100% 0,
+		100% 33.34%,
+		80% 33.34%,
+		80% 66.67%,
+		60% 66.67%,
+		60% 100%,
+		40% 100%,
+		40% 66.67%,
+		20% 66.67%,
+		20% 33.34%,
+		0 33.34%
+	);
 }
 
 /* Board: the pad, with its silkscreen trace to the chip outline. Every pad has the same size and
@@ -506,7 +761,7 @@
 	height: 1.6em;
 	margin-right: 1.6em;
 	border-radius: 1px;
-	background: var(--pad);
+	background: var(--idle-pad);
 	font-size: var(--ts-font);
 }
 
@@ -695,8 +950,8 @@
 	}
 }
 
-/* The ornament tier below 600px: Paper drops pins 6 to 10 and narrows the chip, so the content keeps
-   its size. The Features list then shows the controls of those pins in text. */
+/* The ornament tier below 600px: Paper drops the NC pins 4 to 6 and narrows the chip, so the content
+   keeps its size. */
 @media (max-width: 600px) {
 	.title-screen {
 		--ts-pinout-columns: auto 1.28em 7.2em;
@@ -705,10 +960,6 @@
 	.pinout__pin--r,
 	.pinout__label--r {
 		display: none;
-	}
-
-	.title-screen__narrow {
-		display: block;
 	}
 }
 
@@ -807,6 +1058,7 @@
 	--ts-name-stretch: normal;
 	--ts-name-spacing: -0.015em;
 	--ts-item-trace: none;
+	--ts-chip-display: contents;
 }
 
 :root[data-theme="dungeon"] .title-screen ::selection {
@@ -1123,6 +1375,15 @@
 	letter-spacing: 0;
 }
 
+/* The caret of the Theme select: a small ink triangle, like a printer's mark. */
+:root[data-theme="dungeon"] .title-screen__caret {
+	width: 0.5em;
+	height: 0.32em;
+	margin-left: 0.3em;
+	vertical-align: 0.16em;
+	clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
 /* Selected means inked: an ink block with page text. */
 :root[data-theme="dungeon"] .title-screen__item.is-selected {
 	background: var(--dungeon-ink);
@@ -1137,9 +1398,43 @@
 	border-color: rgb(224 217 197 / 0.4);
 }
 
-:root[data-theme="dungeon"] .title-screen__item:focus-visible {
+:root[data-theme="dungeon"] .title-screen__item:focus-visible,
+:root[data-theme="dungeon"] .title-screen__item:has(.title-screen__select:focus-visible) {
 	outline: 2px solid var(--dungeon-ink);
 	outline-offset: 3px;
+}
+
+/* The Theme picker: a pulp slip with a double ink rule (the border and an inset rule), the options in
+   Alegreya SC at the size of the row, the active option inked (an ink block with page text), and an
+   ink tick at the right of the current Theme. */
+@supports (appearance: base-select) {
+	:root[data-theme="dungeon"] .title-screen__select::picker(select) {
+		--option-pad: 0.7em;
+
+		padding: 0.25em;
+		border: 2px solid var(--dungeon-ink);
+		outline: 1px solid var(--dungeon-ink);
+		outline-offset: -0.25em;
+		background: var(--dungeon-page) var(--dungeon-pulp);
+		color: var(--dungeon-ink);
+	}
+
+	:root[data-theme="dungeon"] .title-screen__select option {
+		padding-block: 0.42em 0.38em;
+	}
+
+	/* The tick: a pen stroke, thin up the short arm and thick down the long one. */
+	:root[data-theme="dungeon"] .title-screen__select option::checkmark {
+		width: 0.7em;
+		height: 0.6em;
+		mask: none;
+		clip-path: polygon(0 58%, 14% 44%, 36% 68%, 88% 0, 100% 10%, 38% 100%);
+	}
+
+	:root[data-theme="dungeon"] .title-screen__select option:focus {
+		background: var(--dungeon-ink);
+		color: var(--dungeon-page);
+	}
 }
 
 .title-screen__book-foot {
