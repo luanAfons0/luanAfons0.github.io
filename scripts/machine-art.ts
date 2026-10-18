@@ -14,6 +14,7 @@
 import { join } from "node:path";
 import { type GeneratedFile, writeFiles } from "./art-kit/files.ts";
 import { bugs } from "./machine-art/bugs.ts";
+import { flats } from "./machine-art/flats.ts";
 import { posters } from "./machine-art/posters.ts";
 import { sounds } from "./machine-art/sounds.ts";
 import { textures } from "./machine-art/textures.ts";
@@ -22,7 +23,7 @@ import { textures } from "./machine-art/textures.ts";
 export const MACHINE_ART_FOLDER = "public/machine";
 
 /** The asset kinds, in the order they are written. */
-const KINDS: readonly (() => GeneratedFile[])[] = [textures, bugs, () => posters(), sounds];
+const KINDS: readonly (() => GeneratedFile[])[] = [textures, flats, bugs, () => posters(), sounds];
 
 /** Writes every file of the machine art set into `outDir`. Returns their paths inside `outDir`, sorted. */
 export function generateMachineArt(outDir: string): string[] {
