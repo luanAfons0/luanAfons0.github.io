@@ -57,9 +57,13 @@ The named look of the whole portfolio: Paper, Board, or Dungeon. A Theme is an a
 _Avoid_: Skin, mode
 
 **Art set**:
-Everything the game draws and plays for a Theme: the wall texture of each texture role, the Bug frames, the posters, the sound of each sound event, and the ceiling, floor, and HUD colors. The look of the HTML screens is not part of it. Paper and Board use the machine art set; Dungeon uses the dungeon art set.
+Everything the game draws and plays for a Theme: the wall texture of each texture role, the Flats, the Bug frames, the posters, the sound of each sound event, and the ceiling, floor, and HUD colors (an art set with no Flats shows the ceiling and floor colors). The look of the HTML screens is not part of it. Paper and Board use the machine art set; Dungeon uses the dungeon art set.
 _Avoid_: Asset pack, texture pack, tileset
 
 **Texture role**:
 The part a wall plays in the Level: `wall-a`, `wall-b`, `feature`, `storage`, `door`, or `door-track`. Each art set maps every texture role to one of its own textures, and a Level names only texture roles, so one Level works with every art set.
 _Avoid_: Texture name, texture file, wall type
+
+**Flat**:
+The texture of the ceiling or of the floor in an art set, as in Doom. One Flat covers exactly one tile and repeats on every tile, and it gets darker with distance like the walls. A Flat is not a texture role: a Level never names a Flat, so each art set has one ceiling Flat and one floor Flat for the whole Level.
+_Avoid_: Floor texture, ceiling texture, plane
