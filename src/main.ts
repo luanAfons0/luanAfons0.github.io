@@ -264,11 +264,12 @@ export function startGame(startArtSet: ArtSet, audio?: Audio): void {
 	// Shares memory with the framebuffer, so there is no copy per frame.
 	const image = new ImageData(new Uint8ClampedArray(framebuffer.pixels.buffer), SCREEN_WIDTH, SCREEN_HEIGHT);
 
-	const input: InputSnapshot = { forward: 0, strafe: 0, turn: 0, look: 0, shoot: false, use: false };
+	const input: InputSnapshot = { forward: 0, strafe: 0, turn: 0, look: 0, lookUp: 0, shoot: false, use: false };
 	const tick = () => {
 		keyboard.snapshot(input);
 		// All mouse movement since the last tick goes into this tick, so none is lost or counted twice.
 		input.look = mouse.takeLook();
+		input.lookUp = mouse.takeLookUp();
 		input.shoot = mouse.takeShot();
 		game.step(input);
 	};

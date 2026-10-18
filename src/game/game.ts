@@ -39,6 +39,8 @@ const USE_DISTANCE = 1.5; // tiles
 const DOOR_OPEN_TICKS = 45;
 /** Mouse turn at sensitivity 1: about 0.14 degrees per pixel of mouse movement. */
 const LOOK_SPEED = 0.0025; // radians per pixel
+/** Mouse pitch: screen pixels of view pitch per pixel of mouse movement up, at sensitivity 1. */
+const PITCH_SPEED = 1;
 /** Head bob: the view moves up and down by up to this many pixels, one full cycle per BOB_TILES walked. */
 const BOB_PIXELS = 4;
 const BOB_TILES = 1.5;
@@ -58,13 +60,17 @@ export const NO_FLAT_COLORS: Readonly<{ ceiling: Rgb; floor: Rgb }> = { ceiling:
 /** The Game core always renders at this size. The browser shell scales it up. */
 export const SCREEN_WIDTH = 640;
 export const SCREEN_HEIGHT = 360;
+/** The 3D view fills the frame above the status bar. */
+const VIEW_HEIGHT = SCREEN_HEIGHT - STATUS_BAR_HEIGHT;
+/** The view pitch stops at 40% of the view height, up and down, in screen pixels. */
+const MAX_PITCH = Math.round(0.4 * VIEW_HEIGHT);
 /** Sprites are drawn at 72 texels per tile, so a Bug (39 texels high) is about half a wall high. */
 const SPRITE_TEXEL_SIZE = 1 / 72;
 
 /**
  * Player settings that change how the Game core reads input and draws the view: the saved
  * mouse settings (see `Settings`), and whether the system asks for reduced motion (no head bob
- * and no screen shake).
+ * and no screen shake; the player still moves the pitch).
  */
 export type GameSettings = Pick<Settings, "mouseSensitivity" | "invertMouse"> & { reducedMotion: boolean };
 
@@ -209,6 +215,8 @@ export function createGame(options: GameOptions): Game {
 	let bobPhase = 0;
 	let bobStrength = 0;
 	let shakeTicks = 0;
+	/** The view pitch, in screen pixels: positive looks up (it moves the horizon down). */
+	let pitch = 0;
 	const camera: Camera = { x: 0, y: 0, angle: 0, horizonOffset: 0 };
 	for (const { name } of level.rooms) assertHudCanDraw(name, `Room "${name}"`);
 	let view = artView(level, art, options);
@@ -256,9 +264,12 @@ export function createGame(options: GameOptions): Game {
 		step(input) {
 			if (paused) return;
 			slideDoors();
-			const lookDirection = settings.invertMouse ? -1 : 1;
 			player.angle += clampAxis(input.turn) * TURN_SPEED;
-			player.angle += input.look * LOOK_SPEED * settings.mouseSensitivity * lookDirection;
+			player.angle += input.look * LOOK_SPEED * settings.mouseSensitivity;
+			// "Invert mouse" inverts the vertical look only, as in most games.
+			const pitchDirection = settings.invertMouse ? -1 : 1;
+			pitch += (input.lookUp ?? 0) * PITCH_SPEED * settings.mouseSensitivity * pitchDirection;
+			pitch = clamp(pitch, -MAX_PITCH, MAX_PITCH);
 			const forward = clampAxis(input.forward);
 			const strafe = clampAxis(input.strafe);
 			const cos = Math.cos(player.angle);
@@ -339,7 +350,8 @@ export function createGame(options: GameOptions): Game {
 			camera.angle = player.angle;
 			// Shake: alternate up and down each tick, and fade out.
 			const shake = (shakeTicks % 2 === 0 ? 1 : -1) * SHAKE_PIXELS * (shakeTicks / SHAKE_TICKS);
-			camera.horizonOffset = settings.reducedMotion ? 0 : Math.sin(bobPhase) * bobStrength * BOB_PIXELS + shake;
+			const motion = settings.reducedMotion ? 0 : Math.sin(bobPhase) * bobStrength * BOB_PIXELS + shake;
+			camera.horizonOffset = pitch + motion;
 			view.renderer.render(framebuffer, level.walls, camera, bugs.sprites, bugs.updateSprites());
 			hudView.room = room;
 			hudView.hint = exhibitInFocus !== null && openExhibit === null ? USE_HINT : null;
@@ -466,5 +478,9 @@ function placeholderSprites(art: BugArt): Record<string, SpriteImage> {
 }
 
 function clampAxis(value: number): number {
-	return value < -1 ? -1 : value > 1 ? 1 : value;
+	return clamp(value, -1, 1);
+}
+
+function clamp(value: number, min: number, max: number): number {
+	return value < min ? min : value > max ? max : value;
 }

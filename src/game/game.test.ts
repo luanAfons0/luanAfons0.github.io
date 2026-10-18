@@ -292,11 +292,8 @@ describe("Game core", () => {
 			expect(doubled).toBeCloseTo(2 * normal, 10);
 		});
 
-		it("turns the other way, by the same amount, when the mouse is inverted", () => {
-			const normal = turnAfterLook({ invertMouse: false });
-			const inverted = turnAfterLook({ invertMouse: true });
-			expect(inverted).toBeCloseTo(-normal, 10);
-			expect(inverted).toBeLessThan(0);
+		it("turns the same way when the mouse is inverted: invert is for the pitch only", () => {
+			expect(turnAfterLook({ invertMouse: true })).toBeCloseTo(turnAfterLook({ invertMouse: false }), 10);
 		});
 
 		it("uses new settings from the next tick on", () => {
@@ -307,7 +304,7 @@ describe("Game core", () => {
 			game.updateSettings({ mouseSensitivity: 0.5, invertMouse: true });
 			game.step(LOOK_RIGHT);
 
-			expect(game.state().player.angle - normal).toBeCloseTo(-normal / 2, 10);
+			expect(game.state().player.angle - normal).toBeCloseTo(normal / 2, 10);
 		});
 
 		it("does not change how the arrow keys turn", () => {
@@ -361,6 +358,88 @@ describe("Game core", () => {
 			game.updateSettings({ reducedMotion: true });
 			const still = createGame({ level: tiledLevel({ rows }), settings: { reducedMotion: true } });
 			expect(wallTopRows(game, STRAFE_RIGHT, 10)).toEqual(wallTopRows(still, IDLE, 1));
+		});
+	});
+
+	describe("mouse pitch", () => {
+		// The player faces a far wall down a wide corridor, so the wall stays in the view
+		// at every pitch. The middle of the wall in one column near the center is the horizon
+		// (the center column has the crosshair).
+		const rows = ["#############", "#...........#", "#P..........#", "#...........#", "#############"];
+		const LOOK_UP: InputSnapshot = { ...IDLE, lookUp: 10 };
+
+		/** The screen row of the horizon: the middle of the far wall, 20 pixels right of the center. */
+		function horizonRow(game: Game): number {
+			const framebuffer = createFramebuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+			game.render(framebuffer);
+			const x = SCREEN_WIDTH / 2 + 20;
+			let top = 0;
+			while (isCeiling(pixelAt(framebuffer, x, top))) top++;
+			let bottom = VIEW_HEIGHT - 1;
+			while (isFloor(pixelAt(framebuffer, x, bottom))) bottom--;
+			return (top + bottom) / 2;
+		}
+
+		function pitchGame(settings?: Parameters<typeof createGame>[0]["settings"]): Game {
+			return createGame({ level: tiledLevel({ rows }), settings });
+		}
+
+		it("moves the view up (the horizon down) when the mouse moves up, and down when it moves down", () => {
+			const level = horizonRow(pitchGame());
+
+			const up = pitchGame();
+			up.step(LOOK_UP);
+			const down = pitchGame();
+			down.step({ ...IDLE, lookUp: -10 });
+
+			expect(horizonRow(up)).toBeGreaterThan(level);
+			expect(horizonRow(down)).toBeLessThan(level);
+		});
+
+		it("stops the pitch at 40% of the view height, up and down", () => {
+			// The view is 320 pixels high, so the horizon moves 128 pixels at most each way.
+			const level = horizonRow(pitchGame());
+			const game = pitchGame();
+
+			stepTicks(game, { ...IDLE, lookUp: 1000 }, 3);
+			expect(horizonRow(game)).toBe(level + 128);
+
+			stepTicks(game, { ...IDLE, lookUp: -1000 }, 3);
+			expect(horizonRow(game)).toBe(level - 128);
+
+			// The clamp keeps no extra pitch: the first move back moves the view at once.
+			game.step(LOOK_UP);
+			expect(horizonRow(game)).toBeGreaterThan(level - 128);
+		});
+
+		it("moves the view twice as far at sensitivity 2 as at sensitivity 1", () => {
+			const level = horizonRow(pitchGame());
+			const normal = pitchGame({ mouseSensitivity: 1 });
+			normal.step(LOOK_UP);
+			const doubled = pitchGame({ mouseSensitivity: 2 });
+			doubled.step(LOOK_UP);
+
+			expect(horizonRow(normal) - level).toBe(10);
+			expect(horizonRow(doubled) - level).toBe(20);
+		});
+
+		it("still moves the view when reduced motion is on: the player moves the pitch", () => {
+			const level = horizonRow(pitchGame({ reducedMotion: true }));
+			const game = pitchGame({ reducedMotion: true });
+			game.step(LOOK_UP);
+
+			expect(horizonRow(game) - level).toBe(10);
+		});
+
+		it("swaps up and down when the mouse is inverted", () => {
+			const normal = pitchGame();
+			normal.step(LOOK_UP);
+			const inverted = pitchGame({ invertMouse: true });
+			inverted.step(LOOK_UP);
+			const level = horizonRow(pitchGame());
+
+			expect(horizonRow(inverted) - level).toBe(level - horizonRow(normal));
+			expect(horizonRow(inverted)).toBeLessThan(level);
 		});
 	});
 

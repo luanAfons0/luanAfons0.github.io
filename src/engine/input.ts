@@ -2,6 +2,7 @@
  * The input for one fixed tick.
  * forward, strafe, and turn are key axes in [-1, 1]: +1 moves forward, moves right, turns right.
  * look is the mouse movement to the right since the last tick, in screen pixels (not clamped).
+ * lookUp is the mouse movement up since the last tick, in screen pixels (not clamped). Default 0.
  * shoot is true in the one tick after the player pressed the fire button.
  * use is true on the one tick after the player presses the use key (not while the key is held).
  */
@@ -10,6 +11,7 @@ export interface InputSnapshot {
 	strafe: number;
 	turn: number;
 	look: number;
+	lookUp?: number;
 	shoot?: boolean;
 	use?: boolean;
 }
@@ -42,7 +44,7 @@ export interface KeyboardInputOptions {
 export interface KeyboardInput {
 	/**
 	 * Writes the input for the next tick into `input`: the axes of the keys that are down now, and
-	 * the use key pressed since the last call. It leaves `look` and `shoot` alone (the mouse owns
+	 * the use key pressed since the last call. It leaves `look`, `lookUp`, and `shoot` alone (the mouse owns
 	 * them) and allocates nothing.
 	 */
 	snapshot(input: InputSnapshot): void;
