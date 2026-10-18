@@ -319,7 +319,7 @@ components:
 
 The portfolio is one electronic part seen two ways. Outside, it is the part's datasheet: cool paper, black ink, a part number (LA-1) in an inked block, rules under headers, a pin configuration figure, a table of contents with dotted leaders. Inside, it is the board the part sits on: matte-black solder mask, copper traces, white silkscreen print, tinned pads. The Title Screen, Exhibit Panel, and Skip View are reading surfaces and carry both looks through one markup; the game, the Pause Menu, and the resume prompt are always the board.
 
-There are three Themes. Two of them are the machine world: **Paper** is the datasheet; **Board** is the circuit board. The third, **Dungeon**, is its own world (see "Second world" below). A saved Theme sets `data-theme` on the root; with none, `prefers-color-scheme` picks (light gives Paper, dark gives Board). Dungeon has no system trigger: only a saved Theme shows it. Every color on an HTML surface comes from a look token that resolves with `light-dark()`, so one stylesheet serves both. The machine art set (wall textures, Bug frames, posters, sounds, HUD colors) is shared by both Themes and is drawn by a seeded generator, `scripts/machine-art.ts`, not by hand.
+There are three Themes. Two of them are the machine world: **Paper** is the datasheet; **Board** is the circuit board. The third, **Dungeon**, is its own world (see "Second world" below). Dungeon is the default Theme: the page HTML sets it as `data-theme` on the root, and a saved Theme replaces it. No Theme follows the system light or dark setting (ADR 0004). Every color on a Paper or Board surface comes from a look token that resolves with `light-dark()` (Paper sets `color-scheme: light`, Board `dark`), so one stylesheet serves both. The machine art set (wall textures, Bug frames, posters, sounds, HUD colors) is shared by both Themes and is drawn by a seeded generator, `scripts/machine-art.ts`, not by hand.
 
 The system is dense, flat, and literal. Ornament is taken from real parts and boards, never invented: pin-1 notches, square pads, reference designators, keep-out areas, LED rows, timing diagrams. Copper is scarce and means one thing. Pixel type and pixel art appear only at whole-pixel sizes. State changes are steps, not glows.
 
@@ -330,7 +330,7 @@ The Dungeon Theme is a solo adventure gamebook. Outside, the visitor reads an op
 The Dungeon look is printed honestly: one ink, impression, hatch, rules, and boxes. There is no copper and no glow. A live or selected thing is inked: a step inversion to an ink block with page text. Torch orange is only in the game. The direction refuses the gold-serif fantasy skin and the cream parchment with a red seal.
 
 **Key Characteristics:**
-- Three Themes, one markup: Paper (datasheet) and Board (circuit board) are the machine world, chosen by `data-theme` or the system setting; Dungeon (gamebook) is saved only.
+- Three Themes, one markup, chosen by `data-theme`: Dungeon (gamebook) is the default; Paper (datasheet) and Board (circuit board) are the machine world, shown when saved.
 - Archivo (variable width) for reading; Silkscreen for labels, pins, Part labels, and pixel UI.
 - Copper marks only the live or selected thing.
 - Every Exhibit carries one Part label (U1, J1, R1, Q1) that is the same on the wall poster, in the Exhibit Panel, and in the Skip View.
@@ -554,7 +554,7 @@ A board panel in both Themes: the Lifted Mask with the quiet board tile, a 2px S
 A full-screen button on a 50% scrim, Board in both Themes. A Silkscreen label in a 2px silkscreen box; hover and focus turn the box Hot Copper.
 
 ### Skip View
-The full datasheet, Room by Room. Paper: the page column is a Datasheet Paper sheet on the Paper Shade ground (the ground shows only when the window is wider than the column), LA-1 header, condensed Archivo name, inked Part labels. Board (system dark): the quiet board tile, Silkscreen headings, outlined Part labels. Its Theme head script shows the saved Theme; with none, or with script blocked, the system setting picks the look. The back link is a Silkscreen label with an 8x8 pixel arrow; phones do not see it.
+The full datasheet, Room by Room. Paper: the page column is a Datasheet Paper sheet on the Paper Shade ground (the ground shows only when the window is wider than the column), LA-1 header, condensed Archivo name, inked Part labels. Board: the quiet board tile, Silkscreen headings, outlined Part labels. Its root carries the default Theme, Dungeon, in the HTML; its Theme head script shows the saved Theme in its place. With none, or with script blocked, Dungeon shows. The back link is a Silkscreen label with an 8x8 pixel arrow; phones do not see it.
 
 ### HUD (game)
 A 40px Game Mask bar with a 1px Silkscreen Faint top edge. Sections (ROOM, BUGS FIXED) are 1px outlined boxes, no fill, no bevel; small Silkscreen Grey labels over 2x Hot Copper values in the engine's 5x7 pixel font. The hint ("Press E") is Silkscreen with a one-pixel outline in eight directions so it reads on any wall. The crosshair is four 1px Silkscreen arms.
@@ -593,7 +593,7 @@ The same 40px bar and sections as the machine HUD, as a pulp strip: Pulp Page ba
 ## Do's and Don'ts
 
 ### Do:
-- **Do** use the look tokens on HTML surfaces and let `light-dark()` pick the Theme; keep the saved-Theme block and the system-setting block of a surface identical.
+- **Do** use the look tokens on HTML surfaces and let `light-dark()` pick between Paper and Board. Write each look under its `data-theme`; never pick a Theme with `prefers-color-scheme`.
 - **Do** give every Exhibit one Part label and show the same label on the poster, the Exhibit Panel, and the Skip View.
 - **Do** snap every Silkscreen size to a multiple of 8px, with `round()` when the size scales.
 - **Do** make select, press, and fix step changes: a color swap, a 1px press, frame steps (`steps()`), a "patched" mark.

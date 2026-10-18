@@ -53,7 +53,7 @@ _Avoid_: Fallback page, list view, classic mode
 ## Looks
 
 **Theme**:
-The named look of the whole portfolio: Paper, Board, or Dungeon. A Theme is an art set (the textures, Bug frames, sounds, and HUD colors the game uses) plus a look for the HTML screens; Paper and Board share the machine art set (a circuit board), and Dungeon has its own (a torch-lit stone keep, with the HTML screens as a gamebook).
+The named look of the whole portfolio: Paper, Board, or Dungeon. A Theme is an art set (the textures, Bug frames, sounds, and HUD colors the game uses) plus a look for the HTML screens; Paper and Board share the machine art set (a circuit board), and Dungeon has its own (a torch-lit stone keep, with the HTML screens as a gamebook). Dungeon is the default Theme: a visitor with no saved Theme sees it. No Theme follows the system light or dark setting.
 _Avoid_: Skin, mode
 
 **Art set**:

@@ -6,6 +6,8 @@ The art set lives in one module of the game layer (`src/game/theme.ts`), with no
 
 The machine art is generated: a script under `scripts/` draws the textures, Bug frames, and posters, and synthesizes the sounds, from code with a fixed seed and only Node built-ins. We chose generated art over hand-drawn or licensed art because it is original, reproducible, and free of license questions, and a new Theme needs only new drawing code and CSS. We accept that procedural art is simpler than hand-drawn art. The generated files are committed, so the build has no generation step.
 
+The system look below (no saved Theme follows `prefers-color-scheme`) is replaced by ADR 0004: Dungeon is the default Theme.
+
 ## Amendment: the Theme head script on the Skip View
 
 The Skip View was a page with no script of ours, so it could never show a saved Theme: a visitor who chose Board saw Paper there on a light system. Now the Skip View runs one inline head script, and that script only sets the saved Theme as `data-theme` on the root. The `theme-script` plugin in `vite.config.ts` puts the same script (`src/theme-script.ts`) into the Title Screen, after the phone redirect, and into the Skip View. Its list of accepted Theme ids is built from `THEMES` at build time, so a new Theme cannot be missing from a page. The script has no game code, and the Skip View works fully without it: with script blocked, or with no saved Theme, the system setting chooses Paper or Board.
