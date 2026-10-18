@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createFramebuffer, type Framebuffer, rgb } from "../engine/framebuffer";
 import type { InputSnapshot } from "../engine/input";
 import { createFixedStepLoop } from "../engine/loop";
+import type { SpriteImage } from "../engine/renderer";
 import { createTexture, type Texture } from "../engine/texture";
 import { EXHIBITS } from "./content";
 import {
@@ -1252,6 +1253,52 @@ describe("Bugs", () => {
 		expect(game.state().bugsFixed).toBe(0);
 	});
 
+	describe("aim up and down", () => {
+		// A low Bug like the real art: 32x24 texels, anchored 10 texels below its top, so it
+		// spans from the floor to about a third of a tile, under the crosshair of a level view.
+		const lowBug: SpriteImage = {
+			texture: { width: 32, height: 24, texels: new Uint32Array(32 * 24).fill(rgb(0, 255, 0)) },
+			left: 16,
+			top: 10,
+		};
+
+		function aimGame(): Game {
+			// The Bug is 5 tiles in front of the player.
+			const level = bugLevel([{ x: 6.5, y: 1.5 }]);
+			return createGame({
+				level,
+				sprites: Object.fromEntries(bugFrameNames(MACHINE_ART_SET).map((name) => [name, lowBug])),
+			});
+		}
+
+		it("misses a Bug when the crosshair is above it", () => {
+			const game = aimGame();
+
+			game.step(SHOOT);
+
+			expect(game.state().bugsFixed).toBe(0);
+		});
+
+		it("fixes a Bug when the player looks down at it", () => {
+			// 23 pixels down puts the crosshair on the middle of the Bug, 5 tiles away.
+			const game = aimGame();
+			game.step({ ...IDLE, lookUp: -23 });
+
+			game.step(SHOOT);
+
+			expect(game.state().bugsFixed).toBe(1);
+		});
+
+		it("misses a Bug when the crosshair is below it", () => {
+			const game = aimGame();
+			game.step({ ...IDLE, lookUp: -1000 });
+
+			game.step(SHOOT);
+
+			expect(game.state().bugsFixed).toBe(0);
+		});
+	});
+
 	it("shoots once per shot input, not on the ticks without one", () => {
 		const game = createGame({
 			level: bugLevel([
@@ -1581,9 +1628,10 @@ describe("Bugs", () => {
 
 		/** Two Bugs, in an art set like the machine one whose HUD draws a tally in `TALLY_COLOR`. */
 		function twoBugsWithTally(): Game {
-			const rgba = new Uint8Array(4 * 4 * 4);
+			// Tall enough to reach the crosshair of a level view, so a level shot hits it.
+			const rgba = new Uint8Array(4 * 40 * 4);
 			new Uint32Array(rgba.buffer).fill(GREEN);
-			const image = { texture: createTexture(4, 4, rgba), left: 2, top: 3 };
+			const image = { texture: createTexture(4, 40, rgba), left: 2, top: 30 };
 			const artSet: ArtSet = { ...MACHINE_ART_SET, hud: { ...MACHINE_ART_SET.hud, tally: [255, 0, 255] } };
 			return createGame({
 				level: bugLevel(

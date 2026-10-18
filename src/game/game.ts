@@ -64,6 +64,10 @@ export const SCREEN_HEIGHT = 360;
 const VIEW_HEIGHT = SCREEN_HEIGHT - STATUS_BAR_HEIGHT;
 /** The view pitch stops at 40% of the view height, up and down, in screen pixels. */
 const MAX_PITCH = Math.round(0.4 * VIEW_HEIGHT);
+/** Half the width of the view plane, in tiles at distance 1 (about a 84 degree field of view). */
+const PLANE_HALF_WIDTH = 0.9;
+/** The height on screen, in pixels, of one tile at distance 1, as the Renderer draws it. */
+const PROJECTION = SCREEN_WIDTH / 2 / PLANE_HALF_WIDTH;
 /** Sprites are drawn at 72 texels per tile, so a Bug (39 texels high) is about half a wall high. */
 const SPRITE_TEXEL_SIZE = 1 / 72;
 
@@ -220,7 +224,7 @@ export function createGame(options: GameOptions): Game {
 	const camera: Camera = { x: 0, y: 0, angle: 0, horizonOffset: 0 };
 	for (const { name } of level.rooms) assertHudCanDraw(name, `Room "${name}"`);
 	let view = artView(level, art, options);
-	const bugs = createBugs(level.bugSpawns, view.bugFrames);
+	const bugs = createBugs(level.bugSpawns, view.bugFrames, SPRITE_TEXEL_SIZE);
 	let room = roomAt(level.rooms, player.x, player.y)?.name ?? null;
 	const doors: DoorState[] = level.doors.map(({ x, y }) => ({ x, y, state: "closed", open: 0 }));
 	const exhibitsByFace = new Map<number, string>();
@@ -295,7 +299,7 @@ export function createGame(options: GameOptions): Game {
 				shakeTicks = SHAKE_TICKS;
 				options.sound?.("shot");
 			}
-			if (input.shoot && bugs.shoot(level.walls, player.x, player.y, player.angle)) {
+			if (input.shoot && bugs.shoot(level.walls, player.x, player.y, player.angle, pitch / PROJECTION)) {
 				hudView.bugsFixed = bugsFixedText();
 				hudView.bugsFixedCount = bugs.fixedCount();
 				if (!goalSent && bugs.total > 0 && bugs.fixedCount() === bugs.total) {
@@ -382,6 +386,7 @@ function artView(level: Level, art: ArtSet, files: Pick<GameOptions, "textures" 
 		ceilingColor: rgb(...NO_FLAT_COLORS.ceiling),
 		floorColor: rgb(...NO_FLAT_COLORS.floor),
 		viewHeight: SCREEN_HEIGHT - STATUS_BAR_HEIGHT,
+		planeHalfWidth: PLANE_HALF_WIDTH,
 		spriteTexelSize: SPRITE_TEXEL_SIZE,
 	});
 	const hud = createHud(SCREEN_WIDTH, SCREEN_HEIGHT, art.hud, level.bugSpawns.length);
