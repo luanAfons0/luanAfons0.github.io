@@ -291,11 +291,8 @@ describe("Game core", () => {
 			expect(doubled).toBeCloseTo(2 * normal, 10);
 		});
 
-		it("turns the other way, by the same amount, when the mouse is inverted", () => {
-			const normal = turnAfterLook({ invertMouse: false });
-			const inverted = turnAfterLook({ invertMouse: true });
-			expect(inverted).toBeCloseTo(-normal, 10);
-			expect(inverted).toBeLessThan(0);
+		it("turns the same way when the mouse is inverted: invert is for the pitch only", () => {
+			expect(turnAfterLook({ invertMouse: true })).toBeCloseTo(turnAfterLook({ invertMouse: false }), 10);
 		});
 
 		it("uses new settings from the next tick on", () => {
@@ -306,7 +303,7 @@ describe("Game core", () => {
 			game.updateSettings({ mouseSensitivity: 0.5, invertMouse: true });
 			game.step(LOOK_RIGHT);
 
-			expect(game.state().player.angle - normal).toBeCloseTo(-normal / 2, 10);
+			expect(game.state().player.angle - normal).toBeCloseTo(normal / 2, 10);
 		});
 
 		it("does not change how the arrow keys turn", () => {
@@ -431,6 +428,17 @@ describe("Game core", () => {
 			game.step(LOOK_UP);
 
 			expect(horizonRow(game) - level).toBe(10);
+		});
+
+		it("swaps up and down when the mouse is inverted", () => {
+			const normal = pitchGame();
+			normal.step(LOOK_UP);
+			const inverted = pitchGame({ invertMouse: true });
+			inverted.step(LOOK_UP);
+			const level = horizonRow(pitchGame());
+
+			expect(horizonRow(inverted) - level).toBe(level - horizonRow(normal));
+			expect(horizonRow(inverted)).toBeLessThan(level);
 		});
 	});
 

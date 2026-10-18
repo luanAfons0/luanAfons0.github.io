@@ -251,10 +251,11 @@ export function createGame(options: GameOptions): Game {
 		step(input) {
 			if (paused) return;
 			slideDoors();
-			const lookDirection = settings.invertMouse ? -1 : 1;
 			player.angle += clampAxis(input.turn) * TURN_SPEED;
-			player.angle += input.look * LOOK_SPEED * settings.mouseSensitivity * lookDirection;
-			pitch += (input.lookUp ?? 0) * PITCH_SPEED * settings.mouseSensitivity;
+			player.angle += input.look * LOOK_SPEED * settings.mouseSensitivity;
+			// "Invert mouse" inverts the vertical look only, as in most games.
+			const pitchDirection = settings.invertMouse ? -1 : 1;
+			pitch += (input.lookUp ?? 0) * PITCH_SPEED * settings.mouseSensitivity * pitchDirection;
 			pitch = clamp(pitch, -MAX_PITCH, MAX_PITCH);
 			const forward = clampAxis(input.forward);
 			const strafe = clampAxis(input.strafe);
