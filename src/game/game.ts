@@ -385,7 +385,7 @@ function artView(level: Level, art: ArtSet, files: Pick<GameOptions, "textures" 
 		floorFlat: files.textures?.[art.flats.floor],
 		ceilingColor: rgb(...NO_FLAT_COLORS.ceiling),
 		floorColor: rgb(...NO_FLAT_COLORS.floor),
-		viewHeight: SCREEN_HEIGHT - STATUS_BAR_HEIGHT,
+		viewHeight: VIEW_HEIGHT,
 		planeHalfWidth: PLANE_HALF_WIDTH,
 		spriteTexelSize: SPRITE_TEXEL_SIZE,
 	});

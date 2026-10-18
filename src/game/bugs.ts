@@ -69,7 +69,7 @@ export interface Bugs {
 	 * eye, at `EYE_HEIGHT`; positive aims up). The line must pass through the picture of the Bug, top
 	 * to bottom.
 	 */
-	shoot(walls: Grid, x: number, y: number, angle: number, aimSlope?: number): boolean;
+	shoot(walls: Grid, x: number, y: number, angle: number, aimSlope: number): boolean;
 	/** One sprite per Bug, reused every frame. Draw the first `updateSprites()` of them. */
 	readonly sprites: ReadonlyArray<Sprite>;
 	/** Draws every Bug with other frames from the next `updateSprites()` on. Positions, fixes, and animation times stay. */
@@ -167,7 +167,7 @@ export function createBugs(spawns: readonly BugSpawn[], frames: BugFrames, texel
 			}
 		},
 		fixedCount: () => bugs.filter((bug) => bug.fixed).length,
-		shoot(walls, x, y, angle, aimSlope = 0) {
+		shoot(walls, x, y, angle, aimSlope) {
 			const dirX = Math.cos(angle);
 			const dirY = Math.sin(angle);
 			let nearest: Bug | undefined;
