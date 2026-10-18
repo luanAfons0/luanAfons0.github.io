@@ -41,23 +41,34 @@ const FLAGSTONE: StoneColors = {
 };
 
 /**
+ * How a stone surface lays its blocks: the height of each course from the top, the block widths
+ * (from `minWidth` to `minWidth + widthSpread - 1`; the last block of a course grows rather than
+ * leave a gap under `minWidth`), and whether the blocks are rough (uneven edges, more specks).
+ */
+interface CoursePlan {
+	heights: readonly number[];
+	minWidth: number;
+	widthSpread: number;
+	rough: boolean;
+}
+
+/** The courses of a wall of even blocks. The bottom row stays mortar. */
+const WALL_COURSES: CoursePlan = { heights: [16, 16, 16, 15], minWidth: 14, widthSpread: 13, rough: false };
+
+/** The courses of a rough wall: smaller, uneven blocks. The bottom row stays mortar. */
+const ROUGH_WALL_COURSES: CoursePlan = { heights: [14, 17, 15, 17], minWidth: 10, widthSpread: 15, rough: true };
+
+/** The courses of the floor: three courses of big flagstones that fill the whole height. */
+const FLAGSTONE_COURSES: CoursePlan = { heights: [22, 20, 22], minWidth: 18, widthSpread: 15, rough: false };
+
+/**
  * A 64x64 stone wall. Rough stone has smaller, uneven blocks with more chips and cracks. Each
  * course of blocks starts at a random offset; the bottom row stays mortar.
  */
 export function stoneWall(seed: number, rough: boolean): Pixmap {
 	const t = createPixmap(SIZE, SIZE, c.MORTAR);
 	const random = seededRandom(seed);
-	const courses = rough ? [14, 17, 15, 17] : [16, 16, 16, 15];
-	const minWidth = rough ? 10 : 14;
-	layCourses(
-		t,
-		random,
-		WALL_STONE,
-		courses,
-		minWidth,
-		() => (rough ? 10 + Math.floor(random() * 15) : 14 + Math.floor(random() * 13)),
-		rough,
-	);
+	layCourses(t, random, WALL_STONE, rough ? ROUGH_WALL_COURSES : WALL_COURSES);
 	chips(t, random, WALL_STONE, rough ? 8 : 3);
 	cracks(t, random, WALL_STONE, rough ? 3 : 1, rough ? 10 : 6);
 	return t;
@@ -70,29 +81,22 @@ export function stoneWall(seed: number, rough: boolean): Pixmap {
 export function flagstones(seed: number): Pixmap {
 	const t = createPixmap(SIZE, SIZE, FLAGSTONE.mortar);
 	const random = seededRandom(seed);
-	layCourses(t, random, FLAGSTONE, [22, 20, 22], 18, () => 18 + Math.floor(random() * 15), false);
+	layCourses(t, random, FLAGSTONE, FLAGSTONE_COURSES);
 	chips(t, random, FLAGSTONE, 4);
 	// A crack starts at row 51 at most and runs 8 rows at most, so it never crosses the bottom edge.
 	cracks(t, random, FLAGSTONE, 2, 8);
 	return t;
 }
 
-/** Lays courses of blocks from the top, each from a random offset, with widths from `width()`. */
-function layCourses(
-	t: Pixmap,
-	random: () => number,
-	colors: StoneColors,
-	heights: readonly number[],
-	minWidth: number,
-	width: () => number,
-	rough: boolean,
-): void {
+/** Lays the courses of a plan from the top, each from a random offset. */
+function layCourses(t: Pixmap, random: () => number, colors: StoneColors, plan: CoursePlan): void {
+	const { heights, minWidth, widthSpread, rough } = plan;
 	let y0 = 0;
 	for (const height of heights) {
 		const offset = Math.floor(random() * SIZE);
 		let done = 0;
 		while (done < SIZE) {
-			let blockWidth = width();
+			let blockWidth = minWidth + Math.floor(random() * widthSpread);
 			if (SIZE - done - blockWidth < minWidth) blockWidth = SIZE - done;
 			const tone = colors.tones[Math.floor(random() * 3)] as number;
 			block(t, random, colors, offset + done, y0, blockWidth, height, tone, rough);
