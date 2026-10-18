@@ -3,7 +3,7 @@
  * a torch, a banner with its Part label, a door, and a Slime on the flagstones), drawn by a small
  * raycaster and then printed as a 1-bit pen-and-ink plate: ink lines on the edges and the mortar,
  * hatching for the tones, on pulp paper. It ports `renderInkPlate` of the approved mock
- * (`.impeccable/mocks/ui-studio/parts/dungeon-frame.js`), so the plate matches the mock.
+ * (`dungeon-frame.js`, in commit 2487e66), so the plate matches the mock.
  */
 
 import { createPixmap, fillRect, line, outlineRect, type Pixmap, plot, seededRandom, text } from "../art-kit/pixmap.ts";

@@ -1,6 +1,6 @@
 /**
  * The colors of the machine art set, as 0xRRGGBB. They match the approved mock's game frame
- * (`.impeccable/mocks/ui-studio/parts/game-frame.js`). Copper marks only live things.
+ * (`game-frame.js`, in commit fc7088f). Copper marks only live things.
  */
 
 /** Solder mask: the board base, with a lighter and a darker speck for a matte look. */

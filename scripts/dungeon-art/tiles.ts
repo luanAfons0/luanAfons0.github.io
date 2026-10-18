@@ -2,7 +2,7 @@
  * The page tiles of the Dungeon look of the HTML surfaces: the pulp speck tile (the ground of
  * every page) and the cloth weave tile (the ground of the book cover). `src/theme.css` repeats
  * them, so the source has no gradient stripes. They port the pulp and the weave of the approved
- * mock (`.impeccable/mocks/ui-studio/parts/dungeon-screens.html`). Both tiles wrap at every edge.
+ * mock (`dungeon-screens.html`, in commit 2487e66). Both tiles wrap at every edge.
  */
 
 import { createPixmap, type Pixmap, seededRandom } from "../art-kit/pixmap.ts";

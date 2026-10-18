@@ -1,6 +1,6 @@
 /**
  * The colors of the dungeon art set, as 0xRRGGBB. They match the approved mock's game frame
- * (`.impeccable/mocks/ui-studio/parts/dungeon-frame.js`). Torch orange is only in the torch.
+ * (`dungeon-frame.js`, in commit 2487e66). Torch orange is only in the torch.
  */
 
 /** Cut stone: three block tones, a lit top-left edge, a shaded bottom-right edge, and the mortar. */

@@ -1038,7 +1038,7 @@
 
 /* ==========================================================================================
  * Dungeon: an open gamebook on its green cloth cover, as in the approved mock
- * (.impeccable/mocks/ui-studio/dungeon.html). Every rule here is under :root[data-theme="dungeon"]
+ * (in commit 2487e66). Every rule here is under :root[data-theme="dungeon"]
  * or on an .only-dungeon element, so Paper and Board do not change.
  *
  * The sheet is the two-page spread: a two-column grid. The left page is one element (the running
