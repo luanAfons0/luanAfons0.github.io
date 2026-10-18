@@ -17,7 +17,11 @@
  * in one look only.
  *
  * Copper marks only live or selected things. Copper text fails contrast on paper: on Paper, copper
- * is for traces, pins, underlines, and focus rings, never for text.
+ * is for traces, pins, underlines, and focus rings, never for text. Paper draws them in Deep Copper,
+ * which keeps 4.5:1 on the sheet.
+ *
+ * Areas: a sheet or panel (--surface) sits on a ground (--ground). Paper: a light sheet on a paper
+ * shade ground. Board: a lifted mask panel on the board, with a silkscreen edge of 3:1 or more.
  */
 
 /* Archivo (variable width 62% to 125%, weight 100 to 900) and Silkscreen, both under the SIL Open
@@ -103,22 +107,24 @@
 
 :root {
 	/* The palette. Paper. */
-	--paper: #f2f3f0;
+	--paper: #f9faf7;
 	--paper-2: #e7e9e4;
 	--ink: #16181a;
 	--ink-2: #4b5155;
-	--rule: #c8ccc5;
+	--rule: #b1b4ae;
+	--pin: #8b8f92;
 	/* The palette. Board. */
 	--board: #0f1214;
-	--board-2: #161a1d;
+	--board-2: #1a1f22;
 	--mask-trace: #1f262a;
-	--silk: #e9ebe6;
-	--silk-2: #9aa1a5;
-	--silk-3: #3a4045;
+	--silk: #f8f9f7;
+	--silk-2: #a6acaf;
+	--silk-3: #676c70;
 	--pad: #aeb3b6;
-	/* The palette. Copper: live and selected things. */
+	/* The palette. Copper: live and selected things. Deep Copper is the Paper copper. */
 	--copper: #c06a36;
-	--copper-hot: #e08a4f;
+	--copper-deep: #aa5e30;
+	--copper-hot: #ef9354;
 	/* The palette. Dungeon: one black ink on pulp pages, on a deep green cloth cover. No copper, no
 	   glow: a live or selected thing is inked (an ink block with page text). Only Dungeon rules use
 	   these. */
@@ -151,7 +157,10 @@
 	--dungeon-weave: url("/dungeon/tiles/weave.png");
 
 	/* The look tokens: the Paper value first, the Board value second. */
-	--surface: light-dark(var(--paper), var(--board));
+	/* The ground around a sheet or a panel: the Paper shade, the bare board. */
+	--ground: light-dark(var(--paper-2), var(--board));
+	/* A sheet, a panel, or a keep-out: the light Paper sheet, the lifted mask. */
+	--surface: light-dark(var(--paper), var(--board-2));
 	--surface-2: light-dark(var(--paper-2), var(--board-2));
 	--text: light-dark(var(--ink), var(--silk));
 	--text-2: light-dark(var(--ink-2), var(--silk-2));
@@ -162,8 +171,10 @@
 	/* Text that marks the live or selected thing. */
 	--live-text: light-dark(var(--ink), var(--copper-hot));
 	/* Traces, pins, pads, and underlines of the live or selected thing. */
-	--live-trace: var(--copper);
-	--focus: light-dark(var(--copper), var(--copper-hot));
+	--live-trace: light-dark(var(--copper-deep), var(--copper));
+	/* An unselected pin or pad. */
+	--idle-pad: light-dark(var(--pin), var(--pad));
+	--focus: light-dark(var(--copper-deep), var(--copper-hot));
 
 	/* No saved Theme: follow the system. */
 	color-scheme: light dark;
@@ -177,6 +188,7 @@
    surface that has no Dungeon rules of its own yet shows ink on pulp, not Paper. */
 :root[data-theme="dungeon"] {
 	color-scheme: light;
+	--ground: var(--dungeon-cover);
 	--surface: var(--dungeon-page);
 	--surface-2: var(--dungeon-page-2);
 	--text: var(--dungeon-ink);
@@ -185,6 +197,7 @@
 	--line-2: var(--dungeon-rule);
 	--live-text: var(--dungeon-ink);
 	--live-trace: var(--dungeon-ink);
+	--idle-pad: var(--pad);
 	--focus: var(--dungeon-ink);
 }
 
@@ -229,7 +242,9 @@
 	background-size: 240px 240px;
 }
 
+/* The quiet board carries text: a panel, so it is the lifted mask. */
 .board-surface--quiet {
+	background-color: var(--board-2);
 	background-image: var(--board-traces-quiet);
 }
 

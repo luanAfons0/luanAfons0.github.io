@@ -284,7 +284,7 @@
 .exhibit-panel__close:focus-visible {
 	border-color: light-dark(var(--ink), var(--copper-hot));
 	color: light-dark(var(--paper), var(--copper-hot));
-	outline: 2px solid light-dark(var(--copper), transparent);
+	outline: 2px solid light-dark(var(--copper-deep), transparent);
 	outline-offset: 2px;
 }
 

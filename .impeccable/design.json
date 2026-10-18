@@ -1,17 +1,17 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-17T14:36:42.000Z",
+  "generatedAt": "2026-10-17T18:00:00.000Z",
   "title": "Design System: Luan Afonso, portfolio",
   "extensions": {
     "colorMeta": {
       "paper": {
         "role": "neutral",
         "displayName": "Datasheet Paper",
-        "canonical": "#f2f3f0",
-        "oklch": "oklch(96.3% 0.004 121.6)",
+        "canonical": "#f9faf7",
+        "oklch": "oklch(98.4% 0.004 121.6)",
         "tonalRamp": [
-          "#0b0b0a",
-          "#242422",
+          "#0b0b09",
+          "#232422",
           "#3f403e",
           "#5d5e5b",
           "#80817e",
@@ -71,17 +71,33 @@
       "rule": {
         "role": "neutral",
         "displayName": "Hairline",
-        "canonical": "#c8ccc5",
-        "oklch": "oklch(84.0% 0.011 131.4)",
+        "canonical": "#b1b4ae",
+        "oklch": "oklch(76.6% 0.009 128.6)",
         "tonalRamp": [
           "#0a0c08",
-          "#222520",
-          "#3e413b",
-          "#5b5f59",
-          "#7e827b",
-          "#a2a69f",
-          "#c8ccc5",
-          "#ecf0e9"
+          "#232520",
+          "#3e413c",
+          "#5c5f59",
+          "#7f827c",
+          "#a3a6a0",
+          "#c9ccc6",
+          "#edf0ea"
+        ]
+      },
+      "pin": {
+        "role": "neutral",
+        "displayName": "Pin Grey",
+        "canonical": "#8b8f92",
+        "oklch": "oklch(64.8% 0.006 239.9)",
+        "tonalRamp": [
+          "#090b0d",
+          "#212427",
+          "#3d4043",
+          "#5a5e61",
+          "#7d8184",
+          "#a1a5a8",
+          "#c7cbce",
+          "#ebeff3"
         ]
       },
       "board": {
@@ -102,18 +118,18 @@
       },
       "board-2": {
         "role": "neutral",
-        "displayName": "Mask Shade",
-        "canonical": "#161a1d",
-        "oklch": "oklch(21.5% 0.008 240.3)",
+        "displayName": "Lifted Mask",
+        "canonical": "#1a1f22",
+        "oklch": "oklch(23.5% 0.009 234.2)",
         "tonalRamp": [
-          "#080c0e",
+          "#070c0e",
           "#202528",
-          "#3c4044",
-          "#595e62",
-          "#7c8185",
-          "#a0a5a9",
-          "#c6cbd0",
-          "#eaeff4"
+          "#3b4144",
+          "#595f62",
+          "#7b8285",
+          "#9fa6aa",
+          "#c5ccd0",
+          "#e9f0f4"
         ]
       },
       "mask-trace": {
@@ -135,49 +151,49 @@
       "silk": {
         "role": "neutral",
         "displayName": "Silkscreen",
-        "canonical": "#e9ebe6",
-        "oklch": "oklch(93.7% 0.007 124.5)",
+        "canonical": "#f8f9f7",
+        "oklch": "oklch(98.1% 0.003 128.5)",
         "tonalRamp": [
-          "#0a0c09",
-          "#232521",
-          "#3f403c",
-          "#5d5e5a",
-          "#7f817c",
-          "#a3a5a1",
-          "#c9cbc6",
-          "#edefea"
+          "#0b0b0a",
+          "#232423",
+          "#3f403e",
+          "#5d5e5c",
+          "#80817f",
+          "#a4a5a3",
+          "#cacbc9",
+          "#eeefed"
         ]
       },
       "silk-2": {
         "role": "neutral",
         "displayName": "Silkscreen Grey",
-        "canonical": "#9aa1a5",
-        "oklch": "oklch(70.5% 0.010 232.4)",
+        "canonical": "#a6acaf",
+        "oklch": "oklch(74.1% 0.008 228.9)",
         "tonalRamp": [
-          "#070c0f",
-          "#1f2528",
-          "#3b4144",
-          "#585f62",
-          "#7b8185",
-          "#9fa6aa",
-          "#c4ccd0",
-          "#e8f0f4"
+          "#080c0e",
+          "#202527",
+          "#3b4143",
+          "#595f61",
+          "#7c8284",
+          "#a0a6a9",
+          "#c6cccf",
+          "#e9f0f3"
         ]
       },
       "silk-3": {
         "role": "neutral",
         "displayName": "Silkscreen Faint",
-        "canonical": "#3a4045",
-        "oklch": "oklch(36.8% 0.012 243.1)",
+        "canonical": "#676c70",
+        "oklch": "oklch(52.8% 0.009 241.8)",
         "tonalRamp": [
-          "#070c10",
-          "#1f2529",
-          "#3b4146",
-          "#585f64",
-          "#7a8187",
-          "#9fa6ac",
-          "#c4ccd2",
-          "#e8f0f6"
+          "#080b0e",
+          "#202528",
+          "#3c4044",
+          "#595e62",
+          "#7c8185",
+          "#a0a5aa",
+          "#c6cbd0",
+          "#eaeff4"
         ]
       },
       "pad": {
@@ -212,20 +228,36 @@
           "#feeadf"
         ]
       },
+      "copper-deep": {
+        "role": "primary",
+        "displayName": "Deep Copper",
+        "canonical": "#aa5e30",
+        "oklch": "oklch(56.2% 0.116 49.7)",
+        "tonalRamp": [
+          "#2a0000",
+          "#4b0300",
+          "#6d2600",
+          "#904614",
+          "#b76a3c",
+          "#df8e60",
+          "#ffb485",
+          "#ffd8a8"
+        ]
+      },
       "copper-hot": {
         "role": "primary",
         "displayName": "Hot Copper",
-        "canonical": "#e08a4f",
-        "oklch": "oklch(71.2% 0.129 53.5)",
+        "canonical": "#ef9354",
+        "oklch": "oklch(74.7% 0.136 53.4)",
         "tonalRamp": [
-          "#170600",
-          "#3b1900",
-          "#642f00",
-          "#904600",
-          "#ba682a",
-          "#e38c51",
-          "#ffb98c",
-          "#ffeadd"
+          "#2e0000",
+          "#500000",
+          "#722000",
+          "#964200",
+          "#be6622",
+          "#e68b4b",
+          "#ffb172",
+          "#ffd595"
         ]
       },
       "scrim": {
@@ -981,7 +1013,7 @@
       "refersTo": "part-label-paper",
       "description": "The Exhibit's reference designator as an inked block on Paper.",
       "html": "<span class=\"ds-part-paper\">U1</span>",
-      "css": ".ds-part-paper { display: inline-block; padding: 8px 12px 6px; background: var(--ink, #16181a); color: var(--paper, #f2f3f0); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; }"
+      "css": ".ds-part-paper { display: inline-block; padding: 8px 12px 6px; background: var(--ink, #16181a); color: var(--paper, #f9faf7); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; }"
     },
     {
       "name": "Part label, Board",
@@ -989,7 +1021,7 @@
       "refersTo": "part-label-board-open",
       "description": "Board Part labels: silkscreen outline in lists, copper outline for the open Exhibit.",
       "html": "<div class=\"ds-board\"><span class=\"ds-part-board\">R1</span><span class=\"ds-part-board ds-part-board--open\">U1</span></div>",
-      "css": ".ds-board { display: flex; gap: 16px; padding: 16px; background: var(--board, #0f1214); } .ds-part-board { padding: 8px 12px 6px; border: 2px solid var(--silk-2, #9aa1a5); color: var(--silk, #e9ebe6); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; } .ds-part-board--open { border-color: var(--copper, #c06a36); color: var(--copper-hot, #e08a4f); }"
+      "css": ".ds-board { display: flex; gap: 16px; padding: 16px; background: var(--board, #0f1214); } .ds-part-board { padding: 8px 12px 6px; border: 2px solid var(--silk-2, #a6acaf); color: var(--silk, #f8f9f7); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; } .ds-part-board--open { border-color: var(--copper, #c06a36); color: var(--copper-hot, #ef9354); }"
     },
     {
       "name": "Pin menu, Paper",
@@ -997,7 +1029,7 @@
       "refersTo": "menu-pin-paper-selected",
       "description": "Title Screen menu items as chip pins; the selected one is inked and its pin and trace turn copper.",
       "html": "<div class=\"ds-pins\"><div class=\"ds-pin-row\"><button class=\"ds-pin-item is-selected\">NEW GAME</button><span class=\"ds-pin-num\">1</span><span class=\"ds-pin\"></span></div><div class=\"ds-pin-row\"><button class=\"ds-pin-item\">SKIP</button><span class=\"ds-pin-num\">2</span><span class=\"ds-pin\"></span></div><span class=\"ds-chip\"></span></div>",
-      "css": ".ds-pins { position: relative; display: grid; gap: 12px; width: max-content; padding: 16px 0 16px 16px; background: var(--paper, #f2f3f0); } .ds-pin-row { display: flex; align-items: center; justify-content: flex-end; gap: 10px; } .ds-pin-item { padding: 6px 10px; border: 0; background: none; color: var(--ink, #16181a); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; cursor: pointer; } .ds-pin-item.is-selected { background: var(--ink, #16181a); color: var(--paper, #f2f3f0); box-shadow: 12px 0 0 -10px var(--copper, #c06a36); } .ds-pin-item:hover { background: var(--ink, #16181a); color: var(--paper, #f2f3f0); } .ds-pin-item:focus-visible { outline: 2px solid var(--copper, #c06a36); outline-offset: 4px; } .ds-pin-item:active { translate: 0 1px; } .ds-pin-num { width: 16px; color: var(--ink-2, #4b5155); font: 400 8px / 1 \"Silkscreen\", ui-monospace, monospace; } .ds-pin { width: 20px; height: 12px; border-radius: 1px 0 0 1px; background: var(--pad, #aeb3b6); } .ds-pin-row:has(.is-selected) .ds-pin { background: var(--copper, #c06a36); }"
+      "css": ".ds-pins { position: relative; display: grid; gap: 12px; width: max-content; padding: 16px 0 16px 16px; background: var(--paper, #f9faf7); } .ds-pin-row { display: flex; align-items: center; justify-content: flex-end; gap: 10px; } .ds-pin-item { padding: 6px 10px; border: 0; background: none; color: var(--ink, #16181a); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; cursor: pointer; } .ds-pin-item.is-selected { background: var(--ink, #16181a); color: var(--paper, #f9faf7); box-shadow: 12px 0 0 -10px var(--copper-deep, #aa5e30); } .ds-pin-item:hover { background: var(--ink, #16181a); color: var(--paper, #f9faf7); } .ds-pin-item:focus-visible { outline: 2px solid var(--copper-deep, #aa5e30); outline-offset: 4px; } .ds-pin-item:active { translate: 0 1px; } .ds-pin-num { width: 16px; color: var(--ink-2, #4b5155); font: 400 8px / 1 \"Silkscreen\", ui-monospace, monospace; } .ds-pin { width: 20px; height: 12px; border-radius: 1px 0 0 1px; background: var(--pin, #8b8f92); } .ds-pin-row:has(.is-selected) .ds-pin { background: var(--copper-deep, #aa5e30); }"
     },
     {
       "name": "Pad menu, Board",
@@ -1005,7 +1037,7 @@
       "refersTo": "menu-pad-board-selected",
       "description": "Title Screen menu items as pads joined by traces; only the selected pad, trace, and label are copper.",
       "html": "<div class=\"ds-pads\"><button class=\"ds-pad-item is-selected\"><span class=\"ds-pad\"></span>NEW GAME</button><button class=\"ds-pad-item\"><span class=\"ds-pad\"></span>SKIP</button></div>",
-      "css": ".ds-pads { display: grid; gap: 16px; padding: 24px 24px 24px 56px; background: var(--board, #0f1214); } .ds-pad-item { display: inline-flex; align-items: center; padding: 0; border: 0; background: none; color: var(--silk, #e9ebe6); font: 400 24px / 1 \"Silkscreen\", ui-monospace, monospace; cursor: pointer; } .ds-pad { position: relative; width: 38px; height: 26px; margin-right: 26px; border-radius: 1px; background: var(--pad, #aeb3b6); } .ds-pad::before { content: \"\"; position: absolute; top: 50%; right: 100%; width: 32px; height: 3px; background: var(--silk-3, #3a4045); translate: 0 -50%; } .ds-pad-item.is-selected, .ds-pad-item:hover { color: var(--copper-hot, #e08a4f); } .ds-pad-item.is-selected .ds-pad, .ds-pad-item.is-selected .ds-pad::before, .ds-pad-item:hover .ds-pad, .ds-pad-item:hover .ds-pad::before { background: var(--copper, #c06a36); } .ds-pad-item:focus-visible { outline: 2px solid var(--copper-hot, #e08a4f); outline-offset: 4px; } .ds-pad-item:active { translate: 0 1px; }"
+      "css": ".ds-pads { display: grid; gap: 16px; padding: 24px 24px 24px 56px; background: var(--board, #0f1214); } .ds-pad-item { display: inline-flex; align-items: center; padding: 0; border: 0; background: none; color: var(--silk, #f8f9f7); font: 400 24px / 1 \"Silkscreen\", ui-monospace, monospace; cursor: pointer; } .ds-pad { position: relative; width: 38px; height: 26px; margin-right: 26px; border-radius: 1px; background: var(--pad, #aeb3b6); } .ds-pad::before { content: \"\"; position: absolute; top: 50%; right: 100%; width: 32px; height: 3px; background: var(--silk-3, #676c70); translate: 0 -50%; } .ds-pad-item.is-selected, .ds-pad-item:hover { color: var(--copper-hot, #ef9354); } .ds-pad-item.is-selected .ds-pad, .ds-pad-item.is-selected .ds-pad::before, .ds-pad-item:hover .ds-pad, .ds-pad-item:hover .ds-pad::before { background: var(--copper, #c06a36); } .ds-pad-item:focus-visible { outline: 2px solid var(--copper-hot, #ef9354); outline-offset: 4px; } .ds-pad-item:active { translate: 0 1px; }"
     },
     {
       "name": "Button, Paper",
@@ -1013,7 +1045,7 @@
       "refersTo": "button-paper",
       "description": "An inked Silkscreen button, such as the Exhibit Panel close button on Paper.",
       "html": "<button class=\"ds-btn-paper\">CLOSE (ESC)</button>",
-      "css": ".ds-btn-paper { padding: 0.55em 0.9em; border: 1px solid var(--ink, #16181a); background: var(--ink, #16181a); color: var(--paper, #f2f3f0); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; cursor: pointer; } .ds-btn-paper:hover { outline: 2px solid var(--copper, #c06a36); outline-offset: 2px; } .ds-btn-paper:focus-visible { outline: 2px solid var(--copper, #c06a36); outline-offset: 2px; } .ds-btn-paper:active { translate: 0 1px; }"
+      "css": ".ds-btn-paper { padding: 0.55em 0.9em; border: 1px solid var(--ink, #16181a); background: var(--ink, #16181a); color: var(--paper, #f9faf7); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; cursor: pointer; } .ds-btn-paper:hover { outline: 2px solid var(--copper-deep, #aa5e30); outline-offset: 2px; } .ds-btn-paper:focus-visible { outline: 2px solid var(--copper-deep, #aa5e30); outline-offset: 2px; } .ds-btn-paper:active { translate: 0 1px; }"
     },
     {
       "name": "Button, Board",
@@ -1021,7 +1053,7 @@
       "refersTo": "button-board",
       "description": "A silkscreen outline that turns copper on hover and focus.",
       "html": "<div class=\"ds-board-wrap\"><button class=\"ds-btn-board\">CLOSE (ESC)</button></div>",
-      "css": ".ds-board-wrap { padding: 16px; background: var(--board, #0f1214); } .ds-btn-board { padding: 0.55em 0.9em; border: 1px solid var(--silk-2, #9aa1a5); background: transparent; color: var(--silk, #e9ebe6); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; cursor: pointer; } .ds-btn-board:hover, .ds-btn-board:focus-visible { border-color: var(--copper-hot, #e08a4f); color: var(--copper-hot, #e08a4f); } .ds-btn-board:focus-visible { outline: 2px solid var(--copper-hot, #e08a4f); outline-offset: 2px; } .ds-btn-board:active { translate: 0 1px; }"
+      "css": ".ds-board-wrap { padding: 16px; background: var(--board, #0f1214); } .ds-btn-board { padding: 0.55em 0.9em; border: 1px solid var(--silk-2, #a6acaf); background: transparent; color: var(--silk, #f8f9f7); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; cursor: pointer; } .ds-btn-board:hover, .ds-btn-board:focus-visible { border-color: var(--copper-hot, #ef9354); color: var(--copper-hot, #ef9354); } .ds-btn-board:focus-visible { outline: 2px solid var(--copper-hot, #ef9354); outline-offset: 2px; } .ds-btn-board:active { translate: 0 1px; }"
     },
     {
       "name": "Link",
@@ -1029,7 +1061,7 @@
       "refersTo": "",
       "description": "Paper: ink text, copper underline, inverts on hover. Board: copper text, copper underline.",
       "html": "<p class=\"ds-link-row\"><a class=\"ds-link\" href=\"#\">Source code</a></p><p class=\"ds-link-row ds-link-row--board\"><a class=\"ds-link ds-link--board\" href=\"#\">Source code</a></p>",
-      "css": ".ds-link-row { margin: 0; padding: 12px 16px; background: var(--paper, #f2f3f0); font: 400 16px / 1.5 \"Archivo\", system-ui, sans-serif; } .ds-link-row--board { background: var(--board, #0f1214); } .ds-link { color: var(--ink, #16181a); font-weight: 600; text-decoration: underline 2px var(--copper, #c06a36); text-underline-offset: 0.25em; } .ds-link:hover, .ds-link:focus-visible { background: var(--ink, #16181a); color: var(--paper, #f2f3f0); } .ds-link:focus-visible { outline: 2px solid var(--copper, #c06a36); outline-offset: 2px; } .ds-link--board { color: var(--copper-hot, #e08a4f); font-weight: 400; } .ds-link--board:hover, .ds-link--board:focus-visible { background: transparent; color: var(--silk, #e9ebe6); } .ds-link--board:focus-visible { outline-color: var(--copper-hot, #e08a4f); }"
+      "css": ".ds-link-row { margin: 0; padding: 12px 16px; background: var(--paper, #f9faf7); font: 400 16px / 1.5 \"Archivo\", system-ui, sans-serif; } .ds-link-row--board { background: var(--board, #0f1214); } .ds-link { color: var(--ink, #16181a); font-weight: 600; text-decoration: underline 2px var(--copper-deep, #aa5e30); text-underline-offset: 0.25em; } .ds-link:hover, .ds-link:focus-visible { background: var(--ink, #16181a); color: var(--paper, #f9faf7); } .ds-link:focus-visible { outline: 2px solid var(--copper-deep, #aa5e30); outline-offset: 2px; } .ds-link--board { color: var(--copper-hot, #ef9354); font-weight: 400; } .ds-link--board:hover, .ds-link--board:focus-visible { background: transparent; color: var(--silk, #f8f9f7); } .ds-link--board:focus-visible { outline-color: var(--copper-hot, #ef9354); }"
     },
     {
       "name": "Pause Menu item and DIP switch",
@@ -1037,7 +1069,7 @@
       "refersTo": "pause-item",
       "description": "Board controls: an outlined item whose pad turns copper, and a DIP switch whose lever is up and copper when on.",
       "html": "<div class=\"ds-pause\"><button class=\"ds-pause-item\">RESUME</button><label class=\"ds-pause-row\">Sound <span class=\"ds-pause-ctl\"><input class=\"ds-dip\" type=\"checkbox\" checked><span class=\"ds-pause-silk\">ON</span></span></label></div>",
-      "css": ".ds-pause { display: grid; gap: 16px; width: 320px; padding: 28px 30px; border: 2px solid var(--silk-3, #3a4045); background: var(--board, #0f1214); color: var(--silk, #e9ebe6); font: 400 16px / 1.4 \"Archivo\", system-ui, sans-serif; } .ds-pause-item { display: flex; justify-content: space-between; align-items: center; padding: 0.7em 0.9em; border: 1px solid var(--silk-3, #3a4045); background: none; color: var(--silk, #e9ebe6); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; cursor: pointer; } .ds-pause-item::after { content: \"\"; width: 0.6em; height: 0.6em; background: var(--silk-3, #3a4045); } .ds-pause-item:hover, .ds-pause-item:focus-visible { border-color: var(--silk, #e9ebe6); } .ds-pause-item:hover::after, .ds-pause-item:focus-visible::after { background: var(--copper, #c06a36); } .ds-pause-item:active { translate: 0 1px; } .ds-pause-row { display: flex; justify-content: space-between; align-items: center; } .ds-pause-ctl { display: flex; align-items: center; gap: 0.6em; } .ds-pause-silk { color: var(--silk-2, #9aa1a5); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; } .ds-dip { appearance: none; position: relative; width: 1.5em; height: 2.4em; margin: 0; border: 1px solid var(--silk-2, #9aa1a5); background: var(--board-2, #161a1d); cursor: pointer; } .ds-dip::before { content: \"\"; position: absolute; left: 2px; right: 2px; bottom: 2px; height: calc(50% - 3px); background: var(--silk-2, #9aa1a5); } .ds-dip:checked::before { top: 2px; bottom: auto; background: var(--copper, #c06a36); } .ds-pause-item:focus-visible, .ds-dip:focus-visible { outline: 2px solid var(--copper-hot, #e08a4f); outline-offset: 2px; }"
+      "css": ".ds-pause { display: grid; gap: 16px; width: 320px; padding: 28px 30px; border: 2px solid var(--silk-3, #676c70); background: var(--board-2, #1a1f22); color: var(--silk, #f8f9f7); font: 400 16px / 1.4 \"Archivo\", system-ui, sans-serif; } .ds-pause-item { display: flex; justify-content: space-between; align-items: center; padding: 0.7em 0.9em; border: 1px solid var(--silk-3, #676c70); background: none; color: var(--silk, #f8f9f7); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; cursor: pointer; } .ds-pause-item::after { content: \"\"; width: 0.6em; height: 0.6em; background: var(--silk-3, #676c70); } .ds-pause-item:hover, .ds-pause-item:focus-visible { border-color: var(--silk, #f8f9f7); } .ds-pause-item:hover::after, .ds-pause-item:focus-visible::after { background: var(--copper, #c06a36); } .ds-pause-item:active { translate: 0 1px; } .ds-pause-row { display: flex; justify-content: space-between; align-items: center; } .ds-pause-ctl { display: flex; align-items: center; gap: 0.6em; } .ds-pause-silk { color: var(--silk-2, #a6acaf); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; } .ds-dip { appearance: none; position: relative; width: 1.5em; height: 2.4em; margin: 0; border: 1px solid var(--silk-2, #a6acaf); background: var(--board, #0f1214); cursor: pointer; } .ds-dip::before { content: \"\"; position: absolute; left: 2px; right: 2px; bottom: 2px; height: calc(50% - 3px); background: var(--silk-2, #a6acaf); } .ds-dip:checked::before { top: 2px; bottom: auto; background: var(--copper, #c06a36); } .ds-pause-item:focus-visible, .ds-dip:focus-visible { outline: 2px solid var(--copper-hot, #ef9354); outline-offset: 2px; }"
     },
     {
       "name": "Datasheet header",
@@ -1045,7 +1077,7 @@
       "refersTo": "part-label-paper",
       "description": "The Paper header: part number block left, document note right, on a 3px ink rule.",
       "html": "<header class=\"ds-sheet-head\"><span class=\"ds-sheet-part\">LA-1</span><span class=\"ds-sheet-note\">Portfolio, readable</span></header>",
-      "css": ".ds-sheet-head { display: flex; justify-content: space-between; align-items: stretch; gap: 16px; padding: 16px 16px 0; border-bottom: 3px solid var(--ink, #16181a); background: var(--paper, #f2f3f0); } .ds-sheet-part { padding: 8px 12px 6px; background: var(--ink, #16181a); color: var(--paper, #f2f3f0); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; } .ds-sheet-note { align-self: end; padding-bottom: 6px; color: var(--ink-2, #4b5155); font: 400 0.875rem / 1.5 \"Archivo\", system-ui, sans-serif; }"
+      "css": ".ds-sheet-head { display: flex; justify-content: space-between; align-items: stretch; gap: 16px; padding: 16px 16px 0; border-bottom: 3px solid var(--ink, #16181a); background: var(--paper, #f9faf7); } .ds-sheet-part { padding: 8px 12px 6px; background: var(--ink, #16181a); color: var(--paper, #f9faf7); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; } .ds-sheet-note { align-self: end; padding-bottom: 6px; color: var(--ink-2, #4b5155); font: 400 0.875rem / 1.5 \"Archivo\", system-ui, sans-serif; }"
     },
     {
       "name": "Choice, Dungeon",
@@ -1116,12 +1148,12 @@
       },
       {
         "name": "The No Copper Ink Rule",
-        "body": "Copper text fails contrast on Paper. On Paper, copper is a trace, pin, underline, or focus ring; the text it marks stays ink. Use the look tokens `--live-text` (text) and `--live-trace` (lines), never raw copper for text.",
+        "body": "Copper text fails contrast on Paper. On Paper, copper is a trace, pin, underline, or focus ring; the text it marks stays ink. Use the look tokens `--live-text` (text) and `--live-trace` (lines), never raw copper for text. Paper copper lines and focus rings are Deep Copper (`copper-deep`, 4.6:1 on the sheet), through `--live-trace` and `--focus`.",
         "section": "colors"
       },
       {
         "name": "The Look Token Rule",
-        "body": "HTML surfaces use the look tokens (`--surface`, `--surface-2`, `--text`, `--text-2`, `--line`, `--line-2`, `--live-text`, `--live-trace`, `--focus`), which resolve per Theme with `light-dark()`. A surface that is Board in both machine Themes sets `color-scheme: dark` on itself or uses the palette tokens directly.",
+        "body": "HTML surfaces use the look tokens (`--ground`, `--surface`, `--surface-2`, `--text`, `--text-2`, `--line`, `--line-2`, `--live-text`, `--live-trace`, `--idle-pad`, `--focus`), which resolve per Theme with `light-dark()`. A surface that is Board in both machine Themes sets `color-scheme: dark` on itself or uses the palette tokens directly. A sheet, panel, or keep-out is `--surface` on `--ground`: in Paper a light sheet on the Paper Shade, in Board the Lifted Mask on the bare board, with a silkscreen edge of 3:1 or more.",
         "section": "colors"
       },
       {
@@ -1161,7 +1193,7 @@
       },
       {
         "name": "The Keep-Out Rule",
-        "body": "Board traces never run under text. Text sits on a keep-out (a solid `--surface` area with a silkscreen edge) or on the quiet board tile, whose traces are close to the mask color. The busy tile is for open background only.",
+        "body": "Board traces never run under text. Text sits on a keep-out (a solid `--surface` area, the Lifted Mask in Board, with a silkscreen edge) or on the quiet board tile, whose traces are close to the mask color. The busy tile is for open background only.",
         "section": "layout"
       },
       {

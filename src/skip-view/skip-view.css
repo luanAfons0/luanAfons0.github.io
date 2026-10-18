@@ -11,9 +11,10 @@
  */
 @import "../theme.css";
 
-/* The Paper values of the per-look tokens. */
+/* The Paper values of the per-look tokens. The page column is a light sheet on the paper shade. */
 :root {
-	--sv-page-color: var(--surface);
+	--sv-page-color: var(--ground);
+	--sv-sheet-color: var(--surface);
 	--sv-page-texture: none;
 	--sv-page-texture-size: auto;
 	--sv-name-font: 800 clamp(2.75rem, 9vw, 4.75rem) / 0.9 var(--font-sans);
@@ -52,12 +53,13 @@ body {
 }
 
 ::selection {
-	background: var(--copper);
+	background: var(--live-trace);
 	color: var(--paper);
 }
 
 .skip-page {
 	max-width: 50rem;
+	background-color: var(--sv-sheet-color);
 	margin: 0 auto;
 	padding: 0 16px 4rem;
 }
@@ -274,6 +276,7 @@ h3 {
    the same: the first is the saved Theme, the second the system setting when no Theme is saved. */
 :root[data-theme="board"] {
 	--sv-page-color: var(--board);
+	--sv-sheet-color: transparent;
 	--sv-page-texture: var(--board-traces-quiet);
 	--sv-page-texture-size: 240px 240px;
 	--sv-name-font: 400 round(down, clamp(2rem, 6vw, 3.5rem), 8px) / 1 var(--font-silk);
@@ -293,6 +296,7 @@ h3 {
 @media (prefers-color-scheme: dark) {
 	:root:not([data-theme]) {
 		--sv-page-color: var(--board);
+		--sv-sheet-color: transparent;
 		--sv-page-texture: var(--board-traces-quiet);
 		--sv-page-texture-size: 240px 240px;
 		--sv-name-font: 400 round(down, clamp(2rem, 6vw, 3.5rem), 8px) / 1 var(--font-silk);
@@ -316,6 +320,7 @@ h3 {
    the section number, then its kind in italics, both as wide as the text measure (62ch). Every rule names the Dungeon look, so Paper and
    Board never load a Dungeon face or tile. Hover inverts only where a real pointer hovers. */
 :root[data-theme="dungeon"] {
+	--sv-sheet-color: transparent;
 	--sv-name-font: 400 clamp(2.75rem, 8vw, 4.5rem) / 0.92 var(--font-fell);
 	--sv-name-stretch: normal;
 	--sv-name-spacing: normal;

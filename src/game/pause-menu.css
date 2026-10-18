@@ -190,8 +190,8 @@
 	content: "On";
 }
 
-/* A DIP switch: a checkbox drawn as one switch of a DIP block. The lever is down (grey) when off
-   and up (copper) when on. */
+/* A DIP switch: a checkbox drawn as one switch of a DIP block, in a well of bare board (darker
+   than the lifted panel). The lever is down (grey) when off and up (copper) when on. */
 .pause-menu__dip {
 	-webkit-appearance: none;
 	appearance: none;
@@ -200,7 +200,7 @@
 	width: 1.5em;
 	height: 2.4em;
 	margin: 0;
-	background: var(--board-2);
+	background: var(--board);
 	border: 1px solid var(--silk-2);
 	cursor: pointer;
 }
@@ -244,7 +244,7 @@
 	width: 100%;
 	height: 1.4em;
 	margin: 0;
-	background: var(--board-2);
+	background: var(--board);
 	border-block: 1px solid var(--silk-2);
 	cursor: pointer;
 }
