@@ -28,7 +28,10 @@ import { type ArtSet, artSetOf, isTextureRole, posterPath, type TextureRole } fr
 // loadArt() loads the art of the shown Theme, so both are ready when the game can start.
 // startGame() runs the game. A Theme switch in the Pause Menu changes the art set during play.
 
-/** The decoded art of one art set: wall textures by texture role, Bug sprites, and Exhibit posters. */
+/**
+ * The decoded art of one art set: wall textures by texture role and Flats by file name, Bug
+ * sprites, and Exhibit posters.
+ */
 interface GameArt {
 	textures: Record<string, Texture>;
 	sprites: Record<string, SpriteImage>;
@@ -40,8 +43,8 @@ const loadedArt = new Map<ArtSet, GameArt>();
 const artLoads = new Map<ArtSet, Promise<void>>();
 
 /**
- * Loads and decodes every wall texture, Bug sprite, and Exhibit poster of an art set, once, before
- * the first frame. A failed load is forgotten, so the next call tries again.
+ * Loads and decodes every wall texture, Flat, Bug sprite, and Exhibit poster of an art set, once,
+ * before the first frame. A failed load is forgotten, so the next call tries again.
  */
 export function loadArt(artSet: ArtSet): Promise<void> {
 	let load = artLoads.get(artSet);
@@ -62,19 +65,23 @@ export function loadArt(artSet: ArtSet): Promise<void> {
 
 /**
  * The art of an art set. All files are in the art set folders under public/. The Level names
- * texture roles, and the art set maps each role to its file. The poster of an Exhibit is named by its id.
+ * texture roles, and the art set maps each role to its file. The Flats are in the textures folder,
+ * named by their files. The poster of an Exhibit is named by its id.
  */
 async function fetchArt(artSet: ArtSet): Promise<GameArt> {
 	const base = import.meta.env.BASE_URL;
+	const roles = levelTextureNames(sampleLevel)
+		// createGame and game.changeArtSet name a texture that is not a role or has no file; load only the others.
+		.filter((name): name is TextureRole => isTextureRole(name) && Boolean(artSet.textures[name]));
+	const textureFiles = [
+		...roles.map((role) => [role, artSet.textures[role]] as const),
+		...Object.values(artSet.flats).map((name) => [name, name] as const),
+	];
 	const [textureEntries, spriteEntries, posterEntries] = await Promise.all([
 		Promise.all(
-			levelTextureNames(sampleLevel)
-				// createGame and game.changeArtSet name a texture that is not a role or has no file; load only the others.
-				.filter((name): name is TextureRole => isTextureRole(name) && Boolean(artSet.textures[name]))
-				.map(
-					async (role) =>
-						[role, await loadTexture(`${base}${artSet.folders.textures}/${artSet.textures[role]}.png`)] as const,
-				),
+			textureFiles.map(
+				async ([key, file]) => [key, await loadTexture(`${base}${artSet.folders.textures}/${file}.png`)] as const,
+			),
 		),
 		loadSprites(`${base}${artSet.folders.sprites}`, bugFrameNames(artSet)),
 		Promise.all(EXHIBITS.map(async ({ id }) => [id, await loadTexture(`${base}${posterPath(artSet, id)}`)] as const)),
@@ -257,11 +264,12 @@ export function startGame(startArtSet: ArtSet, audio?: Audio): void {
 	// Shares memory with the framebuffer, so there is no copy per frame.
 	const image = new ImageData(new Uint8ClampedArray(framebuffer.pixels.buffer), SCREEN_WIDTH, SCREEN_HEIGHT);
 
-	const input: InputSnapshot = { forward: 0, strafe: 0, turn: 0, look: 0, shoot: false, use: false };
+	const input: InputSnapshot = { forward: 0, strafe: 0, turn: 0, look: 0, lookUp: 0, shoot: false, use: false };
 	const tick = () => {
 		keyboard.snapshot(input);
 		// All mouse movement since the last tick goes into this tick, so none is lost or counted twice.
 		input.look = mouse.takeLook();
+		input.lookUp = mouse.takeLookUp();
 		input.shoot = mouse.takeShot();
 		game.step(input);
 	};

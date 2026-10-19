@@ -7,8 +7,9 @@
  * How a look is chosen:
  * - data-theme="paper", "board", or "dungeon" on the root: the saved Theme (the Theme head script
  *   of each page sets it before the first paint, and the Theme item or switch changes it).
- * - No data-theme: the system setting. Light gives Paper, dark gives Board. Dungeon has no system
- *   trigger.
+ * - The page HTML puts the default Theme (Dungeon, `DEFAULT_THEME` in src/game/theme.ts) there, so
+ *   a page always has a data-theme, also with JavaScript off. No Theme follows the system light or
+ *   dark setting (ADR 0004).
  *
  * The look sets `color-scheme` on the root (light for Paper and Dungeon, dark for Board), so the
  * look tokens below pick their value with light-dark(). A surface that is Board in both machine
@@ -175,9 +176,6 @@
 	/* An unselected pin or pad. */
 	--idle-pad: light-dark(var(--pin), var(--pad));
 	--focus: light-dark(var(--copper-deep), var(--copper-hot));
-
-	/* No saved Theme: follow the system. */
-	color-scheme: light dark;
 }
 
 :root[data-theme="paper"] {
@@ -214,26 +212,11 @@
 	color-scheme: dark;
 }
 
-/* One look at a time. CSS has no "or" between a selector and a media query, so the system case
-   (no data-theme) has its own rules. */
-:root:not([data-theme="dungeon"]) .only-dungeon,
-:root[data-theme="board"] .only-paper,
-:root[data-theme="dungeon"] .only-paper,
-:root[data-theme="paper"] .only-board,
-:root[data-theme="dungeon"] .only-board {
+/* One look at a time. */
+:root:not([data-theme="paper"]) .only-paper,
+:root:not([data-theme="board"]) .only-board,
+:root:not([data-theme="dungeon"]) .only-dungeon {
 	display: none;
-}
-
-@media (prefers-color-scheme: dark) {
-	:root:not([data-theme]) .only-paper {
-		display: none;
-	}
-}
-
-@media not (prefers-color-scheme: dark) {
-	:root:not([data-theme]) .only-board {
-		display: none;
-	}
 }
 
 .board-surface {

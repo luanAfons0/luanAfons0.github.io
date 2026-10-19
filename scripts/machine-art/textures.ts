@@ -34,8 +34,8 @@ export function textures(): GeneratedFile[] {
 	return Object.entries(TEXTURES).map(([name, draw]) => pngFile(`textures/${name}.png`, draw()));
 }
 
-/** Matte solder mask: the base color with sparse light and dark specks. */
-function solderMask(seed: number): Pixmap {
+/** Matte solder mask: the base color with sparse light and dark specks. The Flats use it too. */
+export function solderMask(seed: number): Pixmap {
 	const pixmap = createPixmap(SIZE, SIZE);
 	const random = seededRandom(seed);
 	for (let i = 0; i < pixmap.pixels.length; i++) {
@@ -51,7 +51,8 @@ function boardEdges(pixmap: Pixmap): void {
 	fillRect(pixmap, 0, LAST, LAST, LAST, c.RING);
 }
 
-function via(pixmap: Pixmap, x: number, y: number): void {
+/** A via: a copper ring around a drilled hole. The Flats use it too. */
+export function via(pixmap: Pixmap, x: number, y: number): void {
 	disc(pixmap, x, y, 2, c.RING);
 	plot(pixmap, x, y, c.HOLE);
 }

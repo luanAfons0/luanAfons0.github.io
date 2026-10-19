@@ -14,22 +14,23 @@ export const THEME_LABELS: Readonly<Record<Theme, string>> = {
 	dungeon: "Dungeon",
 };
 
+/**
+ * The default Theme: the Theme a visitor with no saved Theme sees (ADR 0004). Both pages carry it as
+ * `data-theme` on their root in the HTML, so it shows with JavaScript off too.
+ */
+export const DEFAULT_THEME: Theme = "dungeon";
+
 export function isTheme(value: unknown): value is Theme {
 	return typeof value === "string" && (THEMES as readonly string[]).includes(value);
 }
 
 /**
- * The Theme a page shows: the saved Theme in `data-theme` on its root, or, with none, the system
- * look (a dark system setting gives Board, a light one Paper). Pass the page root and the
- * `(prefers-color-scheme: dark)` media query.
+ * The Theme a page shows: `data-theme` on its root (the saved Theme, else the default), or the
+ * default Theme.
  */
-export function shownTheme(
-	root: { readonly dataset: { readonly theme?: string } },
-	darkSystem: { readonly matches: boolean },
-): Theme {
+export function shownTheme(root: { readonly dataset: { readonly theme?: string } }): Theme {
 	const theme = root.dataset.theme;
-	if (isTheme(theme)) return theme;
-	return darkSystem.matches ? "board" : "paper";
+	return isTheme(theme) ? theme : DEFAULT_THEME;
 }
 
 /** A color as red, green, and blue values from 0 to 255. */
@@ -102,15 +103,18 @@ export interface ArtSet {
 	bugFixFrames: readonly string[];
 	/** The WAV file (with no extension) of each sound event. */
 	sounds: Readonly<Record<SoundEvent, string>>;
-	/** The flat colors of the ceiling and the floor, shaded by distance like the walls. */
-	ceiling: Rgb;
-	floor: Rgb;
+	/**
+	 * The Flats: the PNG file (with no extension) in the textures folder of the ceiling Flat and of
+	 * the floor Flat. A Flat covers one tile and repeats on every tile. A Flat file name must not be
+	 * a texture role, as the Flats and the wall textures share one `textures` record in the Game core.
+	 */
+	flats: Readonly<{ ceiling: string; floor: string }>;
 	hud: Readonly<HudColors>;
 }
 
 /**
  * The machine art set, which the Paper and Board Themes share: a circuit board. Its wall textures,
- * Bug frames, posters, and sounds all come from `scripts/machine-art.ts`.
+ * Flats, Bug frames, posters, and sounds all come from `scripts/machine-art.ts`.
  */
 export const MACHINE_ART_SET: ArtSet = {
 	name: "machine",
@@ -133,8 +137,8 @@ export const MACHINE_ART_SET: ArtSet = {
 	bugWalkFrames: ["beetle-walk-1", "beetle-walk-2"],
 	bugFixFrames: ["beetle-fix-1", "beetle-fix-2", "beetle-fix-3", "beetle-patched", "beetle-patched", "beetle-patched"],
 	sounds: { shot: "shot", "door-open": "door-open" },
-	ceiling: [11, 13, 15],
-	floor: [22, 27, 30],
+	// A heat-sink panel grid above, and solder mask with copper traces and vias below.
+	flats: { ceiling: "heat-sink", floor: "solder-mask" },
 	// Silkscreen grey labels, copper values, silkscreen white hint and crosshair, on solder mask.
 	hud: {
 		value: [224, 138, 79],
@@ -150,8 +154,8 @@ export const MACHINE_ART_SET: ArtSet = {
 };
 
 /**
- * The dungeon art set, of the Dungeon Theme: a torch-lit stone keep. Its wall textures, Slime Bug
- * frames, banner posters, and sounds all come from `scripts/dungeon-art.ts`.
+ * The dungeon art set, of the Dungeon Theme: a torch-lit stone keep. Its wall textures, Flats, Slime
+ * Bug frames, banner posters, and sounds all come from `scripts/dungeon-art.ts`.
  */
 export const DUNGEON_ART_SET: ArtSet = {
 	name: "dungeon",
@@ -174,8 +178,8 @@ export const DUNGEON_ART_SET: ArtSet = {
 	bugWalkFrames: ["slime-walk-1", "slime-walk-2"],
 	bugFixFrames: ["slime-fix-1", "slime-fix-2", "slime-fix-3", "slime-cleared", "slime-cleared", "slime-cleared"],
 	sounds: { shot: "shot", "door-open": "door-open" },
-	ceiling: [14, 13, 12],
-	floor: [34, 32, 29],
+	// Timber beams over oak planks above, and flagstones of the cut stone of the walls below.
+	flats: { ceiling: "timber", floor: "flagstone" },
 	// A pulp paper bar with ink lines, labels, and values, and an ink tick box per Bug next to the
 	// Bugs fixed value. The hint and the crosshair are paper with an ink outline.
 	hud: {
@@ -199,11 +203,11 @@ const THEME_ART_SETS: Readonly<Record<Theme, ArtSet>> = {
 };
 
 /**
- * The art set of a Theme: the only place a caller gets an art set. With no Theme, the system
- * setting chooses Paper or Board, which both use the machine art set.
+ * The art set of a Theme: the only place a caller gets an art set. No Theme gives the art set of
+ * the default Theme.
  */
 export function artSetOf(theme: Theme | undefined): ArtSet {
-	return THEME_ART_SETS[theme ?? "paper"];
+	return THEME_ART_SETS[theme ?? DEFAULT_THEME];
 }
 
 /** The poster of an Exhibit in an art set: a PNG path relative to `public/`, named by the Exhibit id. */

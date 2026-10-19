@@ -46,8 +46,7 @@
 	--ep-foot-padding: 0.7em 1.92em 1.12em;
 }
 
-/* The Board layout. Keep the two blocks below the same: the first is the saved Theme, the second the
-   system setting when no Theme is saved. */
+/* The Board layout. */
 :root[data-theme="board"] .exhibit-panel {
 	--ep-width: 48em;
 	--ep-texture: var(--board-traces-quiet);
@@ -72,34 +71,6 @@
 	--ep-link-weight: 400;
 	--ep-link-hover-decoration: underline;
 	--ep-foot-padding: 0;
-}
-
-@media (prefers-color-scheme: dark) {
-	:root:not([data-theme]) .exhibit-panel {
-		--ep-width: 48em;
-		--ep-texture: var(--board-traces-quiet);
-		--ep-shadow: 0 14px 40px rgb(0 0 0 / 0.5);
-		--ep-panel-padding: 1.6em 1.92em;
-		--ep-panel-gap: 0.9em;
-		--ep-head-margin: 0;
-		--ep-head-padding: 0;
-		--ep-head-justify: flex-start;
-		--ep-head-align: center;
-		--ep-head-rule: 0;
-		--ep-part-padding: 0.35em 0.6em;
-		--ep-part-size: max(8px, round(nearest, 1em, 8px));
-		--ep-kind-font: 400 max(8px, round(nearest, 1em, 8px)) / 1 var(--font-silk);
-		--ep-kind-align: center;
-		--ep-kind-padding: 0;
-		--ep-body-padding: 0;
-		--ep-title-font: 400 max(8px, round(nearest, 2.2em, 8px)) / 1.1 var(--font-silk);
-		--ep-title-stretch: normal;
-		--ep-title-spacing: 0;
-		--ep-summary-size: 1.2em;
-		--ep-link-weight: 400;
-		--ep-link-hover-decoration: underline;
-		--ep-foot-padding: 0;
-	}
 }
 
 .exhibit-panel[hidden] {
@@ -172,12 +143,6 @@
 	display: none;
 }
 
-@media (prefers-color-scheme: dark) {
-	:root:not([data-theme]) .exhibit-panel__kind {
-		display: none;
-	}
-}
-
 .exhibit-panel__body {
 	display: grid;
 	gap: 0.9em;
@@ -205,7 +170,7 @@
 	font: 700 1em / 1.2 var(--font-sans);
 }
 
-/* Board has no section headings on screen; they stay for screen readers. Keep the two rules the same. */
+/* Board has no section headings on screen; they stay for screen readers. */
 :root[data-theme="board"] .exhibit-panel__section {
 	position: absolute;
 	width: 1px;
@@ -213,17 +178,6 @@
 	overflow: hidden;
 	clip-path: inset(50%);
 	white-space: nowrap;
-}
-
-@media (prefers-color-scheme: dark) {
-	:root:not([data-theme]) .exhibit-panel__section {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		overflow: hidden;
-		clip-path: inset(50%);
-		white-space: nowrap;
-	}
 }
 
 .exhibit-panel__details {

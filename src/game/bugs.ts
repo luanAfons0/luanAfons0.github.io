@@ -1,7 +1,7 @@
 import { moveCircle } from "../engine/collision";
 import type { Grid } from "../engine/grid";
 import { castRay, createRayHit } from "../engine/raycast";
-import type { Sprite, SpriteImage } from "../engine/renderer";
+import { EYE_HEIGHT, type Sprite, type SpriteImage } from "../engine/renderer";
 import type { BugSpawn, Room } from "./level";
 import type { ArtSet } from "./theme";
 import { TICKS_PER_SECOND } from "./ticks";
@@ -64,9 +64,12 @@ export interface Bugs {
 	step(walls: Grid): void;
 	/**
 	 * Fires a shot from (x, y) in the direction `angle`. It fixes the nearest Bug in the line of
-	 * fire, if no wall is in front of it, and returns true when it fixed one.
+	 * fire, if no wall is in front of it, and returns true when it fixed one. `aimSlope` is the
+	 * climb of the line of fire, in tiles of height per tile of distance (0 shoots level from the
+	 * eye, at `EYE_HEIGHT`; positive aims up). The line must pass through the picture of the Bug, top
+	 * to bottom.
 	 */
-	shoot(walls: Grid, x: number, y: number, angle: number): boolean;
+	shoot(walls: Grid, x: number, y: number, angle: number, aimSlope: number): boolean;
 	/** One sprite per Bug, reused every frame. Draw the first `updateSprites()` of them. */
 	readonly sprites: ReadonlyArray<Sprite>;
 	/** Draws every Bug with other frames from the next `updateSprites()` on. Positions, fixes, and animation times stay. */
@@ -102,8 +105,12 @@ export function bugFramesOf(hasBugs: boolean, images: Readonly<Record<string, Sp
 	return { walk: art.bugWalkFrames.map(frame), fix: art.bugFixFrames.map(frame) };
 }
 
-/** The Bugs of the spawns, drawn with `frames` (see `bugFramesOf`) until `useFrames` changes them. */
-export function createBugs(spawns: readonly BugSpawn[], frames: BugFrames): Bugs {
+/**
+ * The Bugs of the spawns, drawn with `frames` (see `bugFramesOf`) until `useFrames` changes them.
+ * `texelSize` is the size of one sprite texel in tiles, as the Renderer draws it: a shot uses it
+ * to find the top and the bottom of each Bug.
+ */
+export function createBugs(spawns: readonly BugSpawn[], frames: BugFrames, texelSize: number): Bugs {
 	let walkImages = frames.walk;
 	let fixImages = frames.fix;
 	const random = createRandom(WANDER_SEED);
@@ -160,7 +167,7 @@ export function createBugs(spawns: readonly BugSpawn[], frames: BugFrames): Bugs
 			}
 		},
 		fixedCount: () => bugs.filter((bug) => bug.fixed).length,
-		shoot(walls, x, y, angle) {
+		shoot(walls, x, y, angle, aimSlope) {
 			const dirX = Math.cos(angle);
 			const dirY = Math.sin(angle);
 			let nearest: Bug | undefined;
@@ -174,7 +181,12 @@ export function createBugs(spawns: readonly BugSpawn[], frames: BugFrames): Bugs
 				const dy = bug.y - y;
 				const along = dx * dirX + dy * dirY;
 				const across = dx * dirY - dy * dirX;
-				if (along > 0 && along < nearestDistance && Math.abs(across) < HIT_RADIUS) {
+				if (along <= 0 || along >= nearestDistance || Math.abs(across) >= HIT_RADIUS) continue;
+				const { image, z } = bug.sprite;
+				const aim = EYE_HEIGHT + aimSlope * along;
+				const top = z + image.top * texelSize;
+				const bottom = top - image.texture.height * texelSize;
+				if (aim <= top && aim >= bottom) {
 					nearest = bug;
 					nearestDistance = along;
 				}

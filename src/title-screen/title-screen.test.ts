@@ -20,6 +20,8 @@ const PAGE = withThemeScript(
 		readFileSync(resolve(import.meta.dirname, "../../index.html"), "utf8").replaceAll("%BASE_URL%", BASE),
 	),
 );
+/** The data-theme on the root of the real page, as its HTML carries it before any script runs. */
+const PAGE_THEME = new DOMParser().parseFromString(PAGE, "text/html").documentElement.getAttribute("data-theme");
 /** The page body without its script: the Title Screen markup and the game canvas. */
 const BODY = PAGE.slice(PAGE.indexOf("<body>") + "<body>".length, PAGE.indexOf("</body>")).replace(
 	/<script[\s\S]*?<\/script>/g,
@@ -30,7 +32,9 @@ let screens: TitleScreen[] = [];
 
 beforeEach(() => {
 	document.body.innerHTML = BODY;
-	document.documentElement.removeAttribute("data-theme");
+	// The root as the page loads it: the default Theme from the HTML, before the head scripts run.
+	if (PAGE_THEME === null) document.documentElement.removeAttribute("data-theme");
+	else document.documentElement.setAttribute("data-theme", PAGE_THEME);
 	localStorage.clear();
 	systemScheme("light");
 	motion("reduce");
@@ -409,16 +413,17 @@ function stubPicker(open: () => void = () => {}) {
 }
 
 describe("Theme", () => {
-	it.each([
-		["light", "paper"],
-		["dark", "board"],
-	] as const)("follows a %s system setting when no Theme is saved: the Theme select shows %s", (scheme, theme) => {
+	it("shows Dungeon with JavaScript off: the page root carries the default Theme in its HTML", () => {
+		expect(PAGE_THEME).toBe("dungeon");
+	});
+
+	it.each(["light", "dark"] as const)("shows Dungeon when no Theme is saved, also on a %s system", (scheme) => {
 		systemScheme(scheme);
 		runHeadScript();
 		setUp();
 
-		expect(shownTheme()).toBeNull();
-		expect(themeItem().value).toBe(theme);
+		expect(shownTheme()).toBe("dungeon");
+		expect(themeItem().value).toBe("dungeon");
 	});
 
 	it("is a native select labelled Theme", () => {
@@ -426,16 +431,6 @@ describe("Theme", () => {
 
 		expect(themeItem().tagName).toBe("SELECT");
 		expect(themeLabel()).toBe("Theme");
-	});
-
-	it("keeps the Theme select in step with the system setting when no Theme is saved", () => {
-		setUp();
-		expect(themeItem().value).toBe("paper");
-
-		systemScheme("dark");
-		window.dispatchEvent(new Event("resize"));
-
-		expect(themeItem().value).toBe("board");
 	});
 
 	it("applies a saved Theme in the head script, before the first paint", () => {
@@ -462,8 +457,7 @@ describe("Theme", () => {
 		expect(headScripts(withThemeScript(skipViewPage(BASE)))).toEqual([themeScript]);
 	});
 
-	it("falls back to the system setting when storage is broken", () => {
-		systemScheme("dark");
+	it("shows Dungeon when storage is broken", () => {
 		vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
 			throw new Error("Blocked site data.");
 		});
@@ -471,8 +465,8 @@ describe("Theme", () => {
 		runHeadScript();
 		setUp();
 
-		expect(shownTheme()).toBeNull();
-		expect(themeItem().value).toBe("board");
+		expect(shownTheme()).toBe("dungeon");
+		expect(themeItem().value).toBe("dungeon");
 	});
 
 	it("ignores a saved Theme that is not a Theme", () => {
@@ -481,9 +475,9 @@ describe("Theme", () => {
 		runHeadScript();
 		setUp();
 
-		expect(shownTheme()).toBeNull();
+		expect(shownTheme()).toBe("dungeon");
 		expect(loadSettings().theme).toBeUndefined();
-		expect(themeItem().value).toBe("paper");
+		expect(themeItem().value).toBe("dungeon");
 	});
 
 	it("switches the look when the visitor chooses a Theme, saves it, keeps the item selected, and sends theme/<id>", () => {
@@ -524,8 +518,8 @@ describe("Theme", () => {
 
 		expect(showPicker).toHaveBeenCalledTimes(1);
 		expect(event.defaultPrevented).toBe(true);
-		expect(shownTheme()).toBeNull();
-		expect(themeItem().value).toBe("paper");
+		expect(shownTheme()).toBe("dungeon");
+		expect(themeItem().value).toBe("dungeon");
 		expect(track).not.toHaveBeenCalled();
 	});
 
@@ -549,7 +543,7 @@ describe("Theme", () => {
 
 		expect(down.defaultPrevented).toBe(true);
 		expect(document.activeElement).toBe(newGame());
-		expect(themeItem().value).toBe("paper");
+		expect(themeItem().value).toBe("dungeon");
 	});
 
 	it("opens the Theme picker on Enter when the mouse selected the Theme item", () => {
@@ -620,11 +614,11 @@ describe("Theme", () => {
 		const loads: (() => void)[] = [];
 		// Like the real entry: the load gets the art of the shown Theme, and the start uses the shown Theme.
 		const load = vi.fn(() => {
-			const theme = shownTheme() ?? "paper";
+			const theme = shownTheme();
 			return new Promise<string>((resolve) => loads.push(() => resolve(`${theme} game`)));
 		});
 		const started: string[] = [];
-		setUp({ loadGame: load, track, startGame: (game) => started.push(`${game}, shown ${shownTheme() ?? "paper"}`) });
+		setUp({ loadGame: load, track, startGame: (game) => started.push(`${game}, shown ${shownTheme()}`) });
 		const showPicker = stubPicker();
 
 		newGame().click();
@@ -635,11 +629,11 @@ describe("Theme", () => {
 		loads[0]?.();
 		await vi.waitFor(() => expect(started).toHaveLength(1));
 
-		expect(started).toEqual(["paper game, shown paper"]);
+		expect(started).toEqual(["dungeon game, shown dungeon"]);
 		expect(load).toHaveBeenCalledTimes(1);
 		expect(showPicker).not.toHaveBeenCalled();
 		expect(loadSettings().theme).toBeUndefined();
-		expect(themeItem().value).toBe("paper");
+		expect(themeItem().value).toBe("dungeon");
 		expect(track).not.toHaveBeenCalledWith(expect.stringMatching(/^theme\//));
 	});
 
@@ -656,13 +650,12 @@ describe("Theme", () => {
 		expect(shownTheme()).toBe("board");
 	});
 
-	it("switches away from the system look on the first choice", () => {
-		systemScheme("dark");
+	it("switches away from the default Theme on the first choice", () => {
 		const { load, navigate } = setUp();
 
-		chooseTheme("dungeon");
+		chooseTheme("paper");
 
-		expect(shownTheme()).toBe("dungeon");
+		expect(shownTheme()).toBe("paper");
 		expect(load).not.toHaveBeenCalled();
 		expect(navigate).not.toHaveBeenCalled();
 	});
@@ -694,7 +687,7 @@ describe("Title Screen Features", () => {
 		};
 
 		const page = titleScreenPage(
-			"<li><!--level-features--></li><dd><!--level-rooms--></dd><dd><!--level-exhibits--></dd><dd><!--level-bugs--></dd><select><!--theme-options--></select>",
+			"<li><!--level-features--></li><dd><!--level-rooms--></dd><dd><!--level-exhibits--></dd><dd><!--level-bugs--></dd><select><!--theme-options--></select><!--default-theme-->",
 			level,
 		);
 
@@ -718,6 +711,14 @@ describe("Title Screen Features", () => {
 				"<li><!--level-features--></li><dd><!--level-rooms--></dd><dd><!--level-exhibits--></dd><dd><!--level-bugs--></dd>",
 			),
 		).toThrow(/theme-options/);
+	});
+
+	it("fails on a page with no mark for the default Theme", () => {
+		expect(() =>
+			titleScreenPage(
+				"<li><!--level-features--></li><dd><!--level-rooms--></dd><dd><!--level-exhibits--></dd><dd><!--level-bugs--></dd><select><!--theme-options--></select>",
+			),
+		).toThrow(/default-theme/);
 	});
 
 	it("fails on a page with no mark for a count, so a count never goes missing", () => {

@@ -8,14 +8,17 @@ import { isTheme, type Theme } from "./theme";
  * The Title Screen reads and writes them too (the Theme), so this module imports only the Theme module.
  */
 export interface Settings {
-	/** Multiplies the mouse turn. 1 is the default speed. */
+	/** Multiplies the mouse turn and the mouse pitch. 1 is the default speed. */
 	mouseSensitivity: number;
-	/** Mouse movement to the right turns the player left. */
+	/**
+	 * Mouse movement up looks down, and down looks up. The mouse turn left and right does not
+	 * change.
+	 */
 	invertMouse: boolean;
 	sound: boolean;
 	/**
-	 * The Theme the visitor chose. Missing means "follow the system": a light system setting shows
-	 * Paper and a dark one shows Board. The Theme head script of both pages reads it from the same key.
+	 * The Theme the visitor chose. Missing means the default Theme (`DEFAULT_THEME`, Dungeon). The
+	 * Theme head script of both pages reads it from the same key.
 	 */
 	theme?: Theme;
 }

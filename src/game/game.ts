@@ -4,7 +4,7 @@ import { type Framebuffer, rgb } from "../engine/framebuffer";
 import { cellAt } from "../engine/grid";
 import type { InputSnapshot } from "../engine/input";
 import { castRay, createRayHit, faceKey } from "../engine/raycast";
-import { type Camera, createRenderer, type Renderer, type SpriteImage } from "../engine/renderer";
+import { type Camera, createRenderer, projectionOf, type Renderer, type SpriteImage } from "../engine/renderer";
 import type { Texture } from "../engine/texture";
 import { type BugArt, type BugFrames, type BugState, bugFrameNames, bugFramesOf, createBugs } from "./bugs";
 import { checkContent, type Exhibit } from "./content";
@@ -12,7 +12,15 @@ import { assertHudCanDraw, createHud, type Hud, type HudView, STATUS_BAR_HEIGHT 
 import { type Level, loadLevel, roomAt } from "./level";
 import { createPosterFace } from "./poster";
 import { DEFAULT_SETTINGS, type Settings } from "./settings";
-import { type ArtSet, isTextureRole, MACHINE_ART_SET, SOUND_EVENTS, type SoundEvent, TEXTURE_ROLES } from "./theme";
+import {
+	type ArtSet,
+	isTextureRole,
+	MACHINE_ART_SET,
+	type Rgb,
+	SOUND_EVENTS,
+	type SoundEvent,
+	TEXTURE_ROLES,
+} from "./theme";
 import { TICKS_PER_SECOND } from "./ticks";
 
 export { bugFrameNames } from "./bugs";
@@ -31,6 +39,8 @@ const USE_DISTANCE = 1.5; // tiles
 const DOOR_OPEN_TICKS = 45;
 /** Mouse turn at sensitivity 1: about 0.14 degrees per pixel of mouse movement. */
 const LOOK_SPEED = 0.0025; // radians per pixel
+/** Mouse pitch: screen pixels of view pitch per pixel of mouse movement up, at sensitivity 1. */
+const PITCH_SPEED = 1;
 /** Head bob: the view moves up and down by up to this many pixels, one full cycle per BOB_TILES walked. */
 const BOB_PIXELS = 4;
 const BOB_TILES = 1.5;
@@ -40,16 +50,31 @@ const SHAKE_TICKS = 8;
 /** How fast the bob fades in when the player starts walking and fades out when it stops (0 to 1 per tick). */
 const BOB_EASE = 0.2;
 
+/**
+ * The flat colors of the ceiling and the floor when the Game core has no Flat textures for the
+ * Renderer: only in tests that give no art set. With an art set, the art set check makes sure that
+ * `textures` holds both of its Flats.
+ */
+export const NO_FLAT_COLORS: Readonly<{ ceiling: Rgb; floor: Rgb }> = { ceiling: [11, 13, 15], floor: [22, 27, 30] };
+
 /** The Game core always renders at this size. The browser shell scales it up. */
 export const SCREEN_WIDTH = 640;
 export const SCREEN_HEIGHT = 360;
+/** The 3D view fills the frame above the status bar. */
+const VIEW_HEIGHT = SCREEN_HEIGHT - STATUS_BAR_HEIGHT;
+/** The view pitch stops at 40% of the view height, up and down, in screen pixels. */
+const MAX_PITCH = Math.round(0.4 * VIEW_HEIGHT);
+/** Half the width of the view plane, in tiles at distance 1 (about an 84 degree field of view). */
+const PLANE_HALF_WIDTH = 0.9;
+/** The height on screen, in pixels, of one tile at distance 1, as the Renderer draws it. */
+const PROJECTION = projectionOf(SCREEN_WIDTH, PLANE_HALF_WIDTH);
 /** Sprites are drawn at 72 texels per tile, so a Bug (39 texels high) is about half a wall high. */
 const SPRITE_TEXEL_SIZE = 1 / 72;
 
 /**
  * Player settings that change how the Game core reads input and draws the view: the saved
  * mouse settings (see `Settings`), and whether the system asks for reduced motion (no head bob
- * and no screen shake).
+ * and no screen shake; the player still moves the pitch).
  */
 export type GameSettings = Pick<Settings, "mouseSensitivity" | "invertMouse"> & { reducedMotion: boolean };
 
@@ -63,19 +88,24 @@ export interface GameOptions {
 	/** Parsed Tiled JSON for the Level. */
 	level: unknown;
 	/**
-	 * The art set the Level, the Bugs, the posters, and the HUD use. When it is given, creating the
-	 * Game core fails with an error that names the art set and the missing item if the art set has no
-	 * file for a texture role or no sound for a sound event, and it fails if the Level names a texture
-	 * that is not a texture role. Leave it out only in tests that name their own textures: the Bugs,
-	 * the posters, and the HUD then use MACHINE_ART_SET, and the Level textures are not checked.
+	 * The art set the Level, the Bugs, the posters, the Flats, and the HUD use. When it is given,
+	 * creating the Game core fails with an error that names the art set and the missing item if the
+	 * art set has no file for a texture role, a sound event, or a Flat, if a Flat has the name of a
+	 * texture role, or if `textures` has no texture for a Flat it names; it also fails if the Level
+	 * names a texture that is not a texture role. Leave it out only in tests that name their own
+	 * textures: the Bugs, the posters, and the HUD then use MACHINE_ART_SET, the ceiling and the
+	 * floor show `NO_FLAT_COLORS` (unless `textures` holds the machine Flats), and the Level
+	 * textures are not checked.
 	 * With or without it, a Level with Bugs needs a Bug walk and fix frame, and given `sprites` and
 	 * `posters` must hold every Bug frame and every poster.
 	 */
 	artSet?: ArtSet;
 	/**
-	 * Decoded textures by the name the Level uses (with an art set, the texture role). It must hold
-	 * every wall, door, and track texture the Level names (see `levelTextureNames`).
-	 * Leave it out only when the walls do not matter (as in movement tests): walls then draw magenta.
+	 * Decoded textures by the name the Level uses (with an art set, the texture role), and the Flats
+	 * of the art set by their file names. It must hold every wall, door, and track texture the Level
+	 * names (see `levelTextureNames`) and, with an art set, both Flats of the art set.
+	 * Leave it out only with no art set, when the walls do not matter (as in movement tests): walls
+	 * then draw magenta, and the ceiling and the floor show `NO_FLAT_COLORS`.
 	 */
 	textures?: Readonly<Record<string, Texture>>;
 	/**
@@ -163,8 +193,8 @@ export interface Game {
 	/** Closes the open Exhibit and resumes the game. */
 	closeExhibit(): void;
 	/**
-	 * Draws with another art set from the next frame on: its walls, posters, Bug frames, ceiling,
-	 * floor, and HUD colors. It checks the new art set as `createGame` does, and when the check fails
+	 * Draws with another art set from the next frame on: its walls, posters, Bug frames, Flats, and
+	 * HUD colors. It checks the new art set as `createGame` does, and when the check fails
 	 * it throws and keeps the old art set. The player, the Bugs, the doors, and the open Exhibit stay.
 	 */
 	changeArtSet(change: ArtSetChange): void;
@@ -180,7 +210,7 @@ export interface Game {
 
 export function createGame(options: GameOptions): Game {
 	const level: Level = loadLevel(options.level);
-	if (options.artSet) checkArtSet(level, options.artSet);
+	if (options.artSet) checkArtSet(level, options.artSet, options.textures);
 	const art = options.artSet ?? MACHINE_ART_SET;
 	checkContent(level.exhibits, options.content ?? []);
 	const player: PlayerState = { ...level.playerStart };
@@ -190,10 +220,12 @@ export function createGame(options: GameOptions): Game {
 	let bobPhase = 0;
 	let bobStrength = 0;
 	let shakeTicks = 0;
+	/** The view pitch, in screen pixels: positive looks up (it moves the horizon down). */
+	let pitch = 0;
 	const camera: Camera = { x: 0, y: 0, angle: 0, horizonOffset: 0 };
 	for (const { name } of level.rooms) assertHudCanDraw(name, `Room "${name}"`);
 	let view = artView(level, art, options);
-	const bugs = createBugs(level.bugSpawns, view.bugFrames);
+	const bugs = createBugs(level.bugSpawns, view.bugFrames, SPRITE_TEXEL_SIZE);
 	let room = roomAt(level.rooms, player.x, player.y)?.name ?? null;
 	const doors: DoorState[] = level.doors.map(({ x, y }) => ({ x, y, state: "closed", open: 0 }));
 	const exhibitsByFace = new Map<number, string>();
@@ -237,9 +269,12 @@ export function createGame(options: GameOptions): Game {
 		step(input) {
 			if (paused) return;
 			slideDoors();
-			const lookDirection = settings.invertMouse ? -1 : 1;
 			player.angle += clampAxis(input.turn) * TURN_SPEED;
-			player.angle += input.look * LOOK_SPEED * settings.mouseSensitivity * lookDirection;
+			player.angle += input.look * LOOK_SPEED * settings.mouseSensitivity;
+			// "Invert mouse" inverts the vertical look only, as in most games.
+			const pitchDirection = settings.invertMouse ? -1 : 1;
+			pitch += (input.lookUp ?? 0) * PITCH_SPEED * settings.mouseSensitivity * pitchDirection;
+			pitch = clamp(pitch, -MAX_PITCH, MAX_PITCH);
 			const forward = clampAxis(input.forward);
 			const strafe = clampAxis(input.strafe);
 			const cos = Math.cos(player.angle);
@@ -265,7 +300,7 @@ export function createGame(options: GameOptions): Game {
 				shakeTicks = SHAKE_TICKS;
 				options.sound?.("shot");
 			}
-			if (input.shoot && bugs.shoot(level.walls, player.x, player.y, player.angle)) {
+			if (input.shoot && bugs.shoot(level.walls, player.x, player.y, player.angle, pitch / PROJECTION)) {
 				hudView.bugsFixed = bugsFixedText();
 				hudView.bugsFixedCount = bugs.fixedCount();
 				if (!goalSent && bugs.total > 0 && bugs.fixedCount() === bugs.total) {
@@ -294,7 +329,7 @@ export function createGame(options: GameOptions): Game {
 		},
 		changeArtSet(change) {
 			// Build all of the new view first, so a failed check changes nothing.
-			checkArtSet(level, change.artSet);
+			checkArtSet(level, change.artSet, change.textures);
 			view = artView(level, change.artSet, change);
 			bugs.useFrames(view.bugFrames);
 		},
@@ -320,7 +355,8 @@ export function createGame(options: GameOptions): Game {
 			camera.angle = player.angle;
 			// Shake: alternate up and down each tick, and fade out.
 			const shake = (shakeTicks % 2 === 0 ? 1 : -1) * SHAKE_PIXELS * (shakeTicks / SHAKE_TICKS);
-			camera.horizonOffset = settings.reducedMotion ? 0 : Math.sin(bobPhase) * bobStrength * BOB_PIXELS + shake;
+			const motion = settings.reducedMotion ? 0 : Math.sin(bobPhase) * bobStrength * BOB_PIXELS + shake;
+			camera.horizonOffset = pitch + motion;
 			view.renderer.render(framebuffer, level.walls, camera, bugs.sprites, bugs.updateSprites());
 			hudView.room = room;
 			hudView.hint = exhibitInFocus !== null && openExhibit === null ? USE_HINT : null;
@@ -346,9 +382,12 @@ function artView(level: Level, art: ArtSet, files: Pick<GameOptions, "textures" 
 		wallTextures,
 		faceTextures: posterFacesFor(level, wallTextures, files.posters, art),
 		trackTextures: texturesFor(level.doorTracks, files.textures),
-		ceilingColor: rgb(...art.ceiling),
-		floorColor: rgb(...art.floor),
-		viewHeight: SCREEN_HEIGHT - STATUS_BAR_HEIGHT,
+		ceilingFlat: files.textures?.[art.flats.ceiling],
+		floorFlat: files.textures?.[art.flats.floor],
+		ceilingColor: rgb(...NO_FLAT_COLORS.ceiling),
+		floorColor: rgb(...NO_FLAT_COLORS.floor),
+		viewHeight: VIEW_HEIGHT,
+		planeHalfWidth: PLANE_HALF_WIDTH,
 		spriteTexelSize: SPRITE_TEXEL_SIZE,
 	});
 	const hud = createHud(SCREEN_WIDTH, SCREEN_HEIGHT, art.hud, level.bugSpawns.length);
@@ -366,10 +405,11 @@ function textureNamesOf({ wallTextures, doorTracks }: Level): string[] {
 }
 
 /**
- * Fails with an error that names the first missing item: a texture role or a sound event the art
- * set has no file for, or a texture the Level names that is not a texture role.
+ * Fails with an error that names the first missing item: a texture role, a sound event, or a Flat
+ * the art set has no file for, a Flat with the name of a texture role, a Flat with no texture in
+ * `textures` (by its file name), or a texture the Level names that is not a texture role.
  */
-function checkArtSet(level: Level, artSet: ArtSet): void {
+function checkArtSet(level: Level, artSet: ArtSet, textures: GameOptions["textures"]): void {
 	for (const role of TEXTURE_ROLES) {
 		if (!hasFile(artSet.textures, role)) {
 			throw new Error(`Art set "${artSet.name}" has no texture file for the texture role "${role}".`);
@@ -378,6 +418,22 @@ function checkArtSet(level: Level, artSet: ArtSet): void {
 	for (const event of SOUND_EVENTS) {
 		if (!hasFile(artSet.sounds, event)) {
 			throw new Error(`Art set "${artSet.name}" has no sound file for the sound event "${event}".`);
+		}
+	}
+	for (const surface of ["ceiling", "floor"] as const) {
+		// An art set built at run time can lack the Flats its type requires.
+		if (!hasFile(artSet.flats ?? {}, surface)) {
+			throw new Error(`Art set "${artSet.name}" has no texture file for the ${surface} Flat.`);
+		}
+		const name = artSet.flats[surface];
+		// The wall textures (by texture role) and the Flats (by file name) share one textures record.
+		if (isTextureRole(name)) {
+			throw new Error(
+				`Art set "${artSet.name}" names the ${surface} Flat "${name}", which is a texture role: wall textures and Flats share one textures record, so give the Flat another file name.`,
+			);
+		}
+		if (!textures?.[name]) {
+			throw new Error(`Art set "${artSet.name}" names the ${surface} Flat "${name}", but no texture has that name.`);
 		}
 	}
 	for (const name of textureNamesOf(level)) {
@@ -434,5 +490,9 @@ function placeholderSprites(art: BugArt): Record<string, SpriteImage> {
 }
 
 function clampAxis(value: number): number {
-	return value < -1 ? -1 : value > 1 ? 1 : value;
+	return clamp(value, -1, 1);
+}
+
+function clamp(value: number, min: number, max: number): number {
+	return value < min ? min : value > max ? max : value;
 }

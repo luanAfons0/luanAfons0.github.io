@@ -48,7 +48,14 @@ export interface RendererOptions {
 	 * The door panel itself uses `wallTextures`, stretched to exactly one tile wide.
 	 */
 	trackTextures?: ReadonlyArray<Texture | undefined>;
-	/** Flat colors, shaded by distance like the walls. */
+	/**
+	 * The textures of the ceiling and the floor (Doom's "flats"). A flat covers exactly one tile and
+	 * repeats on every tile, so its texel (x, y) is at the same spot of every tile, seen from above.
+	 * It is shaded by distance like the walls. With no flat, that surface shows its flat color.
+	 */
+	ceilingFlat?: Texture;
+	floorFlat?: Texture;
+	/** Flat colors, shaded by distance like the walls, for a surface with no flat texture. */
 	ceilingColor: number;
 	floorColor: number;
 	/**
@@ -66,7 +73,8 @@ export interface RendererOptions {
 
 export interface Renderer {
 	/**
-	 * Draws one frame: the walls, then the first `spriteCount` sprites (default: all), far to near.
+	 * Draws one frame: the ceiling and the floor, the walls, then the first `spriteCount` sprites
+	 * (default: all), far to near.
 	 * Walls in front of a sprite hide it. It allocates no memory, except once when a frame has
 	 * more sprites than any frame before. A door cell (see `Grid.doors`) shows a thin panel in the
 	 * middle of the cell, slid aside by its open amount, and the track texture on its side walls.
@@ -80,6 +88,17 @@ export interface Renderer {
 	): void;
 }
 
+/** The eye is this high above the floor, in tiles. The floor is at 0 and the ceiling at 1. */
+export const EYE_HEIGHT = 0.5;
+
+/**
+ * The height on screen, in pixels, of one tile at distance 1, for a view `width` pixels wide with
+ * a view plane `planeHalfWidth` tiles wide on each side at distance 1 (square pixels).
+ */
+export function projectionOf(width: number, planeHalfWidth: number): number {
+	return width / 2 / planeHalfWidth;
+}
+
 const MIN_SHADE = 0.15;
 /** Walls that face north or south are a bit darker, so corners are easy to see. */
 const Y_SIDE_SHADE = 0.75;
@@ -88,27 +107,38 @@ const MISSING_TEXTURE: Texture = { width: 1, height: 1, texels: new Uint32Array(
 /** Sprites nearer than this (in tiles) are not drawn: they would fill the view. */
 const NEAR_PLANE = 0.1;
 const NO_SPRITES: ReadonlyArray<Sprite> = [];
+/**
+ * Floor casting adds this many whole tiles to world points, so they are never negative. The farthest
+ * floor row is about `projection` tiles away (a few hundred), so this keeps every point positive.
+ */
+const FLAT_OFFSET = 4096;
 
 /** A raycaster: one ray per screen column, walked through the grid with `walkRay`. */
 export function createRenderer(options: RendererOptions): Renderer {
-	const { width, height, wallTextures, faceTextures, ceilingColor, floorColor } = options;
+	const { width, height, wallTextures, faceTextures, ceilingFlat, floorFlat, ceilingColor, floorColor } = options;
 	const trackTextures = options.trackTextures ?? [];
 	const viewHeight = options.viewHeight ?? height;
 	if (viewHeight < 1 || viewHeight > height) throw new Error(`viewHeight must be 1 to ${height}, got ${viewHeight}.`);
 	const planeHalfWidth = options.planeHalfWidth ?? 0.9;
 	const shadeDistance = options.shadeDistance ?? 12;
 	const spriteTexelSize = options.spriteTexelSize ?? 1 / 128;
-	// Wall height on screen for a wall at distance 1, with square pixels.
-	const projection = width / 2 / planeHalfWidth;
+	// Wall height on screen for a wall at distance 1.
+	const projection = projectionOf(width, planeHalfWidth);
 	const lightAt = (distance: number) => Math.max(MIN_SHADE, 1 - distance / shadeDistance);
 
-	// The floor and ceiling are flat, so each row has one distance and one color. The eye is
-	// half a tile above the floor, so the row k rows away from the horizon shows the floor (or
-	// ceiling) at distance projection / 2 / (k + 0.5). Computed once here, so frames allocate nothing.
+	// The floor and ceiling are flat, so each row has one distance and one light level. The eye is
+	// half a tile above the floor (and below the ceiling), so the row k rows away from the horizon
+	// shows the floor (or ceiling) at distance projection * EYE_HEIGHT / (k + 0.5). Computed once
+	// here, so frames allocate nothing.
+	const rowDistances = new Float64Array(viewHeight);
+	const rowLevels = new Int32Array(viewHeight);
 	const ceilingRows = new Uint32Array(viewHeight);
 	const floorRows = new Uint32Array(viewHeight);
 	for (let k = 0; k < viewHeight; k++) {
-		const level = Math.round(lightAt(projection / 2 / (k + 0.5)) * 256);
+		const distance = (projection * EYE_HEIGHT) / (k + 0.5);
+		const level = Math.round(lightAt(distance) * 256);
+		rowDistances[k] = distance;
+		rowLevels[k] = level;
 		ceilingRows[k] = shadeTexel(ceilingColor, level);
 		floorRows[k] = shadeTexel(floorColor, level);
 	}
@@ -129,15 +159,39 @@ export function createRenderer(options: RendererOptions): Renderer {
 			}
 			const pixels = framebuffer.pixels;
 			const horizon = Math.min(viewHeight, Math.max(0, (viewHeight >> 1) + Math.round(camera.horizonOffset ?? 0)));
-			for (let y = 0; y < viewHeight; y++) {
-				const color = y < horizon ? ceilingRows[horizon - 1 - y] : floorRows[y - horizon];
-				pixels.fill(color as number, y * width, (y + 1) * width);
-			}
-
 			const dirX = Math.cos(camera.angle);
 			const dirY = Math.sin(camera.angle);
 			const planeX = -dirY * planeHalfWidth;
 			const planeY = dirX * planeHalfWidth;
+
+			// The ceiling and the floor, row by row. The walls and the sprites draw over them.
+			for (let y = 0; y < viewHeight; y++) {
+				const isCeiling = y < horizon;
+				const k = isCeiling ? horizon - 1 - y : y - horizon;
+				const flat = isCeiling ? ceilingFlat : floorFlat;
+				const rowStart = y * width;
+				if (!flat) {
+					pixels.fill((isCeiling ? ceilingRows[k] : floorRows[k]) as number, rowStart, rowStart + width);
+					continue;
+				}
+				// Floor casting: the row shows the floor (or ceiling) at one distance, from the left edge ray
+				// to the right edge ray. Step across it in world space, one pixel center at a time.
+				const distance = rowDistances[k] as number;
+				const level = rowLevels[k] as number;
+				const { texels, width: flatWidth, height: flatHeight } = flat;
+				// The world point is in texels, moved by whole tiles so it is never negative and `| 0` rounds it down.
+				const stepX = (distance * 2 * planeX * flatWidth) / width;
+				const stepY = (distance * 2 * planeY * flatHeight) / width;
+				let texelX = (FLAT_OFFSET + camera.x + distance * (dirX - planeX)) * flatWidth + stepX / 2;
+				let texelY = (FLAT_OFFSET + camera.y + distance * (dirY - planeY)) * flatHeight + stepY / 2;
+				for (let i = rowStart, end = rowStart + width; i < end; i++) {
+					const textureX = (texelX | 0) % flatWidth;
+					const textureY = (texelY | 0) % flatHeight;
+					pixels[i] = shadeTexel(texels[textureX * flatHeight + textureY] as number, level);
+					texelX += stepX;
+					texelY += stepY;
+				}
+			}
 
 			for (let column = 0; column < width; column++) {
 				const cameraX = (2 * (column + 0.5)) / width - 1;
@@ -234,7 +288,7 @@ export function createRenderer(options: RendererOptions): Renderer {
 				const across =
 					((sprite.x - camera.x) * planeX + (sprite.y - camera.y) * planeY) / (planeHalfWidth * planeHalfWidth) / depth;
 				const screenLeft = ((across + 1) * width) / 2 - left * texelPixels;
-				const screenTop = horizon + ((0.5 - sprite.z) * projection) / depth - top * texelPixels;
+				const screenTop = horizon + ((EYE_HEIGHT - sprite.z) * projection) / depth - top * texelPixels;
 				const firstColumn = Math.max(0, Math.ceil(screenLeft - 0.5));
 				const endColumn = Math.min(width, Math.ceil(screenLeft + textureWidth * texelPixels - 0.5));
 				const firstRow = Math.max(0, Math.ceil(screenTop - 0.5));

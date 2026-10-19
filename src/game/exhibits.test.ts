@@ -301,7 +301,11 @@ describe("Exhibit posters", () => {
 				level: roleLevel,
 				artSet: { ...MACHINE_ART_SET, name: "test" },
 				content: [exhibit("orca")],
-				textures: { "wall-a": solidTexture(RED) },
+				textures: {
+					"wall-a": solidTexture(RED),
+					[MACHINE_ART_SET.flats.ceiling]: solidTexture(RED),
+					[MACHINE_ART_SET.flats.floor]: solidTexture(RED),
+				},
 				posters: {},
 			}),
 		).toThrow(/art set "test".*poster.*Exhibit "orca"/i);

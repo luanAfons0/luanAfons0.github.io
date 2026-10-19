@@ -4,7 +4,7 @@ import { join, relative } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import { EXHIBITS, type Exhibit, partLabel } from "../src/game/content.ts";
 import { DUNGEON_ART_SET, TEXTURE_ROLES } from "../src/game/theme.ts";
-import { readPng, sameContent } from "./art-kit/read-files.ts";
+import { pngSize, readPng, sameContent } from "./art-kit/read-files.ts";
 import { posters } from "./dungeon-art/posters.ts";
 import { DUNGEON_ART_FOLDER, generateDungeonArt } from "./dungeon-art.ts";
 
@@ -29,11 +29,6 @@ function inDungeonFolder(folder: string): string {
 	return inside;
 }
 
-/** The size of a PNG, from its header. */
-function pngSize(png: Buffer): [width: number, height: number] {
-	return [png.readUInt32BE(16), png.readUInt32BE(20)];
-}
-
 describe("dungeon art generator", () => {
 	it("writes a 64x64 wall texture for every texture role of the dungeon art set", () => {
 		const { folder, files } = generate();
@@ -41,6 +36,18 @@ describe("dungeon art generator", () => {
 		for (const role of TEXTURE_ROLES) {
 			const file = `${textures}/${DUNGEON_ART_SET.textures[role]}.png`;
 			expect(files, role).toContain(file);
+			expect(pngSize(readFileSync(join(folder, file))), file).toEqual([64, 64]);
+		}
+	});
+
+	it("writes the ceiling Flat and the floor Flat of the art set into its textures folder, 64x64", () => {
+		const { folder, files } = generate();
+		const textures = inDungeonFolder(DUNGEON_ART_SET.folders.textures);
+		const { ceiling, floor } = DUNGEON_ART_SET.flats;
+
+		for (const name of [ceiling, floor]) {
+			const file = `${textures}/${name}.png`;
+			expect(files).toContain(file);
 			expect(pngSize(readFileSync(join(folder, file))), file).toEqual([64, 64]);
 		}
 	});
