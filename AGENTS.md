@@ -32,7 +32,7 @@ The approved mock, `.impeccable/mocks/ui-studio/freelance-home.html`, is the rul
 - Keep every string in English and Portuguese word for word from the dictionary of the mock. When the build needs a new string, write it in the voice of the mock and list it in the pull request, so that Luan can check it.
 - Keep the Mock values marked (the dashed `.mock-note` on the page, the `MOCK VALUES` comment in the code) until Luan gives the real values.
 - Label every Demo store and all demo data as a demo.
-- `DESIGN.md` and `.impeccable/design.json` still describe the removed game. Do not follow them. Ticket #59 makes them again from the built page. Do not edit `.impeccable/`.
+- `DESIGN.md` and `.impeccable/design.json` record the design system of the built page. The impeccable documenter writes them from the built page. Do not edit `.impeccable/` by hand.
 
 ## Code layout
 
