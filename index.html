@@ -1,18 +1,391 @@
 <!doctype html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Luan Afonso Freelance</title>
-		<meta name="color-scheme" content="light" />
-		<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-	</head>
-	<body>
-		<!-- A placeholder. The freelance home page (the approved mock in .impeccable/mocks/ui-studio/) replaces it. -->
-		<main>
-			<h1>Shopify stores, built to sell</h1>
-			<p>I build and fix online stores. Fixed price after a 15-minute call.</p>
-		</main>
-		<script type="module" src="/src/main.ts"></script>
-	</body>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Luan Afonso Freelance</title>
+    <meta name="description" content="Luan Afonso builds and fixes Shopify stores. See the packages and their starting prices, and get a fixed price after a free 15-minute call.">
+    <meta name="color-scheme" content="light">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="preload" href="/fonts/geist/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/geist-mono/geist-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="/src/home/home.css">
+  </head>
+  <body>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+      <!-- Phosphor Icons (regular), MIT -->
+      <symbol id="i-arrow" viewBox="0 0 256 256"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/></symbol>
+      <symbol id="i-check" viewBox="0 0 256 256"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"/></symbol>
+      <symbol id="i-flag" viewBox="0 0 256 256"><path d="M128,24a8,8,0,0,1,8,8v112a8,8,0,0,1-16,0V32A8,8,0,0,1,128,24Zm0,176a12,12,0,1,0,12,12A12,12,0,0,0,128,200Z"/></symbol>
+    </svg>
+
+    <header class="nav">
+      <div class="wrap">
+        <a class="mark" href="#top">Luan Afonso</a>
+        <ul class="nav-links">
+          <li><a href="#packages" data-t="nav.packages">Packages</a></li>
+          <li><a href="#process" data-t="nav.process">How I work</a></li>
+          <li><a href="#demos" data-t="nav.demos">Demos</a></li>
+          <li><a href="#faq" data-t="nav.faq">FAQ</a></li>
+        </ul>
+        <div class="lang" role="group" aria-label="Language">
+          <button type="button" data-lang="en" aria-pressed="true">EN</button>
+          <button type="button" data-lang="pt" aria-pressed="false">PT</button>
+        </div>
+        <a class="pill pill--small" href="#contact"><span data-t="cta.book">Book a call</span><span class="disc"><svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></a>
+      </div>
+      <div class="map" aria-hidden="true"><span class="map-fill"></span></div>
+    </header>
+
+    <main id="top">
+      <section class="hero wrap" aria-labelledby="hero-title">
+        <h1 id="hero-title" data-t="hero.title">Shopify stores, built to sell</h1>
+        <p class="sub" data-t="hero.sub">I build and fix online stores. Fixed price after a 15-minute call.</p>
+        <div class="hero-cta">
+          <a class="pill" href="#contact"><span data-t="cta.book">Book a call</span><span class="disc"><svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></a>
+          <a class="text-link" href="#contact" data-t="hero.wa">or message me on WhatsApp</a>
+        </div>
+      </section>
+
+      <section class="fs" id="services" aria-label="What I do" data-t-aria="fs.label">
+        <div class="fs-stop" style="--k:0" aria-hidden="true"></div>
+        <div class="fs-stop" style="--k:1" aria-hidden="true"></div>
+        <div class="fs-stop" style="--k:2" aria-hidden="true"></div>
+        <div class="fs-stop" style="--k:3" aria-hidden="true"></div>
+
+        <div class="fs-stage wrap" data-sticky>
+          <div class="timeline" aria-hidden="true">
+            <span class="tl-label" data-t="tl.left">Demo store, phone load</span>
+            <div class="tl-axis">
+              <span class="tl-tick is-active" style="left:12%">0.4 s</span>
+              <span class="tl-tick" style="left:37%">0.9 s</span>
+              <span class="tl-tick" style="left:63%">1.6 s</span>
+              <span class="tl-tick" style="left:88%" data-t="tl.call">Call</span>
+            </div>
+            <span class="tl-label" data-t="tl.right">Demo data</span>
+          </div>
+
+          <div class="fan" role="group" aria-roledescription="carousel" aria-label="Demo store, frame by frame" data-t-aria="fan.label">
+            <article class="frame is-active" style="--d:0;--ad:0;z-index:10" aria-roledescription="slide" aria-label="1 / 4">
+              <div class="f-bar"><span class="u">cafeserra.demo</span><span class="t num">0.4 s</span></div>
+              <div class="f-body">
+                <div class="f-store"><span>Café Serra</span><i aria-hidden="true"></i></div>
+                <div class="f-hi"><strong data-t="f0.banner">Fresh roast, sent this week</strong></div>
+                <div class="sk-row"><div class="sk sk-card"></div><div class="sk sk-card"></div></div>
+                <div class="sk sk-line" style="width:70%"></div>
+                <div class="sk sk-line" style="width:45%"></div>
+              </div>
+            </article>
+            <article class="frame" style="--d:1;--ad:1;z-index:9" aria-roledescription="slide" aria-label="2 / 4">
+              <div class="f-bar"><span class="u">cafeserra.demo/serra</span><span class="t num">0.9 s</span></div>
+              <div class="f-body">
+                <img class="f-photo" src="/photos/demo-coffee.jpg" alt="" width="400" height="500">
+                <div class="f-title"><span data-t="f1.name">Serra blend, 250 g</span><span class="num" data-demo-price="coffee">$12</span></div>
+                <div class="f-chips"><span class="f-chip on" data-t="f1.beans">Whole bean</span><span class="f-chip" data-t="f1.ground">Ground</span></div>
+                <div class="f-btn"><span data-t="f1.add">Add to cart</span></div>
+                <p class="f-small" data-t="f1.pay">Pix, card or PayPal</p>
+              </div>
+            </article>
+            <article class="frame" style="--d:2;--ad:2;z-index:8" aria-roledescription="slide" aria-label="3 / 4">
+              <div class="f-bar"><span data-t="f2.bar">Speed report, phone</span><span class="t num">1.6 s</span></div>
+              <div class="f-body">
+                <div class="score">
+                  <div class="ring" role="img" aria-label="94 / 100">94</div>
+                  <div><p data-t="f2.score">Mobile score</p><p class="f-small" data-t="f2.demo">Demo store, after fixes</p></div>
+                </div>
+                <div class="metrics">
+                  <div class="metric"><span class="mk ok"><svg aria-hidden="true"><use href="#i-check"/></svg></span><span data-t="f2.m1">Main image shows</span><span class="num">1.6 s</span></div>
+                  <div class="metric"><span class="mk ok"><svg aria-hidden="true"><use href="#i-check"/></svg></span><span data-t="f2.m2">Layout shift</span><span class="num">0.02</span></div>
+                  <div class="metric"><span class="mk flag"><svg aria-hidden="true"><use href="#i-flag"/></svg></span><span data-t="f2.m3">Blocking scripts</span><span class="num flag">210 ms</span></div>
+                </div>
+                <p class="f-small" data-t="f2.fix">1 fix left: load the review widget later</p>
+              </div>
+            </article>
+            <article class="frame" style="--d:3;--ad:3;z-index:7" aria-roledescription="slide" aria-label="4 / 4">
+              <div class="f-bar"><span data-t="f3.bar">Call with Luan</span><span class="t num">15 min</span></div>
+              <div class="f-body">
+                <div class="f-title"><span data-t="f3.title">Pick a time</span><span class="f-small" data-t="f3.video">Video, free</span></div>
+                <div class="days"></div>
+                <div class="slots"><span class="slot">10:00</span><span class="slot on">14:30</span><span class="slot">17:00</span></div>
+                <p class="f-small" data-t="f3.tz">Times in your time zone</p>
+                <div class="f-btn"><span data-t="f3.book">Book 14:30</span></div>
+              </div>
+            </article>
+          </div>
+
+          <div class="chapters" aria-live="polite">
+            <article class="chapter is-active">
+              <h2 data-t="ch0.t">Hi, I'm Luan.</h2>
+              <p data-t="ch0.p">A developer from Brazil who builds and fixes online stores. You talk to me from the first call to launch day.</p>
+              <a href="#process" data-t="ch0.a">How I work</a>
+            </article>
+            <article class="chapter">
+              <h2 data-t="ch1.t">Shopify stores</h2>
+              <p data-t="ch1.p">New stores, theme changes, custom sections and app setup. You get a fixed price after a short call.</p>
+              <a href="#packages" data-t="ch1.a">See packages</a>
+            </article>
+            <article class="chapter">
+              <h2 data-t="ch2.t">Free speed audit</h2>
+              <p data-t="ch2.p">Send me your store link. I test it on a phone and send you a short list of fixes.</p>
+              <a href="#contact" data-t="ch2.a">Ask for the audit</a>
+            </article>
+            <article class="chapter">
+              <h2 data-t="ch3.t">Let's talk</h2>
+              <p data-t="ch3.p">15 minutes, free. Tell me about your store, and I tell you what I would fix first.</p>
+              <a href="#faq" data-t="ch3.a">Read the FAQ</a>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="packages" aria-labelledby="pk-title">
+        <div class="wrap">
+          <div class="head">
+            <h2 id="pk-title" data-t="pk.title">Pick a package</h2>
+            <p data-t="pk.sub">Each one has a starting price. After a 15-minute call you get a fixed price on one page.</p>
+          </div>
+          <!-- MOCK PRICES: Luan sets the real values in PRICES (script below). -->
+          <div class="ptable" role="table" aria-labelledby="pk-title">
+            <div class="prow prow--head" role="row">
+              <span role="columnheader" data-t="pk.h1">Package</span>
+              <span role="columnheader" data-t="pk.h2">What you get</span>
+              <span role="columnheader" data-t="pk.h3">Time</span>
+              <span role="columnheader" data-t="pk.h4">From</span>
+              <span role="columnheader"><span class="sr" data-t="pk.h5">Add</span></span>
+            </div>
+            <div class="prow" role="row">
+              <div class="p-name" role="cell"><h3 data-t="pk1.n">Store fix</h3></div>
+              <ul class="p-list" role="cell"><li data-t="pk1.l1">Theme and layout changes</li><li data-t="pk1.l2">Bug and checkout fixes</li><li data-t="pk1.l3">Up to 10 hours of work</li></ul>
+              <p class="p-time" role="cell" data-t="pk1.time">About 1 week</p>
+              <p class="p-price" role="cell"><small data-t="from">from</small><strong data-price="fix">$160</strong></p>
+              <button class="ghost" type="button" data-add="fix" aria-pressed="false"><svg class="i" aria-hidden="true"><use href="#i-plus"/></svg><span data-t="pk.add">Add to project</span></button>
+            </div>
+            <div class="prow" role="row">
+              <div class="p-name" role="cell"><h3 data-t="pk2.n">Store launch</h3><span class="rec"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg><span data-t="pk.rec">Recommended</span></span></div>
+              <ul class="p-list" role="cell"><li data-t="pk2.l1">Shopify store setup</li><li data-t="pk2.l2">Theme with your brand</li><li data-t="pk2.l3">Payments and shipping set up</li><li data-t="pk2.l4">2 weeks of support after launch</li></ul>
+              <p class="p-time" role="cell" data-t="pk2.time">2 to 4 weeks</p>
+              <p class="p-price" role="cell"><small data-t="from">from</small><strong data-price="launch">$900</strong></p>
+              <button class="ghost" type="button" data-add="launch" aria-pressed="true"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg><span data-t="pk.added">In your project</span></button>
+            </div>
+            <div class="prow" role="row">
+              <div class="p-name" role="cell"><h3 data-t="pk3.n">Care plan</h3></div>
+              <ul class="p-list" role="cell"><li data-t="pk3.l1">Updates and backups</li><li data-t="pk3.l2">Small changes every month</li><li data-t="pk3.l3">Monthly speed check</li></ul>
+              <p class="p-time" role="cell" data-t="pk3.time">Monthly, cancel any time</p>
+              <p class="p-price" role="cell"><small data-t="from">from</small><strong><span data-price="care">$120</span><em data-t="permo">/mo</em></strong></p>
+              <button class="ghost" type="button" data-add="care" aria-pressed="false"><svg class="i" aria-hidden="true"><use href="#i-plus"/></svg><span data-t="pk.add">Add to project</span></button>
+            </div>
+          </div>
+          <div class="p-terms">
+            <span data-t="pk.terms">The fixed price comes on a one-page scope, after the call.</span>
+            <span class="mock-note" data-t="mock.prices">Mock prices. Luan sets the real ones.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="builder" aria-labelledby="b-title">
+        <div class="wrap">
+          <div class="head">
+            <h2 id="b-title" data-t="b.title">Build your project</h2>
+            <p data-t="b.sub">Switch services on and off. The total is an estimate, not a quote.</p>
+          </div>
+          <div class="builder">
+            <ul class="picks" id="picks">
+              <li class="pick"><label>
+                <span><span class="pick-name">Store launch</span><span class="pick-desc">Full Shopify setup</span></span>
+                <span class="pick-price">+$900</span>
+                <input class="switch" type="checkbox" role="switch" id="pick-launch" data-pick="launch" checked>
+              </label></li>
+              <li class="pick"><label>
+                <span><span class="pick-name">Store fix</span><span class="pick-desc">Up to 10 hours of changes</span></span>
+                <span class="pick-price">+$160</span>
+                <input class="switch" type="checkbox" role="switch" id="pick-fix" data-pick="fix">
+              </label></li>
+              <li class="pick"><label>
+                <span><span class="pick-name">Care plan, first month</span><span class="pick-desc">Updates, backups, small changes</span></span>
+                <span class="pick-price">+$120</span>
+                <input class="switch" type="checkbox" role="switch" id="pick-care" data-pick="care">
+              </label></li>
+              <li class="pick"><label>
+                <span><span class="pick-name">Speed audit</span><span class="pick-desc">Phone test and a list of fixes</span></span>
+                <span class="pick-price">Free</span>
+                <input class="switch" type="checkbox" role="switch" id="pick-audit" data-pick="audit" checked>
+              </label></li>
+              <li class="pick"><label>
+                <span><span class="pick-name">Product import</span><span class="pick-desc">Up to 200 products from a spreadsheet</span></span>
+                <span class="pick-price">+$100</span>
+                <input class="switch" type="checkbox" role="switch" id="pick-import" data-pick="import">
+              </label></li>
+              <li class="pick"><label>
+                <span><span class="pick-name">Custom section</span><span class="pick-desc">One new block for your theme</span></span>
+                <span class="pick-price">+$180</span>
+                <input class="switch" type="checkbox" role="switch" id="pick-section" data-pick="section">
+              </label></li>
+              <li class="pick"><label>
+                <span><span class="pick-name">Second language</span><span class="pick-desc">Your store in English and Portuguese</span></span>
+                <span class="pick-price">+$140</span>
+                <input class="switch" type="checkbox" role="switch" id="pick-lang2" data-pick="lang2">
+              </label></li>
+            </ul>
+            <div class="sticky-est" data-sticky>
+              <div class="est" aria-labelledby="est-title">
+                <div class="est-head"><h3 id="est-title" data-t="r.kind">Project estimate</h3><small id="r-date"></small></div>
+                <div class="strip" id="strip" aria-hidden="true"><span class="seg" style="--g:900">1</span><span class="seg free" style="--g:60">2</span></div>
+                <ol class="lines" id="r-lines" aria-live="polite"><li class="line"><i>1</i><span>Store launch</span><span class="v">$900</span></li><li class="line"><i>2</i><span>Speed audit</span><span class="v">free</span></li></ol>
+                <div class="total"><span data-t="r.total">Total</span><span class="odo" id="r-total" role="status" aria-label="$900" data-shape="$000" data-digits="900"><span aria-hidden="true">$</span><span class="roll" aria-hidden="true"><span class="roll-col" style="--v:9"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></span></span><span class="roll" aria-hidden="true"><span class="roll-col" style="--v:0"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></span></span><span class="roll" aria-hidden="true"><span class="roll-col" style="--v:0"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></span></span></span></div>
+                <p class="est-note" data-t="r.note">Estimate only. The fixed price comes after a 15-minute call.</p>
+                <a class="pill" href="#contact" style="justify-self:start"><span data-t="cta.book">Book a call</span><span class="disc"><svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="process" aria-labelledby="pr-title">
+        <div class="wrap">
+          <div class="head">
+            <h2 id="pr-title" data-t="pr.title">How I work</h2>
+            <p data-t="pr.sub">Four steps. You see a preview of the store <span class="key">every week</span>.</p>
+          </div>
+          <ol class="steps">
+            <li class="step"><span class="num" data-t="pr1.m">15 min</span><h3 data-t="pr1.n">Call</h3><p data-t="pr1.p">15 minutes, free. You tell me about the store.</p></li>
+            <li class="step"><span class="num" data-t="pr2.m">1 page</span><h3 data-t="pr2.n">Scope</h3><p data-t="pr2.p">One page with the work, the dates and a fixed price.</p></li>
+            <li class="step"><span class="num" data-t="pr3.m">Weekly</span><h3 data-t="pr3.n">Build</h3><p data-t="pr3.p">A preview link every week, so you see progress.</p></li>
+            <li class="step"><span class="num" data-t="pr4.m">+2 weeks</span><h3 data-t="pr4.n">Launch</h3><p data-t="pr4.p">Your store goes live. Then 2 weeks of support.</p></li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="section" id="demos" aria-labelledby="d-title">
+        <div class="wrap">
+          <div class="head">
+            <h2 id="d-title" data-t="d.title">Demo stores</h2>
+            <p data-t="d.sub">I am new to freelancing, so there are no client stories here yet. These demo stores show how I work, and each one says it is a demo.</p>
+            <p><span class="mock-note" data-t="mock.demos">Sample entries. Luan replaces them with his real demo stores.</span></p>
+          </div>
+          <div class="demos">
+            <article class="demo">
+              <div class="shot" aria-hidden="true">
+                <div class="browser">
+                  <div class="b-bar"><i></i><span>cafeserra.demo</span></div>
+                  <div class="b-page">
+                    <div class="b-nav"><span>Café Serra</span><small data-t="d1.nav">Coffee · Subscriptions · About</small></div>
+                    <div class="b-grid">
+                      <div class="b-item"><img class="ph" src="/photos/demo-coffee.jpg" alt="" width="400" height="500"><b data-t="d1.i1">Serra blend</b><small data-demo-price="coffee">$12</small></div>
+                      <div class="b-item"><img class="ph" src="/photos/demo-coffee2.jpg" alt="" width="400" height="500"><b>Mantiqueira</b><small data-demo-price="coffee2">$15</small></div>
+                      <div class="b-item"><img class="ph" src="/photos/demo-box.jpg" alt="" width="400" height="500"><b data-t="d1.i3">Monthly box</b><small data-demo-price="box">$28</small></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="demo-body">
+                <div class="demo-title"><h3 data-t="d1.n">Coffee roaster on Shopify</h3><span class="tag" data-t="d.tag">Demo</span></div>
+                <dl>
+                  <div><dt data-t="d.p">Problem</dt><dd data-t="d1.p">Needs coffee subscriptions and fast pages on a phone.</dd></div>
+                  <div><dt data-t="d.a">Approach</dt><dd data-t="d1.a">A free theme, a subscription app and compressed photos.</dd></div>
+                  <div><dt data-t="d.r">Result</dt><dd data-t="d.rr">Live link and speed report here when it is built.</dd></div>
+                </dl>
+              </div>
+            </article>
+            <article class="demo">
+              <div class="shot" aria-hidden="true">
+                <div class="browser">
+                  <div class="b-bar"><i></i><span>atelielume.demo</span></div>
+                  <div class="b-page">
+                    <div class="b-nav"><span>Ateliê Lume</span><small data-t="d2.nav">New · Shirts · Dresses</small></div>
+                    <div class="b-grid">
+                      <div class="b-item"><img class="ph" src="/photos/demo-tee2.jpg" alt="" width="400" height="500"><b data-t="d2.i1">Crop tee</b><small data-demo-price="shirt">$46</small></div>
+                      <div class="b-item"><img class="ph" src="/photos/demo-dress.jpg" alt="" width="400" height="500"><b data-t="d2.i2">Midi dress</b><small data-demo-price="dress">$68</small></div>
+                      <div class="b-item"><img class="ph" src="/photos/demo-tee.jpg" alt="" width="400" height="500"><b data-t="d2.i3">Cotton tee</b><small data-demo-price="tee">$22</small></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="demo-body">
+                <div class="demo-title"><h3 data-t="d2.n">Clothing store on Shopify</h3><span class="tag" data-t="d.tag">Demo</span></div>
+                <dl>
+                  <div><dt data-t="d.p">Problem</dt><dd data-t="d2.p">Sizes and colors per product, and Pix at checkout.</dd></div>
+                  <div><dt data-t="d.a">Approach</dt><dd data-t="d2.a">Product variants, a Pix payment app and optimized images.</dd></div>
+                  <div><dt data-t="d.r">Result</dt><dd data-t="d.rr">Live link and speed report here when it is built.</dd></div>
+                </dl>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="faq" aria-labelledby="f-title">
+        <div class="wrap faq-wrap">
+          <div class="head">
+            <h2 id="f-title" data-t="f.title">Questions</h2>
+            <p data-t="f.sub">Not here? Ask on the call.</p>
+          </div>
+          <div class="faq">
+            <details><summary><span data-t="f1.q">Do you work with stores outside Brazil?</span><svg aria-hidden="true"><use href="#i-plus"/></svg></summary><p data-t="f1.a">Yes. I work remotely, in English or Portuguese.</p></details>
+            <details><summary><span data-t="f2.q">How do you set the price?</span><svg aria-hidden="true"><use href="#i-plus"/></svg></summary><p data-t="f2.a">Each package shows a starting price. After a 15-minute call, I send a one-page scope with a fixed price.</p></details>
+            <details><summary><span data-t="f3.q">I already have a store. Can you help?</span><svg aria-hidden="true"><use href="#i-plus"/></svg></summary><p data-t="f3.a">Yes. I fix, speed up and add features to stores that already exist. The free audit is a good place to start.</p></details>
+            <details><summary><span data-t="f4.q">When should I not hire you?</span><svg aria-hidden="true"><use href="#i-plus"/></svg></summary><p data-t="f4.a">When you need a brand identity or product photos first. I build and fix the store; a designer or a photographer does those better.</p></details>
+            <details><summary><span data-t="f5.q">Who owns the store and the code?</span><svg aria-hidden="true"><use href="#i-plus"/></svg></summary><p data-t="f5.a">You do. The accounts, the theme and the code are yours.</p></details>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="contact" aria-labelledby="c-title">
+        <div class="wrap">
+          <div class="contact-head">
+            <h2 id="c-title" data-t="c.title">Tell me about your store</h2>
+            <p data-t="c.sub">The 15-minute call is free. If you prefer to write, use the form or WhatsApp.</p>
+          </div>
+          <div class="panel">
+            <div class="channels">
+              <a class="pill" href="#" style="justify-self:start"><span data-t="cta.book">Book a call</span><span class="disc"><svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></a>
+              <div class="channel"><small>WhatsApp</small><div class="channel-row"><span id="wa" class="num">+55 00 00000-0000</span><button class="ghost copy" type="button" data-copy="wa" data-t="c.copy">Copy</button></div></div>
+              <div class="channel"><small>Email</small><div class="channel-row"><span id="mail">contato@seudominio.com</span><button class="ghost copy" type="button" data-copy="mail" data-t="c.copy">Copy</button></div></div>
+              <p><span class="mock-note" data-t="mock.contact">Mock contact details and booking link. The form sends nothing.</span></p>
+            </div>
+            <div>
+              <form class="form" id="form" novalidate>
+                <div class="field">
+                  <label for="f-name" data-t="c.name">Your name</label>
+                  <input id="f-name" name="name" autocomplete="name" aria-describedby="e-name">
+                  <p class="err" id="e-name" hidden></p>
+                </div>
+                <div class="field">
+                  <label for="f-url" data-t="c.url">Store link (optional)</label>
+                  <input id="f-url" name="url" inputmode="url" autocomplete="url" placeholder="https://yourstore.com" data-t-ph="c.urlph" aria-describedby="e-url">
+                  <p class="err" id="e-url" hidden></p>
+                </div>
+                <div class="field field--wide">
+                  <label for="f-msg" data-t="c.msg">What do you need?</label>
+                  <textarea id="f-msg" name="msg" aria-describedby="e-msg"></textarea>
+                  <p class="err" id="e-msg" hidden></p>
+                </div>
+                <div class="form-foot">
+                  <button class="pill" type="submit"><span data-t="c.send">Send message</span><span class="disc"><svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></button>
+                </div>
+              </form>
+              <div class="sent" id="sent" role="status" hidden>
+                <strong><svg class="i" aria-hidden="true"><use href="#i-check"/></svg><span data-t="c.sentT">Message ready</span></strong>
+                <p id="sent-msg"></p>
+                <button class="ghost" type="button" id="again" style="justify-self:start"><span data-t="c.again">Write another</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <div class="wrap">
+        <div class="foot-row">
+          <span>© 2026 Luan Afonso</span>
+          <nav aria-label="Footer"><a href="https://github.com/luanAfons0">GitHub</a><a href="#faq" data-t="nav.faq">FAQ</a><a href="#top" data-t="foot.top">Back to the top</a></nav>
+        </div>
+        <p class="credits"><span data-t="foot.credits">Demo store photos from Wikimedia Commons, cropped:</span> <a href="https://commons.wikimedia.org/wiki/File:Roasted_coffee_beans_in_white_bowl.png">Alorin</a> (<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>), <a href="https://commons.wikimedia.org/wiki/File:Roasted_coffee_beans.jpg">MarkSweep</a> (public domain), <a href="https://commons.wikimedia.org/wiki/File:A_bag_of_coffee_J1.jpg">Jamain</a> (<a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>), <a href="https://commons.wikimedia.org/wiki/File:Clean-blank-shirt-hanger.jpg">Pajju12</a> (<a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>), <a href="https://commons.wikimedia.org/wiki/File:Grey_Linen_Pleated_Dress_designed_by_Sybil_Connolly_-_Full_Length_Back.jpg">Hunt Museum and Inés Rivilla López</a> (<a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>), <a href="https://commons.wikimedia.org/wiki/File:Ringflash_Tshirt_Blank_Template_(3214240974).jpg">THOR</a> (<a href="https://creativecommons.org/licenses/by/2.0/">CC BY 2.0</a>).</p>
+        <p class="foot-name" aria-hidden="true">Luan Afonso</p>
+      </div>
+    </footer>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
 </html>

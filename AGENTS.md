@@ -36,7 +36,10 @@ The approved mock, `.impeccable/mocks/ui-studio/freelance-home.html`, is the rul
 
 ## Code layout
 
-- `index.html` is the Home page. Now it is a placeholder. Its markup is static HTML, so all content shows with JavaScript off. JavaScript adds the Virtual scroll (the `vs-on` class on the root and the Twin copy), as the mock does.
+- `index.html` is the Home page: the markup of the mock, in English, as static HTML, so all content shows with JavaScript off. The Project builder (the switches, the strip, the lines, and the total) is in the HTML as the script of the mock first renders it (Store launch and Speed audit on, USD). The booking days and the date of the Project estimate are empty until the script fills them. JavaScript adds the Virtual scroll (the `vs-on` class on the root and the Twin copy), as the mock does. `src/home/markup.test.ts` checks the markup with JavaScript off.
+- `src/home/home.css`: all the styles of the mock, in the order of the mock, and the two `@font-face` rules. Biome turns off some CSS rules for it, and some a11y rules for `index.html`, because the mock is the rule (`overrides` in `biome.json`).
+- `public/fonts/`: Geist and Geist Mono (Fontsource 5.3.0, Latin, variable), each with its OFL license. `index.html` preloads both.
+- `public/photos/`: the 6 Demo store photos of the mock. Each JPEG keeps the comment that names its origin; do not strip it. The footer credits each author.
 - `src/main.ts` is the home entry. Now it is empty.
 - `src/analytics/`: GoatCounter (see Analytics). `goatcounter-plugin.ts` is the `goatcounter` Vite plugin. It puts the GoatCounter script tag at the end of the head, in the production build only. `vite.config.ts` uses it.
 - `public/favicon.svg`: the favicon.
