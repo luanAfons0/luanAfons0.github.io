@@ -1,69 +1,63 @@
 # Portfolio
 
-A Doom-inspired first-person game that presents Luan's portfolio. Visitors walk through a Level to discover Exhibits, or use the Skip View to read the same content without playing.
+The freelance site of Luan Afonso, a Shopify developer. It is one Home page in English and Portuguese. Store owners read what Luan does, see the Packages and their prices, build a Project estimate, and book a call.
 
 ## Language
 
-**Level**:
-The whole map the player walks through.
-_Avoid_: Map, world, stage
+**Home page**:
+The one page of the site, "The Store Audit". The approved mock (`.impeccable/mocks/ui-studio/freelance-home.html`) is the rule for its layout, copy, motion, and behavior.
+_Avoid_: Landing page, Title Screen, portfolio (as the name of the page)
 
-**Room**:
-One named area of the Level.
-_Avoid_: Area, zone, section
+**Mock value**:
+A placeholder value that Luan replaces with the real value later: the prices, the WhatsApp number, the email, the booking link, and the sample Demo stores. The page marks each group of Mock values with a dashed note (`.mock-note`), and the code marks them with a `MOCK VALUES` comment. Do not remove a mark until Luan gives the real value.
+_Avoid_: Fake data, dummy value. "The mock" alone is the approved design file, not a Mock value.
 
-**Exhibit**:
-One portfolio item (a project, a job, a skill, or contact info) that the player can see and use in a Room. A Room can hold many Exhibits.
-_Avoid_: Project (when meaning the in-game item), item, card
+**Demo store**:
+A sample Shopify store that shows how Luan works. It is not client work, and the page always labels it "Demo" or "Demo data". Demo stores show in the Frames of the Filmstrip and in the Demo stores section, with free-license photos and credits.
+_Avoid_: Case study, client, project (as a name for a Demo store)
 
-**Exhibit Panel**:
-The overlay that shows the full details of one Exhibit while the game is paused.
-_Avoid_: Modal, popup, dialog
+## Filmstrip
 
-**Content**:
-The one typed list of every Exhibit (`src/game/content.ts`). The game, the Exhibit Panel, and the Skip View all show the Content, and the art generators draw one poster for each Exhibit in it.
-_Avoid_: Data, portfolio data, projects list
+**Filmstrip**:
+The scroll-driven section under the hero ("What I do", `#services`). Its stage holds still while the scroll steps through 4 Frames. The Frames fan around one center axis, the Timeline is above them, and the Chapters are below them. On phones and with reduced motion, the Frames are a still swipe row.
+_Avoid_: Carousel, slider, slideshow
 
-**Poster**:
-The image of one Exhibit on its wall in the Level, with its Part label. Each art set has one poster per Exhibit of the Content, named by the Exhibit id. In the Dungeon Theme a poster looks like a banner, but it is still a poster.
-_Avoid_: Picture, sign, Banner (as the name of the thing)
+**Frame**:
+One portrait screen of a Demo store in the Filmstrip. There are 4 Frames, in this order: the home page as it loads, a product with Add to cart, the speed score, and the call booking. One Frame at a time is the active Frame, in the center of the fan.
+_Avoid_: Card, slide. Do not use "Frame" for one animation frame of the browser; say "animation frame".
 
-**Part label**:
-The short label of an Exhibit, such as U1, derived from its kind and its order among Exhibits of that kind in the Content (project U, contact J, skill R, job Q). The game, the Exhibit Panel, and the Skip View show the same Part label.
-_Avoid_: ID, code
+**Chapter**:
+The caption of one Frame: a heading, one line of text, and one link. The 4 Chapters tell who Luan is, what he builds, the free speed audit, and the call. Only the Chapter of the active Frame shows.
+_Avoid_: Caption (as the name of the thing), step, slide text
 
-**Bug**:
-A harmless enemy that the player can shoot. Each Bug the player shoots counts as fixed. In the Dungeon Theme a Bug looks like a green Slime, but it is still a Bug.
-_Avoid_: Enemy, monster, target, Slime (as the name of the thing)
+**Timeline**:
+The hairline rule above the Frames, with one timestamp per Frame (0.4 s, 0.9 s, 1.6 s, Call). The timestamp of the active Frame lights, and the timestamps before it show as done.
+_Avoid_: Progress bar. The 4 steps of "How I work" are the process, not the Timeline.
 
-## Screens
+## Offer
 
-**Title Screen**:
-The first screen a desktop visitor sees, where they choose to play or open the Skip View.
-_Avoid_: Menu, home, start page
+**Package**:
+One offer in the package table: Store fix, Store launch, or Care plan. A Package shows what you get, the time, and a from-price (a starting price, not a fixed price). One Package is "Recommended". "Add to project" puts a Package in the Project builder.
+_Avoid_: Plan, tier, product, service (for a row of the package table)
 
-**Pause Menu**:
-The in-game menu the player opens during play to resume, change options, or go to the Skip View.
-_Avoid_: Options menu, settings screen, Esc menu
+**Project builder**:
+The "Build your project" section. The visitor switches services on and off, and each service that is on goes into the Project estimate. The services are the 3 Packages and 4 more items (Speed audit, Product import, Custom section, Second language). The switches and the "Add to project" buttons of the package table always agree.
+_Avoid_: Calculator, configurator, cart
 
-**Skip View**:
-The plain, non-game page that shows every Exhibit. Phones always get it.
-_Avoid_: Fallback page, list view, classic mode
+**Project estimate**:
+The card next to the switches of the Project builder. It shows the project strip (one unit per service that is on), one numbered line per service, and a total that rolls to the new amount. It is an estimate, not a quote: the fixed price comes after a 15-minute call. When no service is on, it shows an empty state.
+_Avoid_: Quote, invoice, order, cart
 
-## Looks
+## Scroll
 
-**Theme**:
-The named look of the whole portfolio: Paper, Board, or Dungeon. A Theme is an art set (the textures, Bug frames, sounds, and HUD colors the game uses) plus a look for the HTML screens; Paper and Board share the machine art set (a circuit board), and Dungeon has its own (a torch-lit stone keep, with the HTML screens as a gamebook). Dungeon is the default Theme: a visitor with no saved Theme sees it. No Theme follows the system light or dark setting.
-_Avoid_: Skin, mode
+**Virtual scroll**:
+The scroll of the page when JavaScript is on (the `vs-on` class on the root). The page itself does not scroll. Wheel, touch, and keys move a target, and each animation frame eases the page toward the target. The page loops: after the footer comes the top again, in both directions. With JavaScript off, the page scrolls normally.
+_Avoid_: Smooth scroll, infinite scroll (alone), scroll hijack
 
-**Art set**:
-Everything the game draws and plays for a Theme: the wall texture of each texture role, the ceiling Flat and the floor Flat, the Bug frames, the posters, the sound of each sound event, and the HUD colors. Every art set has both Flats. The look of the HTML screens is not part of it. Paper and Board use the machine art set; Dungeon uses the dungeon art set.
-_Avoid_: Asset pack, texture pack, tileset
+**Twin copy**:
+The second copy of the page that the Virtual scroll puts after the first copy, so that the end of the page flows into the start. It has no ids, no `for` or `aria-labelledby` links, and no tab stops, and it is hidden from assistive technology.
+_Avoid_: Clone, duplicate, ghost page
 
-**Texture role**:
-The part a wall plays in the Level: `wall-a`, `wall-b`, `feature`, `storage`, `door`, or `door-track`. Each art set maps every texture role to one of its own textures, and a Level names only texture roles, so one Level works with every art set.
-_Avoid_: Texture name, texture file, wall type
-
-**Flat**:
-The texture of the ceiling or of the floor in an art set, as in Doom. One Flat covers exactly one tile and repeats on every tile, and it gets darker with distance like the walls. A Flat is not a texture role: a Level never names a Flat, so each art set has one ceiling Flat and one floor Flat for the whole Level.
-_Avoid_: Floor texture, ceiling texture, plane
+**Page map**:
+The hairline line under the nav that shows where the visitor is in the loop, with one tick per section. It replaces the scrollbar that the Virtual scroll hides.
+_Avoid_: Scrollbar, progress bar, minimap
