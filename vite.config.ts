@@ -1,5 +1,5 @@
 import { defineConfig } from "vitest/config";
-import { goatCounter } from "./src/analytics/goatcounter-plugin";
+import { goatCounter } from "./src/analytics/goatcounter-plugin.ts";
 
 export default defineConfig({
 	base: "/portfolio/",

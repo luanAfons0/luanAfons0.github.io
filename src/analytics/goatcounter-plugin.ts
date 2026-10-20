@@ -1,5 +1,5 @@
 import type { Plugin } from "vite";
-import { goatCounterScriptTag } from "./analytics";
+import { goatCounterScriptTag } from "./analytics.ts";
 
 /**
  * Puts the GoatCounter script tag at the end of the head of the page. Build only: the dev server and the
