@@ -1,5 +1,7 @@
 # Themes and generated art
 
+Status: superseded by [ADR 0005](0005-freelance-home-replaces-the-game.md). The freelance home page replaced the game. The game stays in git history under the tag `game-final`.
+
 The portfolio gets its own look ("Inside the machine") instead of the borrowed Freedoom art, and the visitor can choose between more than one look. We split theming into two levels. An art set is everything the game draws and plays: the textures a Level may name, the Bug walk and fix frames, the sound file of each sound event, and the HUD colors. A Theme is a named look of the whole portfolio: an art set plus a look for the HTML screens, chosen with CSS on the root `data-theme`. Paper and Board are two Themes on one machine art set; a later Theme (Dungeon) brings its own art set.
 
 The art set lives in one module of the game layer (`src/game/theme.ts`), with no imports, so the Title Screen can read the Theme ids without game code. The browser shell, the Bugs, the HUD, and the Audio read the art set instead of their own constants, and `createGame` fails when the Level names a texture, or needs a Bug frame, that the art set does not have, so `pnpm test` catches a missing asset. The engine never sees the art set (ADR 0001).

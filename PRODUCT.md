@@ -8,46 +8,48 @@ web
 
 ## Users
 
-Recruiters and developers on a desktop browser who judge Luan Afonso's skills as a software engineer. They have a few minutes and want to know who Luan is, what he built, and how to contact him. Phone visitors always get the Skip View.
+Owners of small and mid-size online stores, in Brazil and in other countries. They want a developer to build or fix a Shopify store. They have little time and want to know fast what Luan does, what it costs, and how to book a call. Many of them open the page on a phone.
 
 ## Product Purpose
 
-Luan's portfolio, presented as a first-person game: the visitor walks a Level, reads Exhibits (projects, jobs, skills, contact), and fixes Bugs. Success: the visitor remembers Luan and knows how to reach him. The Skip View gives the same content as a plain page for anyone who does not want to play.
+The freelance Home page of Luan Afonso, a Shopify developer: "The Store Audit" (ADR 0005). The visitor reads the offer in one line, watches a Demo store load through the 4 Frames of the Filmstrip, sees the Packages as a report table with from-prices, builds a Project estimate, sees the process and the Demo stores, and books a call. Success: the visitor books a call or writes on WhatsApp.
 
 ## Positioning
 
-The game engine is the proof. The raycaster, the Level pipeline, and the content checks are written by hand in TypeScript, so playing the portfolio demonstrates the skill it describes.
+The page reads as the audit that Luan sends to a store owner: a store measured Frame by Frame, then fixed, priced, and booked. It is not a dark freelancer template, and it is not a cream editorial portfolio.
 
 ## Operating Context
 
-- Desktop: keyboard and mouse (WASD, mouse look with pointer lock, E to use, click to shoot, Esc to pause, M to mute).
-- Title Screen first, then the game; the Pause Menu and the Exhibit Panel pause play.
-- Phones are redirected to the Skip View before first paint (ADR 0002).
-- Three Themes (ADR 0003): Paper and Board show the machine world (a circuit board), and the system color scheme picks one of them when the visitor has saved none. Dungeon shows a torch-lit stone keep, and the HTML screens as an open gamebook; it shows only when the visitor picks it. The visitor picks a Theme on the Title Screen or in the Pause Menu (also during play), and the choice is saved for the Title Screen, the game, and the Skip View.
+- Desktop and phone. The Frames are a swipe row on phones.
+- With JavaScript on, the Virtual scroll moves the page and loops from the footer back to the top. The Page map under the nav replaces the scrollbar.
+- With JavaScript off, the page shows all content and scrolls normally.
+- English and Portuguese (pt-BR), with a switch in the nav. Prices are in USD in English and in BRL in Portuguese. The page saves the language choice.
+- Light only. There is no Theme and no dark mode.
 
 ## Capabilities and Constraints
 
-- TypeScript + Vite, no framework. 640x360 framebuffer raycaster (ADR 0001). Levels drawn in Tiled.
-- Gzipped JS budget of 100 KB. 60 FPS render target.
-- The Skip View is built at build time. Its only script is the Theme head script, which sets the saved Theme (ADR 0003); the page works fully without it.
-- Glossary terms are binding: Level, Room, Exhibit, Exhibit Panel, Part label, Bug, Title Screen, Pause Menu, Skip View, Theme (see `GLOSSARY.md`). In Dungeon a Bug looks like a Slime, but the copy still calls it a Bug.
-- Keyboard navigation and `prefers-reduced-motion` must keep working.
-- Copy is in English.
-- Art and sounds must be original or carry a free license with credits.
+- TypeScript and Vite, no framework. The page markup is static HTML in `index.html`.
+- Gzipped JS budget of 100 KB.
+- The approved mock (`.impeccable/mocks/ui-studio/freelance-home.html`) is the rule for layout, type, colors, spacing, copy (English and Portuguese, word for word), motion, states, and behavior. Ask before you add something that is not in the mock.
+- Glossary terms are binding: Home page, Mock value, Demo store, Filmstrip, Frame, Chapter, Timeline, Package, Project builder, Project estimate, Virtual scroll, Twin copy, Page map (see `GLOSSARY.md`).
+- Keyboard navigation and `prefers-reduced-motion` must work.
+- Analytics: GoatCounter, with no cookies.
+- Photos must carry a free license with credits.
 
 ## Brand Commitments
 
 - Name: Luan Afonso.
-- Voice: plain, direct, a little playful (Bugs are "fixed", not killed).
+- Voice: plain, direct, and calm. Short sentences. No hype.
 
 ## Evidence on Hand
 
-- Exhibits in `src/game/content.ts` are samples (one project, a sample job, a TypeScript skill, contact). Real work history comes later; never invent employers, dates, or metrics.
+- Luan has no client work yet. The Demo stores, the demo metrics, and the audits are samples, and the page labels each one as a demo. Never invent clients, results, dates, or metrics.
+- Prices, the WhatsApp number, the email, and the booking link are Mock values until Luan gives the real ones.
 - Source code: https://github.com/luanAfons0/portfolio. GitHub profile: https://github.com/luanAfons0.
 
 ## Product Principles
 
-1. Playing is optional; the content is never locked behind the game.
-2. The craft of the engine is part of the message.
-3. Harmless and friendly: no gore, no hostility.
+1. The visitor can book a call from every screen.
+2. Every demo says it is a demo; every Mock value stays marked.
+3. A price is a from-price or an estimate, never a quote. The fixed price comes after a 15-minute call.
 4. Fast to load, fast to read.
