@@ -10,6 +10,19 @@
     <link rel="preload" href="/fonts/geist/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="/fonts/geist-mono/geist-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="/src/home/home.css">
+    <!-- JavaScript off: no script steps the Chapters, so the stage stops holding and all 4 Chapters stack under it.
+         The build puts home.css after this block, so each rule starts with :root to win. -->
+    <noscript>
+      <style>
+        :root .chapters { gap: 28px; }
+        :root .chapter { grid-area: auto; opacity: 1; transform: none; filter: none; visibility: visible; }
+        @media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+          :root .fs { height: auto; }
+          :root .fs-stop { display: none; }
+          :root .fs-stage { position: static; height: auto; grid-template-rows: auto calc(max(var(--stage-h), 600px) - 15rem) auto; }
+        }
+      </style>
+    </noscript>
   </head>
   <body>
     <svg width="0" height="0" style="position:absolute" aria-hidden="true">
