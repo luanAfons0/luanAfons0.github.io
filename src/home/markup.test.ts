@@ -153,6 +153,13 @@ describe("the Home page markup", () => {
 		expect(document.querySelector("head > noscript > style")).not.toBeNull();
 	});
 
+	it("keeps a form submit on the page with JavaScript off, so the fields never go into a URL", () => {
+		const form = page.querySelector<HTMLFormElement>("#form");
+		// Outside a <dialog>, a dialog-method submit does nothing: no request, no new URL.
+		expect(form?.method).toBe("dialog");
+		expect(form?.hasAttribute("action")).toBe(false);
+	});
+
 	it("has no link to a missing id", () => {
 		for (const a of all("a[href^='#']")) {
 			const id = a.getAttribute("href")?.slice(1);
