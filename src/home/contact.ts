@@ -21,13 +21,19 @@ export function mountContact({ doc, win, signal, language }: HomeContext): void 
 			() => {
 				const src = byId(button.dataset.copy ?? "");
 				if (!src) return;
+				// The clipboard can answer after dispose(): then nothing changes.
 				const done = () => {
+					if (signal.aborted) return;
 					button.textContent = language.t("c.copied");
-					win.setTimeout(() => {
+					const stop = () => win.clearTimeout(timer);
+					const timer = win.setTimeout(() => {
+						signal.removeEventListener("abort", stop);
 						button.textContent = language.t("c.copy");
 					}, COPIED_MS);
+					signal.addEventListener("abort", stop, { once: true });
 				};
 				const select = () => {
+					if (signal.aborted) return;
 					const range = doc.createRange();
 					range.selectNodeContents(src);
 					const selection = win.getSelection();

@@ -80,6 +80,43 @@ describe("the copy buttons", () => {
 		expect(copyButton("wa").textContent).toBe("Copy");
 	});
 
+	it("stops the Copied timer on dispose", async () => {
+		vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue();
+		const home = mount();
+		vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+		copyButton("mail").click();
+		await vi.advanceTimersByTimeAsync(0);
+		expect(copyButton("mail").textContent).toBe("Copied");
+
+		home.dispose();
+		vi.advanceTimersByTime(1600);
+
+		expect(copyButton("mail").textContent).toBe("Copied");
+	});
+
+	it("ignores a clipboard answer that comes after dispose", async () => {
+		const answers: ((ok: boolean) => void)[] = [];
+		vi.spyOn(navigator.clipboard, "writeText").mockImplementation(
+			() =>
+				new Promise<void>((resolve, reject) => {
+					answers.push((ok) => (ok ? resolve() : reject(new Error("denied"))));
+				}),
+		);
+		window.getSelection()?.removeAllRanges();
+		const home = mount();
+		copyButton("mail").click();
+		copyButton("wa").click();
+		home.dispose();
+
+		const [mail, wa] = answers;
+		mail?.(true);
+		wa?.(false);
+		await flush();
+
+		expect(copyButton("mail").textContent).toBe("Copy");
+		expect(window.getSelection()?.toString()).toBe("");
+	});
+
 	it("selects the text when the clipboard throws at once", () => {
 		vi.spyOn(navigator.clipboard, "writeText").mockImplementation(() => {
 			throw new Error("no clipboard");
