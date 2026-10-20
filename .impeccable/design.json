@@ -1,398 +1,30 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-17T18:00:00.000Z",
-  "title": "Design System: Luan Afonso, portfolio",
+  "generatedAt": "2026-10-20T18:00:00.000Z",
+  "title": "Design System: Luan Afonso, Shopify developer",
   "extensions": {
     "colorMeta": {
-      "paper": {
+      "ground": {
         "role": "neutral",
-        "displayName": "Datasheet Paper",
-        "canonical": "#f9faf7",
-        "oklch": "oklch(98.4% 0.004 121.6)",
+        "displayName": "Report Ground",
+        "canonical": "#f8f9f8",
+        "oklch": "oklch(98.1% 0.002 145.6)",
         "tonalRamp": [
-          "#0b0b09",
-          "#232422",
-          "#3f403e",
-          "#5d5e5b",
-          "#80817e",
-          "#a4a5a2",
-          "#cacbc8",
-          "#eeefec"
+          "#0b0b0b",
+          "#252525",
+          "#414241",
+          "#616161",
+          "#828282",
+          "#a4a5a4",
+          "#c9c9c9",
+          "#eeeeee"
         ]
       },
-      "paper-2": {
+      "surface": {
         "role": "neutral",
-        "displayName": "Paper Shade",
-        "canonical": "#e7e9e4",
-        "oklch": "oklch(93.1% 0.007 124.5)",
-        "tonalRamp": [
-          "#0a0c09",
-          "#232521",
-          "#3f403c",
-          "#5d5e5a",
-          "#7f817c",
-          "#a3a5a1",
-          "#c9cbc6",
-          "#edefea"
-        ]
-      },
-      "ink": {
-        "role": "neutral",
-        "displayName": "Black Ink",
-        "canonical": "#16181a",
-        "oklch": "oklch(20.8% 0.005 248.1)",
-        "tonalRamp": [
-          "#0a0b0d",
-          "#222426",
-          "#3e4042",
-          "#5b5e60",
-          "#7e8083",
-          "#a2a5a8",
-          "#c8cbce",
-          "#eceff2"
-        ]
-      },
-      "ink-2": {
-        "role": "neutral",
-        "displayName": "Grey Ink",
-        "canonical": "#4b5155",
-        "oklch": "oklch(43.1% 0.010 236.8)",
-        "tonalRamp": [
-          "#070c0f",
-          "#202528",
-          "#3b4144",
-          "#585f63",
-          "#7b8186",
-          "#9fa6aa",
-          "#c5ccd0",
-          "#e8f0f5"
-        ]
-      },
-      "rule": {
-        "role": "neutral",
-        "displayName": "Hairline",
-        "canonical": "#b1b4ae",
-        "oklch": "oklch(76.6% 0.009 128.6)",
-        "tonalRamp": [
-          "#0a0c08",
-          "#232520",
-          "#3e413c",
-          "#5c5f59",
-          "#7f827c",
-          "#a3a6a0",
-          "#c9ccc6",
-          "#edf0ea"
-        ]
-      },
-      "pin": {
-        "role": "neutral",
-        "displayName": "Pin Grey",
-        "canonical": "#8b8f92",
-        "oklch": "oklch(64.8% 0.006 239.9)",
-        "tonalRamp": [
-          "#090b0d",
-          "#212427",
-          "#3d4043",
-          "#5a5e61",
-          "#7d8184",
-          "#a1a5a8",
-          "#c7cbce",
-          "#ebeff3"
-        ]
-      },
-      "board": {
-        "role": "neutral",
-        "displayName": "Solder Mask",
-        "canonical": "#0f1214",
-        "oklch": "oklch(18.0% 0.006 237.0)",
-        "tonalRamp": [
-          "#090c0d",
-          "#212527",
-          "#3d4043",
-          "#5a5e61",
-          "#7d8183",
-          "#a1a5a8",
-          "#c7cbce",
-          "#ebeff2"
-        ]
-      },
-      "board-2": {
-        "role": "neutral",
-        "displayName": "Lifted Mask",
-        "canonical": "#1a1f22",
-        "oklch": "oklch(23.5% 0.009 234.2)",
-        "tonalRamp": [
-          "#070c0e",
-          "#202528",
-          "#3b4144",
-          "#595f62",
-          "#7b8285",
-          "#9fa6aa",
-          "#c5ccd0",
-          "#e9f0f4"
-        ]
-      },
-      "mask-trace": {
-        "role": "neutral",
-        "displayName": "Trace Under Mask",
-        "canonical": "#1f262a",
-        "oklch": "oklch(26.3% 0.013 233.0)",
-        "tonalRamp": [
-          "#060c10",
-          "#1e2529",
-          "#394145",
-          "#575f64",
-          "#798287",
-          "#9da6ab",
-          "#c3ccd1",
-          "#e7f0f6"
-        ]
-      },
-      "silk": {
-        "role": "neutral",
-        "displayName": "Silkscreen",
-        "canonical": "#f8f9f7",
-        "oklch": "oklch(98.1% 0.003 128.5)",
-        "tonalRamp": [
-          "#0b0b0a",
-          "#232423",
-          "#3f403e",
-          "#5d5e5c",
-          "#80817f",
-          "#a4a5a3",
-          "#cacbc9",
-          "#eeefed"
-        ]
-      },
-      "silk-2": {
-        "role": "neutral",
-        "displayName": "Silkscreen Grey",
-        "canonical": "#a6acaf",
-        "oklch": "oklch(74.1% 0.008 228.9)",
-        "tonalRamp": [
-          "#080c0e",
-          "#202527",
-          "#3b4143",
-          "#595f61",
-          "#7c8284",
-          "#a0a6a9",
-          "#c6cccf",
-          "#e9f0f3"
-        ]
-      },
-      "silk-3": {
-        "role": "neutral",
-        "displayName": "Silkscreen Faint",
-        "canonical": "#676c70",
-        "oklch": "oklch(52.8% 0.009 241.8)",
-        "tonalRamp": [
-          "#080b0e",
-          "#202528",
-          "#3c4044",
-          "#595e62",
-          "#7c8185",
-          "#a0a5aa",
-          "#c6cbd0",
-          "#eaeff4"
-        ]
-      },
-      "pad": {
-        "role": "neutral",
-        "displayName": "Tinned Pad",
-        "canonical": "#aeb3b6",
-        "oklch": "oklch(76.4% 0.007 233.7)",
-        "tonalRamp": [
-          "#080c0e",
-          "#212527",
-          "#3c4043",
-          "#5a5e61",
-          "#7c8184",
-          "#a0a5a8",
-          "#c6cbce",
-          "#eaeff2"
-        ]
-      },
-      "copper": {
-        "role": "primary",
-        "displayName": "Copper",
-        "canonical": "#c06a36",
-        "oklch": "oklch(61.3% 0.128 49.6)",
-        "tonalRamp": [
-          "#180600",
-          "#3d1801",
-          "#672c01",
-          "#944303",
-          "#bc6632",
-          "#e48b58",
-          "#feb892",
-          "#feeadf"
-        ]
-      },
-      "copper-deep": {
-        "role": "primary",
-        "displayName": "Deep Copper",
-        "canonical": "#aa5e30",
-        "oklch": "oklch(56.2% 0.116 49.7)",
-        "tonalRamp": [
-          "#2a0000",
-          "#4b0300",
-          "#6d2600",
-          "#904614",
-          "#b76a3c",
-          "#df8e60",
-          "#ffb485",
-          "#ffd8a8"
-        ]
-      },
-      "copper-hot": {
-        "role": "primary",
-        "displayName": "Hot Copper",
-        "canonical": "#ef9354",
-        "oklch": "oklch(74.7% 0.136 53.4)",
-        "tonalRamp": [
-          "#2e0000",
-          "#500000",
-          "#722000",
-          "#964200",
-          "#be6622",
-          "#e68b4b",
-          "#ffb172",
-          "#ffd595"
-        ]
-      },
-      "scrim": {
-        "role": "neutral",
-        "displayName": "Scrim",
-        "canonical": "#070909",
-        "oklch": "oklch(13.7% 0.004 196.7)",
-        "tonalRamp": [
-          "#090c0c",
-          "#222525",
-          "#3d4040",
-          "#5b5e5e",
-          "#7e8181",
-          "#a2a5a5",
-          "#c8cbcb",
-          "#ecefef"
-        ]
-      },
-      "game-mask": {
-        "role": "neutral",
-        "displayName": "Game Mask",
-        "canonical": "#1a2024",
-        "oklch": "oklch(23.9% 0.012 237.2)",
-        "tonalRamp": [
-          "#070c10",
-          "#1f2529",
-          "#3a4145",
-          "#585f63",
-          "#7a8186",
-          "#9ea6ab",
-          "#c4ccd1",
-          "#e8f0f5"
-        ]
-      },
-      "game-trace": {
-        "role": "neutral",
-        "displayName": "Game Trace",
-        "canonical": "#2c363c",
-        "oklch": "oklch(32.6% 0.017 234.4)",
-        "tonalRamp": [
-          "#050c11",
-          "#1c262b",
-          "#374148",
-          "#555f66",
-          "#778289",
-          "#9ba7ae",
-          "#c0cdd4",
-          "#e4f1f9"
-        ]
-      },
-      "beetle-sheen": {
-        "role": "tertiary",
-        "displayName": "Beetle Sheen",
-        "canonical": "#5f7a6a",
-        "oklch": "oklch(55.3% 0.040 158.8)",
-        "tonalRamp": [
-          "#000f06",
-          "#112a1d",
-          "#2d4638",
-          "#4a6555",
-          "#6c8878",
-          "#90ad9c",
-          "#b6d3c1",
-          "#d9f7e5"
-        ]
-      },
-      "dungeon-cover": {
-        "role": "neutral",
-        "displayName": "Cloth Cover",
-        "canonical": "#1d4a33",
-        "oklch": "oklch(37.0% 0.064 158.6)",
-        "tonalRamp": [
-          "#000f06",
-          "#002e1a",
-          "#1f4c35",
-          "#406c54",
-          "#618e74",
-          "#83b296",
-          "#a6d6ba",
-          "#cbfcdf"
-        ]
-      },
-      "dungeon-cover-ink": {
-        "role": "neutral",
-        "displayName": "Cloth Thread",
-        "canonical": "#0f2a1c",
-        "oklch": "oklch(25.9% 0.043 158.7)",
-        "tonalRamp": [
-          "#000f06",
-          "#102b1d",
-          "#2e493a",
-          "#4d6958",
-          "#6d8b79",
-          "#8fae9b",
-          "#b3d2bf",
-          "#d7f8e4"
-        ]
-      },
-      "dungeon-page": {
-        "role": "neutral",
-        "displayName": "Pulp Page",
-        "canonical": "#e0d9c5",
-        "oklch": "oklch(88.5% 0.028 90.9)",
-        "tonalRamp": [
-          "#100b01",
-          "#2a2515",
-          "#474231",
-          "#67614f",
-          "#888270",
-          "#aba592",
-          "#d0c9b5",
-          "#f5eeda"
-        ]
-      },
-      "dungeon-page-2": {
-        "role": "neutral",
-        "displayName": "Pulp Shade",
-        "canonical": "#d4ccb5",
-        "oklch": "oklch(84.6% 0.032 91.1)",
-        "tonalRamp": [
-          "#100a00",
-          "#2b2512",
-          "#48422e",
-          "#68614c",
-          "#89826d",
-          "#aca58f",
-          "#d1c9b2",
-          "#f6eed7"
-        ]
-      },
-      "dungeon-ink": {
-        "role": "neutral",
-        "displayName": "Black Ink (Dungeon)",
-        "canonical": "#171717",
-        "oklch": "oklch(20.5% 0.000 89.9)",
+        "displayName": "Paper White",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100.0% 0.000 89.9)",
         "tonalRamp": [
           "#0b0b0b",
           "#252525",
@@ -404,777 +36,498 @@
           "#eeeeee"
         ]
       },
-      "dungeon-ink-2": {
+      "tile": {
         "role": "neutral",
-        "displayName": "Grey Ink (Dungeon)",
-        "canonical": "#4a463d",
-        "oklch": "oklch(39.5% 0.016 86.9)",
+        "displayName": "Tile Mist",
+        "canonical": "#eef1ee",
+        "oklch": "oklch(95.5% 0.005 145.5)",
         "tonalRamp": [
-          "#0e0b05",
-          "#28251c",
-          "#464239",
-          "#656157",
-          "#868278",
-          "#a9a59a",
-          "#cdc9be",
-          "#f3eee3"
+          "#0b0b0b",
+          "#242524",
+          "#414241",
+          "#606260",
+          "#818381",
+          "#a4a6a4",
+          "#c8c9c8",
+          "#eeefee"
         ]
       },
-      "dungeon-rule": {
+      "ink": {
         "role": "neutral",
-        "displayName": "Pulp Rule",
-        "canonical": "#b3a98f",
-        "oklch": "oklch(73.6% 0.038 89.5)",
+        "displayName": "Ink",
+        "canonical": "#0f1110",
+        "oklch": "oklch(17.5% 0.004 164.6)",
         "tonalRamp": [
-          "#100a00",
-          "#2c240e",
-          "#4a412a",
-          "#6a6149",
-          "#8b8269",
-          "#aea48b",
-          "#d3c9ae",
-          "#f8eed2"
+          "#0b0b0b",
+          "#242525",
+          "#414242",
+          "#5f6261",
+          "#808382",
+          "#a3a5a4",
+          "#c8c9c9",
+          "#eeefee"
         ]
       },
-      "dungeon-scrim": {
+      "ink-2": {
         "role": "neutral",
-        "displayName": "Dungeon Scrim",
-        "canonical": "rgb(10 9 8 / 0.62)",
-        "oklch": "oklch(14.1% 0.003 69.4)",
+        "displayName": "Ink Two",
+        "canonical": "#454c48",
+        "oklch": "oklch(40.9% 0.011 160.9)",
         "tonalRamp": [
-          "#0c0b0a",
-          "#262523",
-          "#434240",
-          "#62615f",
-          "#838280",
-          "#a6a5a3",
-          "#cac9c7",
-          "#f0eeec"
+          "#0a0c0b",
+          "#232624",
+          "#3e4341",
+          "#5c635f",
+          "#7d8480",
+          "#a1a7a3",
+          "#c6cac8",
+          "#ecefee"
         ]
       },
-      "dungeon-scrim-resume": {
+      "ink-3": {
         "role": "neutral",
-        "displayName": "Dungeon Scrim, resume",
-        "canonical": "rgb(10 9 8 / 0.5)",
-        "oklch": "oklch(14.1% 0.003 69.4)",
+        "displayName": "Ink Three",
+        "canonical": "#626b66",
+        "oklch": "oklch(51.8% 0.013 161.7)",
         "tonalRamp": [
-          "#0c0b0a",
-          "#262523",
-          "#434240",
-          "#62615f",
-          "#838280",
-          "#a6a5a3",
-          "#cac9c7",
-          "#f0eeec"
+          "#0a0c0b",
+          "#222624",
+          "#3e4440",
+          "#5b635f",
+          "#7c8580",
+          "#a0a7a3",
+          "#c5cbc8",
+          "#ecefed"
         ]
       },
-      "dungeon-gutter-shade": {
+      "rule": {
         "role": "neutral",
-        "displayName": "Gutter Shade",
-        "canonical": "rgb(74 70 61 / 0.45)",
-        "oklch": "oklch(39.5% 0.016 86.9)",
+        "displayName": "Hairline",
+        "canonical": "#e0e4e0",
+        "oklch": "oklch(91.5% 0.007 145.5)",
         "tonalRamp": [
-          "#0e0b05",
-          "#28251c",
-          "#464239",
-          "#656157",
-          "#868278",
-          "#a9a59a",
-          "#cdc9be",
-          "#f3eee3"
+          "#0b0b0b",
+          "#242524",
+          "#404340",
+          "#5f625f",
+          "#808380",
+          "#a3a6a3",
+          "#c8cac8",
+          "#edefed"
         ]
       },
-      "dungeon-leader-on-ink": {
+      "rule-2": {
         "role": "neutral",
-        "displayName": "Leader on Ink",
-        "canonical": "rgb(224 217 197 / 0.4)",
-        "oklch": "oklch(88.5% 0.028 90.9)",
+        "displayName": "Hairline Strong",
+        "canonical": "#c9cfca",
+        "oklch": "oklch(84.8% 0.009 150.7)",
         "tonalRamp": [
-          "#100b01",
-          "#2a2515",
-          "#474231",
-          "#67614f",
-          "#888270",
-          "#aba592",
-          "#d0c9b5",
-          "#f5eeda"
+          "#0a0c0a",
+          "#232624",
+          "#3f4340",
+          "#5e635f",
+          "#7f8480",
+          "#a2a6a3",
+          "#c7cac7",
+          "#edefed"
         ]
       },
-      "dungeon-stone": {
-        "role": "neutral",
-        "displayName": "Cut Stone",
-        "canonical": "#4a4f57",
-        "oklch": "oklch(42.6% 0.015 259.8)",
-        "tonalRamp": [
-          "#080b11",
-          "#21252c",
-          "#3d424a",
-          "#5c626a",
-          "#7d838b",
-          "#a0a5af",
-          "#c4cad3",
-          "#e9eff9"
-        ]
-      },
-      "dungeon-mortar": {
-        "role": "neutral",
-        "displayName": "Mortar",
-        "canonical": "#24262a",
-        "oklch": "oklch(26.8% 0.008 264.4)",
-        "tonalRamp": [
-          "#090b0f",
-          "#232529",
-          "#404246",
-          "#5f6166",
-          "#808287",
-          "#a2a5aa",
-          "#c6c9ce",
-          "#eceef4"
-        ]
-      },
-      "dungeon-moss": {
-        "role": "neutral",
-        "displayName": "Moss",
-        "canonical": "#3f5a3a",
-        "oklch": "oklch(43.7% 0.061 140.6)",
-        "tonalRamp": [
-          "#011000",
-          "#132c0e",
-          "#304a2b",
-          "#4e6a49",
-          "#6f8c69",
-          "#91af8b",
-          "#b4d4af",
-          "#d9f9d3"
-        ]
-      },
-      "dungeon-oak": {
-        "role": "neutral",
-        "displayName": "Oak",
-        "canonical": "#5a3b22",
-        "oklch": "oklch(38.2% 0.058 58.7)",
-        "tonalRamp": [
-          "#160700",
-          "#391d03",
-          "#593a21",
-          "#7a5940",
-          "#9d7a60",
-          "#c19d81",
-          "#e7c1a4",
-          "#ffeadb"
-        ]
-      },
-      "dungeon-flame": {
+      "pass": {
         "role": "primary",
-        "displayName": "Torch Flame",
-        "canonical": "#f39a32",
-        "oklch": "oklch(76.1% 0.154 64.9)",
+        "displayName": "Pass Green",
+        "canonical": "#08704a",
+        "oklch": "oklch(48.2% 0.105 160.8)",
         "tonalRamp": [
-          "#150800",
-          "#381e01",
-          "#603703",
-          "#8a5208",
-          "#b76f10",
-          "#e68e1f",
-          "#ffb973",
-          "#ffebd8"
+          "#000f06",
+          "#042d1c",
+          "#114e34",
+          "#21724f",
+          "#48946f",
+          "#7ab496",
+          "#aad5bd",
+          "#dbf6e7"
         ]
       },
-      "dungeon-slime": {
-        "role": "secondary",
-        "displayName": "Slime",
-        "canonical": "#5fae4e",
-        "oklch": "oklch(67.8% 0.153 140.2)",
+      "pass-soft": {
+        "role": "primary",
+        "displayName": "Pass Wash",
+        "canonical": "#e2f1e9",
+        "oklch": "oklch(94.5% 0.019 162.9)",
         "tonalRamp": [
-          "#011000",
-          "#092e01",
-          "#155004",
-          "#24750b",
-          "#499837",
-          "#6cbc5c",
-          "#90e17f",
-          "#cefec4"
+          "#090c0a",
+          "#212724",
+          "#3c4440",
+          "#59645e",
+          "#7a867f",
+          "#9ea8a2",
+          "#c4cbc7",
+          "#ebf0ed"
+        ]
+      },
+      "warn": {
+        "role": "signal",
+        "displayName": "Warn Rust",
+        "canonical": "#b5470f",
+        "oklch": "oklch(54.0% 0.155 42.1)",
+        "tonalRamp": [
+          "#1c0300",
+          "#441300",
+          "#702803",
+          "#a03e0e",
+          "#c66137",
+          "#e08d6d",
+          "#f8b8a0",
+          "#ffe4d4"
         ]
       }
     },
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "The name on Paper: condensed heavy Archivo (font-stretch 72%)."
+        "purpose": "The hero headline only. Two lines, centered, balanced, max 15ch."
       },
-      "display-silk": {
-        "displayName": "Display, Board",
-        "purpose": "The name on Board, in Silkscreen snapped down to a multiple of 8px."
+      "wordmark": {
+        "displayName": "Wordmark",
+        "purpose": "The name in the footer. One line, no wrap, cut by the page edge."
+      },
+      "headline-contact": {
+        "displayName": "Headline Contact",
+        "purpose": "The contact heading. Centered, max 14ch."
       },
       "headline": {
         "displayName": "Headline",
-        "purpose": "Exhibit titles on Paper (Exhibit Panel uses 800 at 2.6em, stretch 78%)."
+        "purpose": "Every section heading. Left-aligned, balanced."
       },
-      "headline-silk": {
-        "displayName": "Headline, Board",
-        "purpose": "Exhibit titles on Board."
+      "figure": {
+        "displayName": "Figure",
+        "purpose": "The odometer total of the Project estimate. Tabular figures, pass green."
+      },
+      "title-lg": {
+        "displayName": "Title Large",
+        "purpose": "Process step names, demo store names, the success message."
       },
       "title": {
         "displayName": "Title",
-        "purpose": "Datasheet section headings with a 1px rule under them."
-      },
-      "body": {
-        "displayName": "Body",
-        "purpose": "Reading text, 62 to 65ch."
+        "purpose": "Chapter headings and Package names."
       },
       "lede": {
         "displayName": "Lede",
-        "purpose": "The description under the name and the Exhibit summary, 30 to 46ch."
+        "purpose": "Section intros and the contact intro, in ink-2, max 54ch."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text. Answers max 62ch, step text max 30ch."
+      },
+      "body-sm": {
+        "displayName": "Body Small",
+        "purpose": "Nav links, list items, field labels, ghost pills."
       },
       "label": {
         "displayName": "Label",
-        "purpose": "Menu items, Part labels, part numbers, buttons, pin names."
+        "purpose": "The Timeline end labels, the table head row, channel labels, Mock value notes."
       },
-      "label-small": {
-        "displayName": "Label small",
-        "purpose": "Key caps."
+      "tag": {
+        "displayName": "Tag",
+        "purpose": "The uppercase \"Demo\" tag on a demo card only."
       },
-      "dungeon-display": {
-        "displayName": "Display, Dungeon",
-        "purpose": "The name in the Skip View, IM Fell English 400."
+      "mono-data": {
+        "displayName": "Mono Data",
+        "purpose": "Timeline timestamps, Frame URLs and times, the estimate date, browser bar URLs."
       },
-      "dungeon-display-spread": {
-        "displayName": "Display, Dungeon spread",
-        "purpose": "The name on the Title Screen spread, 5.4em of the spread font (min(5.4em, 15vw) on one page)."
-      },
-      "dungeon-headline": {
-        "displayName": "Headline, Dungeon",
-        "purpose": "Exhibit titles in the Skip View."
-      },
-      "dungeon-headline-overlay": {
-        "displayName": "Headline, Dungeon overlay",
-        "purpose": "Exhibit titles in the Exhibit Panel and the \"Paused\" title."
-      },
-      "dungeon-room": {
-        "displayName": "Room heading, Dungeon",
-        "purpose": "Room headings in the Skip View, with a 1px ink rule under them."
-      },
-      "dungeon-end": {
-        "displayName": "End line",
-        "purpose": "\"The end of the book.\" in IM Fell English italic, Grey Ink."
-      },
-      "dungeon-runhead": {
-        "displayName": "Running head",
-        "purpose": "Running heads on a 1px ink rule (15px in the Skip View, 0.95em on the spread), Grey Ink."
-      },
-      "dungeon-heading-sc": {
-        "displayName": "Small-caps heading",
-        "purpose": "The Skip View contents heading; \"How to Play\" uses it at 1.25em."
-      },
-      "dungeon-section-number": {
-        "displayName": "Section number",
-        "purpose": "The Part label between double rules (3.2em in the Exhibit Panel, 2.25rem in the Skip View)."
-      },
-      "dungeon-lede": {
-        "displayName": "Lede, Dungeon",
-        "purpose": "Italic description under the name (1.5em on the spread)."
-      },
-      "dungeon-summary": {
-        "displayName": "Summary, Dungeon",
-        "purpose": "Italic Exhibit summary (1.4em in the Exhibit Panel)."
-      },
-      "dungeon-contents": {
-        "displayName": "Contents, Dungeon",
-        "purpose": "Contents links in the Skip View; Part labels there are Alegreya 700 at the same size."
-      },
-      "dungeon-body": {
-        "displayName": "Body, Dungeon",
-        "purpose": "Reading text, 62ch; 1.12em, line height 1.55 in the Exhibit Panel."
-      },
-      "dungeon-stamp": {
-        "displayName": "Sample content stamp",
-        "purpose": "Italic \"Sample content\" note, Grey Ink, in the Exhibit Panel foot and the Skip View lede."
-      },
-      "dungeon-choice": {
-        "displayName": "Choice",
-        "purpose": "Alegreya SC 700: Title Screen choices, Pause Menu items (1.25em), Close (1.1em), the resume slip."
-      },
-      "dungeon-label": {
-        "displayName": "Label, Dungeon",
-        "purpose": "Alegreya SC 500: stat box names, field names on the box edge, \"Links\", the Skip View back link."
-      },
-      "dungeon-key": {
-        "displayName": "Key cap, Dungeon",
-        "purpose": "Every kbd in Dungeon."
+      "mono-price": {
+        "displayName": "Mono Price",
+        "purpose": "Prices in the switch rows and the line values of the Project estimate."
       }
     },
     "shadows": [
       {
-        "name": "sheet-over-game-paper",
-        "value": "0 18px 50px rgb(0 0 0 / 0.55)",
-        "purpose": "The Exhibit Panel in Paper."
+        "name": "hairline-ring",
+        "value": "0 0 0 1px #e0e4e0",
+        "purpose": "Flat report tiles: the package table, demo cards, the contact panel."
       },
       {
-        "name": "sheet-over-game-board",
-        "value": "0 14px 40px rgb(0 0 0 / 0.5)",
-        "purpose": "The Exhibit Panel in Board and the Pause Menu."
+        "name": "shadow-tile",
+        "value": "0 0 0 1px rgb(15 17 16 / 0.06), 0 1px 2px rgb(15 17 16 / 0.05), 0 18px 40px -14px rgb(15 17 16 / 0.18)",
+        "purpose": "Live floating tiles: the Frames and the Project estimate (--shadow-tile)."
       },
       {
-        "name": "scrim-overlay",
-        "value": "rgb(7 9 9 / 0.62)",
-        "purpose": "Dimmer behind the Exhibit Panel and the Pause Menu."
+        "name": "frame-active",
+        "value": "0 0 0 1.5px #08704a, 0 1px 2px rgb(15 17 16 / 0.05), 0 24px 48px -16px rgb(15 17 16 / 0.24)",
+        "purpose": "The active Frame only."
       },
       {
-        "name": "scrim-resume",
-        "value": "rgb(7 9 9 / 0.5)",
-        "purpose": "Dimmer behind the resume prompt."
+        "name": "browser",
+        "value": "0 0 0 1px rgb(15 17 16 / 0.06), 0 20px 40px -20px rgb(15 17 16 / 0.3)",
+        "purpose": "The storefront browser frame inside a demo card."
       },
       {
-        "name": "dungeon-book-on-cloth",
-        "value": "0 1.2em 2.6em rgb(6 18 11 / 0.55), 0 0.2em 0.4em rgb(6 18 11 / 0.4)",
-        "purpose": "The Title Screen spread on the cloth cover."
+        "name": "knob",
+        "value": "0 1px 3px rgb(15 17 16 / 0.25)",
+        "purpose": "The switch knob."
       },
       {
-        "name": "dungeon-sheet-on-cloth",
-        "value": "0 10px 30px rgb(6 18 11 / 0.5)",
-        "purpose": "The Skip View sheet, above 35rem only."
+        "name": "toggle-active",
+        "value": "0 1px 2px rgb(15 17 16 / 0.12)",
+        "purpose": "The pressed EN/PT button."
       },
       {
-        "name": "dungeon-gutter",
-        "value": "inset 2.2em 0 2em -1.6em rgb(74 70 61 / 0.45)",
-        "purpose": "The right page at the spine; the left page mirrors it (-2.2em)."
-      },
-      {
-        "name": "dungeon-scrim-overlay",
-        "value": "rgb(10 9 8 / 0.62)",
-        "purpose": "Dimmer behind the Dungeon Pause Menu and Exhibit Panel."
-      },
-      {
-        "name": "dungeon-scrim-resume",
-        "value": "rgb(10 9 8 / 0.5)",
-        "purpose": "Dimmer behind the Dungeon resume slip."
-      },
-      {
-        "name": "dungeon-focus-ring",
-        "value": "0 0 0 2px var(--dungeon-page), 0 0 0 4px var(--dungeon-ink)",
-        "purpose": "Focus on inked Pause Menu items and the resume slip."
+        "name": "field-focus",
+        "value": "0 0 0 3px #e2f1e9",
+        "purpose": "A focused form field, with an ink border."
       }
     ],
     "motion": [
       {
-        "name": "overlay-rise",
-        "value": "140ms cubic-bezier(0.23, 1, 0.32, 1)",
-        "purpose": "Exhibit Panel (12px) and Pause Menu (8px) rise on open; they close at once."
+        "name": "ease",
+        "value": "cubic-bezier(0.32, 0.72, 0, 1)",
+        "purpose": "Scroll-linked settle: the Frames move with --d and --ad in 560ms."
       },
       {
-        "name": "dive",
-        "value": "420ms cubic-bezier(0.77, 0, 0.175, 1)",
-        "purpose": "NEW GAME: a Solder Mask clip-path grows from the chip or pad to the window. Skipped with reduced motion."
-      },
-      {
-        "name": "clock-step",
-        "value": "0.5s steps(2) infinite",
-        "purpose": "Paper loading: the CLK wave marches."
-      },
-      {
-        "name": "led-step",
-        "value": "0.84s steps(1) infinite, 120ms stagger",
-        "purpose": "Board loading: LEDs light copper in steps."
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "UI responses: press, disc, switch, FAQ icon, Chapter in, strip lock, odometer, sent state."
       },
       {
         "name": "press",
-        "value": "translate: 0 1px",
-        "purpose": "Every pressed control moves down 1px, with no transition."
+        "value": "150ms ease-out, scale(0.97)",
+        "purpose": "Pill and ghost press; background and border color changes."
       },
       {
-        "name": "dungeon-sheet-rise",
-        "value": "140ms cubic-bezier(0.23, 1, 0.32, 1), translate 0 10px",
-        "purpose": "The Adventure Sheet rises 10px on open; the Exhibit Panel keeps 12px. Both close at once."
+        "name": "frame-settle",
+        "value": "560ms ease",
+        "purpose": "A Frame moves to its new place in the fan."
       },
       {
-        "name": "dungeon-dive",
-        "value": "460ms",
-        "purpose": "NEW GAME in Dungeon: the ink plate grows to the window."
+        "name": "chapter-in",
+        "value": "300ms ease-out, 80ms delay; opacity, translateY(6px), blur(3px)",
+        "purpose": "The active Chapter shows."
       },
       {
-        "name": "die-step",
-        "value": "140ms per face (DIE_STEP_MS)",
-        "purpose": "Dungeon loading: the die shows a new face each step; not under reduced motion."
+        "name": "chapter-out",
+        "value": "160ms ease",
+        "purpose": "The previous Chapter hides."
       },
       {
-        "name": "ink-inversion",
-        "value": "no transition",
-        "purpose": "Select, hover (fine pointer only), and focus invert to an ink block in one step."
+        "name": "disc-and-switch",
+        "value": "250ms ease-out",
+        "purpose": "Arrow disc shift, switch knob slide, FAQ plus rotation."
+      },
+      {
+        "name": "strip-lock",
+        "value": "280ms ease-out, scaleX 0.2 to 1.03 to 1",
+        "purpose": "A new segment locks into the project strip."
+      },
+      {
+        "name": "odometer-roll",
+        "value": "480ms ease-out",
+        "purpose": "Each digit column of the total rolls to the new value."
+      },
+      {
+        "name": "sent",
+        "value": "220ms ease-out, from opacity 0 and translateY(6px)",
+        "purpose": "The success state of the form."
+      },
+      {
+        "name": "virtual-scroll",
+        "value": "current += (target - current) * (1 - exp(-dt * 8)); dt max 64ms; snap under 0.1px",
+        "purpose": "Each animation frame eases the page toward the target. The page loops through the Twin copy."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "prefers-reduced-motion: reduce",
+        "purpose": "All durations go to 0. The Virtual scroll jumps to its target. The Filmstrip uses row mode. Chapters only cross-fade in 200ms."
       }
     ],
     "breakpoints": [
       {
-        "name": "tall",
-        "value": "(max-aspect-ratio: 1 / 1)",
-        "purpose": "Title Screen ornament tier 1: one column, no chip outline, pad traces join a bus."
+        "name": "package-table",
+        "value": "980px",
+        "purpose": "The package table becomes a 2-column card per row; the head row hides."
       },
       {
-        "name": "narrow",
-        "value": "600px",
-        "purpose": "Title Screen ornament tier 2: Paper drops pins 6 to 10."
+        "name": "nav",
+        "value": "900px",
+        "purpose": "Nav links hide; the Project builder stacks; the estimate stops being sticky."
       },
       {
-        "name": "phone",
-        "value": "35rem",
-        "purpose": "Skip View: 64px gutter, 16px gap."
+        "name": "stack",
+        "value": "860px",
+        "purpose": "Process, demos, FAQ, and the contact panel go to one column."
       },
       {
-        "name": "touch-only",
-        "value": "(pointer: coarse) and (not (any-pointer: fine))",
-        "purpose": "Phones: redirected to the Skip View; the back link hides."
+        "name": "row-mode",
+        "value": "767px",
+        "purpose": "The Filmstrip becomes a swipe row (also under reduced motion)."
       },
       {
-        "name": "dungeon-one-page",
-        "value": "(max-aspect-ratio: 1 / 1)",
-        "purpose": "Dungeon Title Screen: one page, right page first; no leaves, gutter, or cover shadow."
+        "name": "compact",
+        "value": "560px",
+        "purpose": "Timeline end labels hide; the form is one column."
       },
       {
-        "name": "fine-hover",
+        "name": "demo-pad",
+        "value": "480px",
+        "purpose": "Demo card padding shrinks; definition lists stack."
+      },
+      {
+        "name": "nav-pill",
+        "value": "420px",
+        "purpose": "The nav pill shows only its arrow disc."
+      },
+      {
+        "name": "hover",
         "value": "(hover: hover) and (pointer: fine)",
-        "purpose": "Dungeon hover inversion applies only here."
+        "purpose": "Hover styles apply only here."
       }
     ],
     "themes": [
       {
-        "id": "paper",
-        "selector": ":root[data-theme=\"paper\"] (saved; no system trigger)",
-        "colorScheme": "light"
-      },
-      {
-        "id": "board",
-        "selector": ":root[data-theme=\"board\"] (saved; no system trigger)",
-        "colorScheme": "dark"
-      },
-      {
-        "id": "dungeon",
-        "selector": ":root[data-theme=\"dungeon\"] (the default Theme in the page HTML; a saved Theme replaces it)",
+        "id": "light",
+        "selector": ":root",
         "colorScheme": "light"
       }
-    ],
-    "artSet": {
-      "name": "machine",
-      "source": "scripts/machine-art.ts and scripts/machine-art/*.ts (fixed seeds, Node built-ins only)",
-      "output": "public/machine/",
-      "provenance": "PNG Software text chunk and WAV ISFT text name the generator",
-      "textures": [
-        "board-a",
-        "board-b",
-        "chip",
-        "rack",
-        "door",
-        "door-track"
-      ],
-      "bugWalkFrames": [
-        "beetle-walk-1",
-        "beetle-walk-2"
-      ],
-      "bugFixFrames": [
-        "beetle-fix-1",
-        "beetle-fix-2",
-        "beetle-fix-3",
-        "beetle-patched",
-        "beetle-patched",
-        "beetle-patched"
-      ],
-      "sounds": [
-        "shot",
-        "door-open"
-      ],
-      "hud": {
-        "value": "copper-hot",
-        "label": "silk-2",
-        "hint": "silk",
-        "hintOutline": "game-mask",
-        "crosshair": "silk",
-        "bar": "game-mask",
-        "outline": "silk-3"
-      },
-      "flats": {
-        "ceiling": "heat-sink",
-        "floor": "solder-mask"
-      }
-    },
-    "dungeonArtSet": {
-      "name": "dungeon",
-      "source": "scripts/dungeon-art.ts and scripts/dungeon-art/*.ts (fixed seeds, Node built-ins only)",
-      "output": "public/dungeon/",
-      "provenance": "PNG Software text chunk and WAV ISFT text name scripts/dungeon-art.ts",
-      "textures": [
-        "stone-a",
-        "stone-b",
-        "torch",
-        "shelf",
-        "door",
-        "door-track"
-      ],
-      "bugWalkFrames": [
-        "slime-walk-1",
-        "slime-walk-2"
-      ],
-      "bugFixFrames": [
-        "slime-fix-1",
-        "slime-fix-2",
-        "slime-fix-3",
-        "slime-cleared",
-        "slime-cleared",
-        "slime-cleared"
-      ],
-      "sounds": [
-        "shot",
-        "door-open"
-      ],
-      "posters": "banners, 36x33 grid at 2x",
-      "tiles": [
-        "tiles/pulp.png",
-        "tiles/weave.png"
-      ],
-      "plate": "title/ink-plate.png",
-      "hud": {
-        "value": "dungeon-ink",
-        "label": "dungeon-ink-2",
-        "hint": "dungeon-page",
-        "hintOutline": "dungeon-ink",
-        "crosshair": "dungeon-page",
-        "crosshairOutline": "dungeon-ink",
-        "bar": "dungeon-page",
-        "outline": "dungeon-ink",
-        "tally": "dungeon-ink"
-      },
-      "flats": {
-        "ceiling": "timber",
-        "floor": "flagstone"
-      }
-    }
+    ]
   },
   "components": [
     {
-      "name": "Part label, Paper",
-      "kind": "chip",
-      "refersTo": "part-label-paper",
-      "description": "The Exhibit's reference designator as an inked block on Paper.",
-      "html": "<span class=\"ds-part-paper\">U1</span>",
-      "css": ".ds-part-paper { display: inline-block; padding: 8px 12px 6px; background: var(--ink, #16181a); color: var(--paper, #f9faf7); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; }"
-    },
-    {
-      "name": "Part label, Board",
-      "kind": "chip",
-      "refersTo": "part-label-board-open",
-      "description": "Board Part labels: silkscreen outline in lists, copper outline for the open Exhibit.",
-      "html": "<div class=\"ds-board\"><span class=\"ds-part-board\">R1</span><span class=\"ds-part-board ds-part-board--open\">U1</span></div>",
-      "css": ".ds-board { display: flex; gap: 16px; padding: 16px; background: var(--board, #0f1214); } .ds-part-board { padding: 8px 12px 6px; border: 2px solid var(--silk-2, #a6acaf); color: var(--silk, #f8f9f7); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; } .ds-part-board--open { border-color: var(--copper, #c06a36); color: var(--copper-hot, #ef9354); }"
-    },
-    {
-      "name": "Pin menu, Paper",
-      "kind": "nav",
-      "refersTo": "menu-pin-paper-selected",
-      "description": "Title Screen menu items as chip pins; the selected one is inked and its pin and trace turn copper.",
-      "html": "<div class=\"ds-pins\"><div class=\"ds-pin-row\"><button class=\"ds-pin-item is-selected\">NEW GAME</button><span class=\"ds-pin-num\">1</span><span class=\"ds-pin\"></span></div><div class=\"ds-pin-row\"><button class=\"ds-pin-item\">SKIP</button><span class=\"ds-pin-num\">2</span><span class=\"ds-pin\"></span></div><span class=\"ds-chip\"></span></div>",
-      "css": ".ds-pins { position: relative; display: grid; gap: 12px; width: max-content; padding: 16px 0 16px 16px; background: var(--paper, #f9faf7); } .ds-pin-row { display: flex; align-items: center; justify-content: flex-end; gap: 10px; } .ds-pin-item { padding: 6px 10px; border: 0; background: none; color: var(--ink, #16181a); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; cursor: pointer; } .ds-pin-item.is-selected { background: var(--ink, #16181a); color: var(--paper, #f9faf7); box-shadow: 12px 0 0 -10px var(--copper-deep, #aa5e30); } .ds-pin-item:hover { background: var(--ink, #16181a); color: var(--paper, #f9faf7); } .ds-pin-item:focus-visible { outline: 2px solid var(--copper-deep, #aa5e30); outline-offset: 4px; } .ds-pin-item:active { translate: 0 1px; } .ds-pin-num { width: 16px; color: var(--ink-2, #4b5155); font: 400 8px / 1 \"Silkscreen\", ui-monospace, monospace; } .ds-pin { width: 20px; height: 12px; border-radius: 1px 0 0 1px; background: var(--pin, #8b8f92); } .ds-pin-row:has(.is-selected) .ds-pin { background: var(--copper-deep, #aa5e30); }"
-    },
-    {
-      "name": "Pad menu, Board",
-      "kind": "nav",
-      "refersTo": "menu-pad-board-selected",
-      "description": "Title Screen menu items as pads joined by traces; only the selected pad, trace, and label are copper.",
-      "html": "<div class=\"ds-pads\"><button class=\"ds-pad-item is-selected\"><span class=\"ds-pad\"></span>NEW GAME</button><button class=\"ds-pad-item\"><span class=\"ds-pad\"></span>SKIP</button></div>",
-      "css": ".ds-pads { display: grid; gap: 16px; padding: 24px 24px 24px 56px; background: var(--board, #0f1214); } .ds-pad-item { display: inline-flex; align-items: center; padding: 0; border: 0; background: none; color: var(--silk, #f8f9f7); font: 400 24px / 1 \"Silkscreen\", ui-monospace, monospace; cursor: pointer; } .ds-pad { position: relative; width: 38px; height: 26px; margin-right: 26px; border-radius: 1px; background: var(--pad, #aeb3b6); } .ds-pad::before { content: \"\"; position: absolute; top: 50%; right: 100%; width: 32px; height: 3px; background: var(--silk-3, #676c70); translate: 0 -50%; } .ds-pad-item.is-selected, .ds-pad-item:hover { color: var(--copper-hot, #ef9354); } .ds-pad-item.is-selected .ds-pad, .ds-pad-item.is-selected .ds-pad::before, .ds-pad-item:hover .ds-pad, .ds-pad-item:hover .ds-pad::before { background: var(--copper, #c06a36); } .ds-pad-item:focus-visible { outline: 2px solid var(--copper-hot, #ef9354); outline-offset: 4px; } .ds-pad-item:active { translate: 0 1px; }"
-    },
-    {
-      "name": "Button, Paper",
+      "name": "Primary Pill",
       "kind": "button",
-      "refersTo": "button-paper",
-      "description": "An inked Silkscreen button, such as the Exhibit Panel close button on Paper.",
-      "html": "<button class=\"ds-btn-paper\">CLOSE (ESC)</button>",
-      "css": ".ds-btn-paper { padding: 0.55em 0.9em; border: 1px solid var(--ink, #16181a); background: var(--ink, #16181a); color: var(--paper, #f9faf7); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; cursor: pointer; } .ds-btn-paper:hover { outline: 2px solid var(--copper-deep, #aa5e30); outline-offset: 2px; } .ds-btn-paper:focus-visible { outline: 2px solid var(--copper-deep, #aa5e30); outline-offset: 2px; } .ds-btn-paper:active { translate: 0 1px; }"
+      "refersTo": "button-primary",
+      "description": "The ink pill with a white arrow disc. Book a call uses it.",
+      "html": "<a class=\"ds-pill\" href=\"#\">Book a call<span class=\"ds-disc\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 256 256\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z\"/></svg></span></a>",
+      "css": ".ds-pill{font-family:var(--sans,'Geist',ui-sans-serif,system-ui,sans-serif);display:inline-flex;align-items:center;gap:10px;height:48px;padding:0 6px 0 22px;border-radius:999px;background:var(--ink,#0f1110);color:var(--surface,#fff);font-weight:560;font-size:1rem;letter-spacing:-0.01em;text-decoration:none;transition:background-color .15s cubic-bezier(.16,1,.3,1),transform .15s cubic-bezier(.16,1,.3,1)}.ds-disc{display:grid;place-items:center;width:36px;height:36px;border-radius:999px;background:var(--surface,#fff);color:var(--ink,#0f1110);transition:transform .25s cubic-bezier(.16,1,.3,1)}.ds-pill:hover{background:#262a28}.ds-pill:hover .ds-disc{transform:translateX(2px)}.ds-pill:active{transform:scale(.97)}.ds-pill:focus-visible{outline:2px solid var(--pass,#08704a);outline-offset:3px}"
     },
     {
-      "name": "Button, Board",
+      "name": "Ghost Pill",
       "kind": "button",
-      "refersTo": "button-board",
-      "description": "A silkscreen outline that turns copper on hover and focus.",
-      "html": "<div class=\"ds-board-wrap\"><button class=\"ds-btn-board\">CLOSE (ESC)</button></div>",
-      "css": ".ds-board-wrap { padding: 16px; background: var(--board, #0f1214); } .ds-btn-board { padding: 0.55em 0.9em; border: 1px solid var(--silk-2, #a6acaf); background: transparent; color: var(--silk, #f8f9f7); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; cursor: pointer; } .ds-btn-board:hover, .ds-btn-board:focus-visible { border-color: var(--copper-hot, #ef9354); color: var(--copper-hot, #ef9354); } .ds-btn-board:focus-visible { outline: 2px solid var(--copper-hot, #ef9354); outline-offset: 2px; } .ds-btn-board:active { translate: 0 1px; }"
+      "refersTo": "button-ghost",
+      "description": "The white ruled pill. Add to project uses it; pressed inverts to ink.",
+      "html": "<button class=\"ds-ghost\" type=\"button\">Add to project</button> <button class=\"ds-ghost\" type=\"button\" aria-pressed=\"true\">In project</button>",
+      "css": ".ds-ghost{font-family:var(--sans,'Geist',ui-sans-serif,system-ui,sans-serif);display:inline-flex;align-items:center;height:40px;padding:0 16px;border-radius:999px;border:1px solid var(--rule-2,#c9cfca);background:var(--surface,#fff);color:var(--ink,#0f1110);font-weight:540;font-size:.9375rem;cursor:pointer;transition:border-color .15s cubic-bezier(.16,1,.3,1),background-color .15s cubic-bezier(.16,1,.3,1),transform .15s cubic-bezier(.16,1,.3,1)}.ds-ghost:hover{border-color:var(--ink,#0f1110)}.ds-ghost:active{transform:scale(.97)}.ds-ghost[aria-pressed=true]{background:var(--ink,#0f1110);border-color:var(--ink,#0f1110);color:var(--surface,#fff)}.ds-ghost:focus-visible{outline:2px solid var(--pass,#08704a);outline-offset:3px}"
     },
     {
-      "name": "Link",
+      "name": "Nav with EN/PT toggle and Page map",
+      "kind": "nav",
+      "refersTo": "lang-toggle",
+      "description": "The 64px nav: name mark, links, the EN/PT toggle, the small pill, and the Page map on the bottom edge.",
+      "html": "<header class=\"ds-nav\"><a class=\"ds-mark\" href=\"#\">Luan Afonso</a><nav class=\"ds-links\"><a href=\"#\">Packages</a><a href=\"#\">How I work</a><a href=\"#\">FAQ</a></nav><div class=\"ds-lang\"><button type=\"button\" aria-pressed=\"true\">EN</button><button type=\"button\" aria-pressed=\"false\">PT</button></div><a class=\"ds-small\" href=\"#\">Book a call<span class=\"ds-sdisc\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 256 256\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z\"/></svg></span></a><div class=\"ds-map\"><span style=\"width:38%\"></span><i style=\"left:20%\"></i><i style=\"left:45%\"></i><i style=\"left:70%\"></i></div></header>",
+      "css": ".ds-nav{font-family:var(--sans,'Geist',ui-sans-serif,system-ui,sans-serif);position:relative;display:flex;align-items:center;gap:28px;height:64px;padding:0 16px;background:var(--ground,#f8f9f8);color:var(--ink,#0f1110)}.ds-mark{font-weight:640;font-size:1.1875rem;letter-spacing:-0.035em;text-decoration:none;color:inherit}.ds-links{display:flex;gap:26px;margin-left:auto}.ds-links a{color:var(--ink-2,#454c48);text-decoration:none;font-size:.9375rem;font-weight:500}.ds-links a:hover{color:var(--ink,#0f1110)}.ds-lang{display:inline-flex;padding:3px;border-radius:999px;background:var(--tile,#eef1ee)}.ds-lang button{border:0;background:none;height:30px;min-width:40px;padding:0 10px;border-radius:999px;font:600 .8125rem var(--sans,'Geist',sans-serif);color:var(--ink-3,#626b66);cursor:pointer;transition:background-color .15s,color .15s}.ds-lang button[aria-pressed=true]{background:var(--surface,#fff);color:var(--ink,#0f1110);box-shadow:0 1px 2px rgb(15 17 16 / .12)}.ds-lang button:focus-visible{outline:2px solid var(--pass,#08704a);outline-offset:3px}.ds-small{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 4px 0 16px;border-radius:999px;background:var(--ink,#0f1110);color:var(--surface,#fff);font-weight:560;font-size:.9375rem;text-decoration:none}.ds-small:hover{background:#262a28}.ds-sdisc{display:grid;place-items:center;width:32px;height:32px;border-radius:999px;background:var(--surface,#fff);color:var(--ink,#0f1110)}.ds-map{position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--rule,#e0e4e0)}.ds-map span{position:absolute;left:0;top:0;bottom:0;background:var(--ink,#0f1110)}.ds-map i{position:absolute;top:-2px;width:1px;height:5px;background:var(--ink-3,#626b66)}"
+    },
+    {
+      "name": "Timeline",
       "kind": "custom",
-      "refersTo": "",
-      "description": "Paper: ink text, copper underline, inverts on hover. Board: copper text, copper underline.",
-      "html": "<p class=\"ds-link-row\"><a class=\"ds-link\" href=\"#\">Source code</a></p><p class=\"ds-link-row ds-link-row--board\"><a class=\"ds-link ds-link--board\" href=\"#\">Source code</a></p>",
-      "css": ".ds-link-row { margin: 0; padding: 12px 16px; background: var(--paper, #f9faf7); font: 400 16px / 1.5 \"Archivo\", system-ui, sans-serif; } .ds-link-row--board { background: var(--board, #0f1214); } .ds-link { color: var(--ink, #16181a); font-weight: 600; text-decoration: underline 2px var(--copper-deep, #aa5e30); text-underline-offset: 0.25em; } .ds-link:hover, .ds-link:focus-visible { background: var(--ink, #16181a); color: var(--paper, #f9faf7); } .ds-link:focus-visible { outline: 2px solid var(--copper-deep, #aa5e30); outline-offset: 2px; } .ds-link--board { color: var(--copper-hot, #ef9354); font-weight: 400; } .ds-link--board:hover, .ds-link--board:focus-visible { background: transparent; color: var(--silk, #f8f9f7); } .ds-link--board:focus-visible { outline-color: var(--copper-hot, #ef9354); }"
+      "refersTo": "timestamp-active",
+      "description": "The hairline axis above the Frames. The active timestamp lights pass green; done ones fill ink.",
+      "html": "<div class=\"ds-tl\"><span>Demo store, phone load</span><div class=\"ds-axis\"><span class=\"ds-tick is-done\" style=\"left:12%\">0.4 s</span><span class=\"ds-tick is-active\" style=\"left:45%\">0.9 s</span><span class=\"ds-tick\" style=\"left:80%\">1.6 s</span></div><span>Demo data</span></div>",
+      "css": ".ds-tl{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:18px;font:500 .8125rem/1 var(--sans,'Geist',sans-serif);color:var(--ink-3,#626b66);background:var(--ground,#f8f9f8);padding:14px 16px}.ds-axis{position:relative;height:34px}.ds-axis::before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:var(--rule-2,#c9cfca)}.ds-tick{position:absolute;top:0;height:100%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;background:var(--ground,#f8f9f8);padding-inline:10px;color:var(--ink-3,#626b66);white-space:nowrap;font:500 .75rem/1 var(--mono,'Geist Mono',monospace);transition:color .2s}.ds-tick::before{content:'';width:7px;height:7px;border-radius:99px;border:1px solid var(--ink-3,#626b66);background:var(--ground,#f8f9f8);transition:background-color .2s,border-color .2s,transform .3s cubic-bezier(.16,1,.3,1)}.ds-tick.is-active{color:var(--pass,#08704a)}.ds-tick.is-active::before{background:var(--pass,#08704a);border-color:var(--pass,#08704a);transform:scale(1.3)}.ds-tick.is-done::before{background:var(--ink,#0f1110);border-color:var(--ink,#0f1110)}"
     },
     {
-      "name": "Pause Menu item and DIP switch",
+      "name": "Frame",
+      "kind": "card",
+      "refersTo": "frame",
+      "description": "One portrait Demo store screen in the Filmstrip. The active Frame carries the pass ring.",
+      "html": "<article class=\"ds-frame is-active\"><div class=\"ds-fbar\"><span class=\"ds-u\">cafeserra.demo</span><span class=\"ds-t\">1.6 s</span></div><div class=\"ds-fbody\"><div class=\"ds-metric\"><span class=\"ds-mk\"><svg width=\"10\" height=\"10\" viewBox=\"0 0 256 256\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z\"/></svg></span><span>Main image shows</span><span class=\"ds-num\">1.6 s</span></div><div class=\"ds-metric\"><span class=\"ds-mk\"><svg width=\"10\" height=\"10\" viewBox=\"0 0 256 256\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z\"/></svg></span><span>Layout shift</span><span class=\"ds-num\">0.02</span></div><div class=\"ds-fbtn\">Book 14:30</div></div></article>",
+      "css": ".ds-frame{font-family:var(--sans,'Geist',ui-sans-serif,system-ui,sans-serif);width:288px;border-radius:20px;background:var(--surface,#fff);box-shadow:var(--shadow-tile,0 0 0 1px rgb(15 17 16 / .06),0 1px 2px rgb(15 17 16 / .05),0 18px 40px -14px rgb(15 17 16 / .18));overflow:hidden;font-size:13px;line-height:1.35;color:var(--ink,#0f1110);transition:box-shadow .3s cubic-bezier(.16,1,.3,1)}.ds-frame.is-active{box-shadow:0 0 0 1.5px var(--pass,#08704a),0 1px 2px rgb(15 17 16 / .05),0 24px 48px -16px rgb(15 17 16 / .24)}.ds-fbar{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--rule,#e0e4e0);color:var(--ink-3,#626b66)}.ds-u,.ds-t{font-family:var(--mono,'Geist Mono',ui-monospace,monospace);font-variant-numeric:tabular-nums;font-size:11px}.ds-t{color:var(--ink,#0f1110);background:var(--tile,#eef1ee);border-radius:99px;padding:4px 8px}.ds-frame.is-active .ds-t{background:var(--pass-soft,#e2f1e9);color:var(--pass,#08704a)}.ds-fbody{padding:14px;display:grid;gap:10px}.ds-metric{display:grid;grid-template-columns:14px minmax(0,1fr) auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--rule,#e0e4e0)}.ds-mk{width:14px;height:14px;display:grid;place-items:center;border-radius:99px;background:var(--pass,#08704a);color:var(--surface,#fff)}.ds-num{font-family:var(--mono,'Geist Mono',ui-monospace,monospace);font-variant-numeric:tabular-nums;font-size:12px}.ds-fbtn{display:flex;align-items:center;justify-content:center;height:38px;border-radius:99px;background:var(--ink,#0f1110);color:var(--surface,#fff);font-weight:560}"
+    },
+    {
+      "name": "Switch row",
       "kind": "input",
-      "refersTo": "pause-item",
-      "description": "Board controls: an outlined item whose pad turns copper, and a DIP switch whose lever is up and copper when on.",
-      "html": "<div class=\"ds-pause\"><button class=\"ds-pause-item\">RESUME</button><label class=\"ds-pause-row\">Sound <span class=\"ds-pause-ctl\"><input class=\"ds-dip\" type=\"checkbox\" checked><span class=\"ds-pause-silk\">ON</span></span></label></div>",
-      "css": ".ds-pause { display: grid; gap: 16px; width: 320px; padding: 28px 30px; border: 2px solid var(--silk-3, #676c70); background: var(--board-2, #1a1f22); color: var(--silk, #f8f9f7); font: 400 16px / 1.4 \"Archivo\", system-ui, sans-serif; } .ds-pause-item { display: flex; justify-content: space-between; align-items: center; padding: 0.7em 0.9em; border: 1px solid var(--silk-3, #676c70); background: none; color: var(--silk, #f8f9f7); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; cursor: pointer; } .ds-pause-item::after { content: \"\"; width: 0.6em; height: 0.6em; background: var(--silk-3, #676c70); } .ds-pause-item:hover, .ds-pause-item:focus-visible { border-color: var(--silk, #f8f9f7); } .ds-pause-item:hover::after, .ds-pause-item:focus-visible::after { background: var(--copper, #c06a36); } .ds-pause-item:active { translate: 0 1px; } .ds-pause-row { display: flex; justify-content: space-between; align-items: center; } .ds-pause-ctl { display: flex; align-items: center; gap: 0.6em; } .ds-pause-silk { color: var(--silk-2, #a6acaf); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; } .ds-dip { appearance: none; position: relative; width: 1.5em; height: 2.4em; margin: 0; border: 1px solid var(--silk-2, #a6acaf); background: var(--board, #0f1214); cursor: pointer; } .ds-dip::before { content: \"\"; position: absolute; left: 2px; right: 2px; bottom: 2px; height: calc(50% - 3px); background: var(--silk-2, #a6acaf); } .ds-dip:checked::before { top: 2px; bottom: auto; background: var(--copper, #c06a36); } .ds-pause-item:focus-visible, .ds-dip:focus-visible { outline: 2px solid var(--copper-hot, #ef9354); outline-offset: 2px; }"
+      "refersTo": "switch",
+      "description": "One service row of the Project builder: name, description, mono price, and the switch.",
+      "html": "<label class=\"ds-pick\"><span><span class=\"ds-pn\">Store launch</span><span class=\"ds-pd\">Full Shopify setup</span></span><span class=\"ds-pp\">+$900</span><input class=\"ds-switch\" type=\"checkbox\" checked></label><label class=\"ds-pick\"><span><span class=\"ds-pn\">Store fix</span><span class=\"ds-pd\">Up to 10 hours of changes</span></span><span class=\"ds-pp\">+$160</span><input class=\"ds-switch\" type=\"checkbox\"></label>",
+      "css": ".ds-pick{font-family:var(--sans,'Geist',ui-sans-serif,system-ui,sans-serif);display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:18px;align-items:center;padding:18px 4px;border-bottom:1px solid var(--rule,#e0e4e0);cursor:pointer;color:var(--ink,#0f1110)}.ds-pn{display:block;font-weight:580;letter-spacing:-0.015em}.ds-pd{display:block;font-size:.875rem;color:var(--ink-3,#626b66)}.ds-pp{font-family:var(--mono,'Geist Mono',ui-monospace,monospace);font-variant-numeric:tabular-nums;font-size:.9375rem;font-weight:500;color:var(--ink-2,#454c48)}.ds-switch{appearance:none;-webkit-appearance:none;margin:0;position:relative;width:44px;height:26px;border-radius:99px;background:var(--rule-2,#c9cfca);cursor:pointer;transition:background-color .2s cubic-bezier(.16,1,.3,1)}.ds-switch::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:99px;background:var(--surface,#fff);box-shadow:0 1px 3px rgb(15 17 16 / .25);transition:transform .25s cubic-bezier(.16,1,.3,1),width .2s cubic-bezier(.16,1,.3,1)}.ds-switch:checked{background:var(--ink,#0f1110)}.ds-switch:checked::after{transform:translateX(18px)}.ds-switch:active::after{width:24px}.ds-switch:checked:active::after{transform:translateX(14px)}.ds-switch:focus-visible{outline:2px solid var(--pass,#08704a);outline-offset:3px}"
     },
     {
-      "name": "Datasheet header",
+      "name": "Project estimate",
       "kind": "card",
-      "refersTo": "part-label-paper",
-      "description": "The Paper header: part number block left, document note right, on a 3px ink rule.",
-      "html": "<header class=\"ds-sheet-head\"><span class=\"ds-sheet-part\">LA-1</span><span class=\"ds-sheet-note\">Portfolio, readable</span></header>",
-      "css": ".ds-sheet-head { display: flex; justify-content: space-between; align-items: stretch; gap: 16px; padding: 16px 16px 0; border-bottom: 3px solid var(--ink, #16181a); background: var(--paper, #f9faf7); } .ds-sheet-part { padding: 8px 12px 6px; background: var(--ink, #16181a); color: var(--paper, #f9faf7); font: 400 16px / 1 \"Silkscreen\", ui-monospace, monospace; } .ds-sheet-note { align-self: end; padding-bottom: 6px; color: var(--ink-2, #4b5155); font: 400 0.875rem / 1.5 \"Archivo\", system-ui, sans-serif; }"
+      "refersTo": "tile-card",
+      "description": "The floating estimate tile: project strip, numbered lines, and the pass-green total.",
+      "html": "<div class=\"ds-est\"><div class=\"ds-eh\"><b>Project estimate</b><small>Oct 20, 2026</small></div><div class=\"ds-strip\"><span class=\"ds-seg\" style=\"flex-grow:9\">1</span><span class=\"ds-seg ds-free\" style=\"flex-grow:1\">2</span></div><div class=\"ds-line\"><i>1</i><span>Store launch</span><span class=\"ds-v\">$900</span></div><div class=\"ds-line\"><i>2</i><span>Speed audit</span><span class=\"ds-v\">free</span></div><div class=\"ds-total\"><span>Total</span><span class=\"ds-odo\">$900</span></div></div>",
+      "css": ".ds-est{font-family:var(--sans,'Geist',ui-sans-serif,system-ui,sans-serif);width:380px;border-radius:20px;background:var(--surface,#fff);box-shadow:var(--shadow-tile,0 0 0 1px rgb(15 17 16 / .06),0 1px 2px rgb(15 17 16 / .05),0 18px 40px -14px rgb(15 17 16 / .18));padding:26px;display:grid;gap:18px;color:var(--ink,#0f1110)}.ds-eh{display:flex;justify-content:space-between;align-items:baseline}.ds-eh b{font-size:1.125rem;font-weight:620;letter-spacing:-0.02em}.ds-eh small{font-family:var(--mono,'Geist Mono',ui-monospace,monospace);font-variant-numeric:tabular-nums;font-size:.75rem;font-weight:500;color:var(--ink-3,#626b66)}.ds-strip{display:flex;gap:3px;height:44px}.ds-seg{flex-shrink:1;flex-basis:0;min-width:44px;border-radius:8px;background:var(--ink,#0f1110);color:var(--surface,#fff);display:grid;place-items:center;font:600 .6875rem/1 var(--mono,'Geist Mono',monospace)}.ds-free{background:var(--surface,#fff);color:var(--ink-2,#454c48);box-shadow:inset 0 0 0 1px var(--rule-2,#c9cfca)}.ds-line{display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:10px;align-items:baseline;font-size:.9375rem}.ds-line i{font:600 .6875rem/1 var(--mono,'Geist Mono',monospace);color:var(--ink-3,#626b66);font-style:normal}.ds-v{font-family:var(--mono,'Geist Mono',ui-monospace,monospace);font-variant-numeric:tabular-nums;}.ds-total{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--rule,#e0e4e0);padding-top:16px;font-weight:560}.ds-odo{font:620 2.25rem/1 var(--sans,'Geist',sans-serif);letter-spacing:-0.035em;font-variant-numeric:tabular-nums;color:var(--pass,#08704a)}"
     },
     {
-      "name": "Choice, Dungeon",
-      "kind": "nav",
-      "refersTo": "dungeon-choice",
-      "description": "A Title Screen choice: Alegreya SC label, dotted leader, italic hint. Selected is inked, with the manicule.",
-      "html": "<div class=\"ds-dg-choices\"><button class=\"ds-dg-choice is-selected\"><span>New Game</span><span class=\"ds-dg-lead\"></span><i>turn to 1</i></button><button class=\"ds-dg-choice\"><span>Skip</span><span class=\"ds-dg-lead\"></span><i>read every page</i></button></div>",
-      "css": ".ds-dg-choices { display: grid; gap: 0.3em; width: 360px; padding: 16px; background: var(--dungeon-page, #e0d9c5); font-variant-numeric: lining-nums; } .ds-dg-choice { display: flex; align-items: baseline; gap: 0.6em; padding: 0.42em 0.7em 0.38em; border: 0; border-radius: 0; background: none; color: var(--dungeon-ink, #171717); font: 700 1.5em / 1 \"Alegreya SC\", \"Alegreya\", Georgia, serif; letter-spacing: 0.02em; text-align: left; cursor: pointer; } .ds-dg-lead { flex: 1; align-self: center; height: 0; border-bottom: 2px dotted var(--dungeon-rule, #b3a98f); } .ds-dg-choice i { color: var(--dungeon-ink-2, #4a463d); font: italic 400 0.72em / 1 \"Alegreya\", Georgia, serif; letter-spacing: 0; } .ds-dg-choice.is-selected, .ds-dg-choice:hover { background: var(--dungeon-ink, #171717); color: var(--dungeon-page, #e0d9c5); } .ds-dg-choice.is-selected i, .ds-dg-choice:hover i { color: var(--dungeon-page, #e0d9c5); } .ds-dg-choice.is-selected .ds-dg-lead, .ds-dg-choice:hover .ds-dg-lead { border-color: rgb(224 217 197 / 0.4); } .ds-dg-choice:focus-visible { outline: 2px solid var(--dungeon-ink, #171717); outline-offset: 3px; }"
+      "name": "Form field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "A contact form field. Focus shows an ink border and a pass wash ring; an error turns warn rust.",
+      "html": "<div class=\"ds-field\"><label for=\"ds-n\">Your name</label><input id=\"ds-n\" placeholder=\"Ana Souza\"></div><div class=\"ds-field\"><label for=\"ds-m\">Store link</label><input id=\"ds-m\" aria-invalid=\"true\" value=\"mystore\"><span class=\"ds-err\">Use a full link, like https://mystore.com</span></div>",
+      "css": ".ds-field{font-family:var(--sans,'Geist',ui-sans-serif,system-ui,sans-serif);display:grid;gap:8px;margin-bottom:18px;color:var(--ink,#0f1110)}.ds-field label{font-weight:560;font-size:.9375rem}.ds-field input{font:inherit;width:100%;box-sizing:border-box;border:1px solid var(--rule-2,#c9cfca);border-radius:12px;background:var(--surface,#fff);padding:12px 14px;font-size:1rem;color:inherit;transition:border-color .15s,box-shadow .15s}.ds-field input::placeholder{color:var(--ink-3,#626b66)}.ds-field input:hover{border-color:var(--ink-3,#626b66)}.ds-field input:focus{outline:none;border-color:var(--ink,#0f1110);box-shadow:0 0 0 3px var(--pass-soft,#e2f1e9)}.ds-field [aria-invalid=true]{border-color:var(--warn,#b5470f)}.ds-err{color:var(--warn,#b5470f);font-size:.875rem}"
     },
     {
-      "name": "Stat box, Dungeon",
-      "kind": "card",
-      "refersTo": "dungeon-stat-box",
-      "description": "An Adventure Sheet stat box on the Title Screen: name in Alegreya SC, count in Alegreya 700.",
-      "html": "<dl class=\"ds-dg-stats\"><div class=\"ds-dg-stat\"><dt>Rooms</dt><dd>3</dd></div><div class=\"ds-dg-stat\"><dt>Exhibits</dt><dd>4</dd></div><div class=\"ds-dg-stat\"><dt>Bugs</dt><dd>7</dd></div></dl>",
-      "css": ".ds-dg-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8em; width: 420px; margin: 0; padding: 16px; background: var(--dungeon-page, #e0d9c5); color: var(--dungeon-ink, #171717); font-variant-numeric: lining-nums; } .ds-dg-stat { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5em; padding: 0.45em 0.6em 0.5em; border: 2px solid var(--dungeon-ink, #171717); } .ds-dg-stat dt { font: 500 1.05em / 1 \"Alegreya SC\", \"Alegreya\", Georgia, serif; letter-spacing: 0.03em; } .ds-dg-stat dd { margin: 0; font: 700 2.2em / 0.9 \"Alegreya\", Georgia, serif; font-variant-numeric: lining-nums; }"
-    },
-    {
-      "name": "Section number, Dungeon",
+      "name": "Package row",
       "kind": "custom",
-      "refersTo": "dungeon-section-number",
-      "description": "The Part label as a gamebook section number between double rules, the kind in italics under it.",
-      "html": "<header class=\"ds-dg-section\"><span class=\"ds-dg-part\">U1</span><span class=\"ds-dg-kind\">Project</span></header>",
-      "css": ".ds-dg-section { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 0 0.8em; width: 420px; padding: 16px; background: var(--dungeon-page, #e0d9c5); color: var(--dungeon-ink, #171717); } .ds-dg-section::before, .ds-dg-section::after { content: \"\"; grid-row: 1; height: 0; padding-top: 2px; border-top: 1px solid var(--dungeon-ink, #171717); border-bottom: 1px solid var(--dungeon-ink, #171717); } .ds-dg-section::before { grid-column: 1; } .ds-dg-section::after { grid-column: 3; } .ds-dg-part { grid-area: 1 / 2; font: 800 2.25rem / 0.9 \"Alegreya\", Georgia, serif; letter-spacing: 0.02em; font-variant-numeric: lining-nums; } .ds-dg-kind { grid-area: 2 / 1 / 3 / 4; margin-top: 0.15em; color: var(--dungeon-ink-2, #4a463d); font: italic 400 1rem / 1 \"Alegreya\", Georgia, serif; text-align: center; }"
+      "refersTo": "tile-card",
+      "description": "One row of the package table in a hairline-ringed tile, with the Recommended mark and a from-price.",
+      "html": "<div class=\"ds-ptable\"><div class=\"ds-prow\"><div><b class=\"ds-pname\">Store launch</b><span class=\"ds-rec\"><svg width=\"10\" height=\"10\" viewBox=\"0 0 256 256\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z\"/></svg> Recommended</span></div><span class=\"ds-ptime\">3 to 4 weeks</span><div class=\"ds-price\"><small>from</small><strong>$900</strong></div></div></div>",
+      "css": ".ds-ptable{font-family:var(--sans,'Geist',ui-sans-serif,system-ui,sans-serif);border-radius:20px;background:var(--surface,#fff);box-shadow:0 0 0 1px var(--rule,#e0e4e0);overflow:hidden;color:var(--ink,#0f1110)}.ds-prow{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) auto;gap:24px;align-items:center;padding:26px 28px}.ds-pname{display:block;font-size:1.375rem;font-weight:620;letter-spacing:-0.03em}.ds-rec{display:inline-flex;align-items:center;gap:6px;margin-top:6px;font:600 .8125rem/1 var(--sans,'Geist',sans-serif);color:var(--pass,#08704a)}.ds-ptime{font:500 .9375rem/1.35 var(--sans,'Geist',sans-serif);color:var(--ink-2,#454c48)}.ds-price small{display:block;font-size:.8125rem;color:var(--ink-3,#626b66)}.ds-price strong{font:600 1.5rem/1.1 var(--sans,'Geist',sans-serif);letter-spacing:-0.03em;font-variant-numeric:tabular-nums}"
     },
     {
-      "name": "Adventure Sheet field and tick boxes, Dungeon",
-      "kind": "input",
-      "refersTo": "dungeon-sheet-item",
-      "description": "Pause Menu in Dungeon: an ink-outlined item that inverts, a field box with its name on the edge, tick boxes, and the Bug tally.",
-      "html": "<div class=\"ds-dg-sheet\"><button class=\"ds-dg-item\">Resume <small>back to the keep</small></button><fieldset class=\"ds-dg-field\"><legend>Sound</legend><label><input class=\"ds-dg-tick\" type=\"checkbox\" checked> On</label></fieldset><fieldset class=\"ds-dg-field\"><legend>Bugs fixed</legend><span class=\"ds-dg-tally\"><span class=\"is-done\"></span><span class=\"is-done\"></span><span></span><span></span><b>2 of 4</b></span></fieldset></div>",
-      "css": ".ds-dg-sheet { display: grid; gap: 0.7em; width: 360px; padding: 1.6em 1.8em 1.4em; border: 2px solid var(--dungeon-ink, #171717); outline: 1px solid var(--dungeon-ink, #171717); outline-offset: -0.45em; background: var(--dungeon-page, #e0d9c5); color: var(--dungeon-ink, #171717); font: 400 14px / 1.5 \"Alegreya\", Georgia, serif; font-variant-numeric: lining-nums; } .ds-dg-item { display: flex; justify-content: space-between; align-items: baseline; padding: 0.5em 0.75em 0.45em; border: 2px solid var(--dungeon-ink, #171717); border-radius: 0; background: none; color: inherit; font: 700 1.25em / 1 \"Alegreya SC\", \"Alegreya\", Georgia, serif; cursor: pointer; } .ds-dg-item small { font: italic 400 0.7em / 1 \"Alegreya\", Georgia, serif; } .ds-dg-item:hover { background: var(--dungeon-ink, #171717); color: var(--dungeon-page, #e0d9c5); } .ds-dg-item:focus-visible { background: var(--dungeon-ink, #171717); color: var(--dungeon-page, #e0d9c5); outline: none; box-shadow: 0 0 0 2px var(--dungeon-page, #e0d9c5), 0 0 0 4px var(--dungeon-ink, #171717); } .ds-dg-field { margin: 0; padding: 0.6em 0.75em; border: 1px solid var(--dungeon-ink, #171717); } .ds-dg-field legend { padding: 0 0.35em; font: 500 1em / 1.2 \"Alegreya SC\", \"Alegreya\", Georgia, serif; letter-spacing: 0.03em; } .ds-dg-field label { display: inline-flex; gap: 0.5em; align-items: center; font-size: 1.12em; } .ds-dg-tick { appearance: none; width: 1.05em; height: 1.05em; margin: 0; border: 2px solid var(--dungeon-ink, #171717); background: var(--dungeon-page, #e0d9c5); } .ds-dg-tick:checked { background: var(--dungeon-ink, #171717); box-shadow: inset 0 0 0 2px var(--dungeon-page, #e0d9c5); } .ds-dg-tick:focus-visible { outline: 2px solid var(--dungeon-ink, #171717); } .ds-dg-tally { display: flex; gap: 0.35em; align-items: center; } .ds-dg-tally span { box-sizing: border-box; width: 1.3em; height: 1.3em; border: 2px solid var(--dungeon-ink, #171717); } .ds-dg-tally span.is-done { background: linear-gradient(45deg, transparent 44%, var(--dungeon-ink, #171717) 44% 56%, transparent 56%), linear-gradient(-45deg, transparent 44%, var(--dungeon-ink, #171717) 44% 56%, transparent 56%); } .ds-dg-tally b { margin-left: auto; font: 700 1.25em / 1 \"Alegreya\", Georgia, serif; font-variant-numeric: lining-nums; }"
-    },
-    {
-      "name": "Close button with key cap, Dungeon",
-      "kind": "button",
-      "refersTo": "dungeon-button",
-      "description": "The Exhibit Panel Close: a 2px ink outline, Alegreya SC 700, an Esc key cap; inked on hover and focus, and the cap inverts too.",
-      "html": "<button class=\"ds-dg-close\">Close <kbd class=\"ds-dg-key\">Esc</kbd></button>",
-      "css": ".ds-dg-close { display: inline-flex; align-items: center; gap: 0.6em; padding: 0.45em 0.8em 0.4em; border: 2px solid var(--dungeon-ink, #171717); border-radius: 0; background: var(--dungeon-page, #e0d9c5); color: var(--dungeon-ink, #171717); font: 700 1.1em / 1 \"Alegreya SC\", \"Alegreya\", Georgia, serif; cursor: pointer; } .ds-dg-key { display: inline-block; min-width: 1.7em; padding: 0.1em 0.35em 0; border: 1px solid var(--dungeon-ink, #171717); border-bottom-width: 2px; border-radius: 2px; background: var(--dungeon-page, #e0d9c5); color: var(--dungeon-ink, #171717); font: 500 0.82em / 1.2 \"Alegreya SC\", \"Alegreya\", Georgia, serif; text-align: center; } .ds-dg-close:hover, .ds-dg-close:focus-visible { background: var(--dungeon-ink, #171717); color: var(--dungeon-page, #e0d9c5); } .ds-dg-close:focus-visible { outline: 2px solid var(--dungeon-ink, #171717); outline-offset: 2px; } .ds-dg-close:hover .ds-dg-key, .ds-dg-close:focus-visible .ds-dg-key { background: var(--dungeon-ink, #171717); border-color: var(--dungeon-page, #e0d9c5); color: var(--dungeon-page, #e0d9c5); }"
-    },
-    {
-      "name": "Ink link, Dungeon",
-      "kind": "nav",
-      "refersTo": "dungeon-choice-selected",
-      "description": "Links in the Exhibit Panel and the Skip View: ink text with a 2px ink underline; inked on focus and on fine-pointer hover.",
-      "html": "<p class=\"ds-dg-links\"><a href=\"#\">Source code</a></p>",
-      "css": ".ds-dg-links { margin: 0; padding: 16px; background: var(--dungeon-page, #e0d9c5); font: 400 1.12em / 1.55 \"Alegreya\", Georgia, serif; } .ds-dg-links a { color: var(--dungeon-ink, #171717); font-weight: 600; text-decoration: underline 2px var(--dungeon-ink, #171717); text-underline-offset: 0.22em; } .ds-dg-links a:hover, .ds-dg-links a:focus-visible { background: var(--dungeon-ink, #171717); color: var(--dungeon-page, #e0d9c5); } .ds-dg-links a:focus-visible { outline: 2px solid var(--dungeon-ink, #171717); outline-offset: 2px; }"
+      "name": "Demo tag and Mock value note",
+      "kind": "chip",
+      "refersTo": "tag",
+      "description": "The uppercase Demo tag on a demo card, and the dashed note that marks Mock values.",
+      "html": "<span class=\"ds-tag\">Demo</span> <span class=\"ds-mock\">Mock prices. Luan sets the real ones.</span>",
+      "css": ".ds-tag{display:inline-block;font:600 .75rem/1 var(--sans,'Geist',sans-serif);letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2,#454c48);border:1px solid var(--rule-2,#c9cfca);border-radius:99px;padding:6px 10px}.ds-mock{display:inline-block;font:500 .8125rem/1.4 var(--sans,'Geist',sans-serif);color:var(--ink-3,#626b66);border:1px dashed var(--rule-2,#c9cfca);border-radius:8px;padding:4px 10px}"
     }
   ],
   "narrative": {
-    "northStar": "The Datasheet and the Board",
-    "overview": "The portfolio is one electronic part seen two ways. Outside, it is the part's datasheet: cool paper, black ink, a part number (LA-1) in an inked block, rules under headers, a pin configuration figure, a table of contents with dotted leaders. Inside, it is the board the part sits on: matte-black solder mask, copper traces, white silkscreen print, tinned pads. The Title Screen, Exhibit Panel, and Skip View are reading surfaces and carry both looks through one markup; the game, the Pause Menu, and the resume prompt are always the board.\n\nThere are three Themes. Two of them are the machine world: **Paper** is the datasheet; **Board** is the circuit board. The third, **Dungeon**, is its own world (see \"Second world\" below). Dungeon is the default Theme: the page HTML sets it as `data-theme` on the root, and a saved Theme replaces it. No Theme follows the system light or dark setting (ADR 0004). Every color on a Paper or Board surface comes from a look token that resolves with `light-dark()` (Paper sets `color-scheme: light`, Board `dark`), so one stylesheet serves both. The machine art set (wall textures, Bug frames, posters, sounds, HUD colors) is shared by both Themes and is drawn by a seeded generator, `scripts/machine-art.ts`, not by hand.\n\nThe system is dense, flat, and literal. Ornament is taken from real parts and boards, never invented: pin-1 notches, square pads, reference designators, keep-out areas, LED rows, timing diagrams. Copper is scarce and means one thing. Pixel type and pixel art appear only at whole-pixel sizes. State changes are steps, not glows.\n\n**Second world: \"The Gamebook and the Keep\"**\n\nThe Dungeon Theme is a solo adventure gamebook. Outside, the visitor reads an open paperback on its deep green cloth cover: pulp pages, one black ink, running heads, a pen-and-ink plate, stat boxes, and choices set as \"New Game ... turn to 1\". Each Exhibit is a numbered section, and its Part label is the section number. Inside, the visitor walks a torch-lit keep of blue-grey cut stone, with banners for posters and green Slimes for Bugs (a Slime is still a Bug). The dungeon art set (`scripts/dungeon-art.ts`) draws every texture, Bug frame, banner, page tile, the ink plate, and the sounds, with fixed seeds.\n\nThe Dungeon look is printed honestly: one ink, impression, hatch, rules, and boxes. There is no copper and no glow. A live or selected thing is inked: a step inversion to an ink block with page text. Torch orange is only in the game. The direction refuses the gold-serif fantasy skin and the cream parchment with a red seal.",
+    "northStar": "The Store Audit",
+    "overview": "The Home page reads as the audit report that Luan sends to a store owner. A Demo store loads Frame by Frame, then the page prices the work and books the call. The ground is near-white. The text is near-black ink. Hairline report rules divide the content. One pass-green accent marks only the live element: the active Frame, the key line of a section, the total, and the focus.\n\nOne tight grotesk (Geist) carries the display sizes and the body. A mono (Geist Mono) carries only measured data: timestamps, metrics, prices in the Project builder, dates. Content sits in rounded 20px tiles. Actions are pills. State shows as a mark (a check, a tick, a flag, a filled dot), never as a new hue. The page is light only.\n\nThe page has one center axis for the hero, the Timeline, and the fan of Frames. The sections below it are left-aligned report blocks. The Virtual scroll moves the page and loops from the footer back to the top. The page refuses the dark freelancer template and the cream editorial portfolio.",
     "keyCharacteristics": [
-      "Three Themes, one markup, chosen by `data-theme`: Dungeon (gamebook) is the default; Paper (datasheet) and Board (circuit board) are the machine world, shown when saved.",
-      "Archivo (variable width) for reading; Silkscreen for labels, pins, Part labels, and pixel UI.",
-      "Copper marks only the live or selected thing.",
-      "Every Exhibit carries one Part label (U1, J1, R1, Q1) that is the same on the wall poster, in the Exhibit Panel, and in the Skip View.",
-      "Square corners (0 to 2px), hairline and 2 to 3px rules, no gradients (machine world).",
-      "Dungeon: one black ink on pulp, on a green cloth cover; selected means inked; IM Fell English for titles, Alegreya for reading and numerals, Alegreya SC for labels.",
-      "All game art is procedural, seeded, and names its generator as provenance."
+      "Near-white ground, ink text, one pass-green accent on the live element only.",
+      "Geist for all words; Geist Mono for measured data only.",
+      "20px tiles with a hairline ring; pill actions with an arrow disc.",
+      "Hairline rules as structure: table rows, switch rows, FAQ rows, the Timeline, the Page map.",
+      "State as a mark, not as a color.",
+      "One center axis on the first screen; report blocks below.",
+      "Light color scheme only."
     ],
     "rules": [
       {
-        "name": "The Copper Means Live Rule",
-        "body": "Copper marks only what is live or selected: the selected menu item and its pin or pad, active links, \"on\" switches, the slider thumb, lit LEDs, focus rings, signal traces, the open Exhibit's Part label, and the HUD readouts. Everything else is ink, paper, board, or silkscreen.",
+        "name": "The Live Element Rule",
+        "body": "Pass green marks only the thing that is live now: the active Frame, the active timestamp, the total, the key phrase, the focus. Never use it as a fill for a section or a button.",
         "section": "colors"
       },
       {
-        "name": "The No Copper Ink Rule",
-        "body": "Copper text fails contrast on Paper. On Paper, copper is a trace, pin, underline, or focus ring; the text it marks stays ink. Use the look tokens `--live-text` (text) and `--live-trace` (lines), never raw copper for text. Paper copper lines and focus rings are Deep Copper (`copper-deep`, 4.6:1 on the sheet), through `--live-trace` and `--focus`.",
+        "name": "The Mark Not Hue Rule",
+        "body": "Show state with a mark: a check disc, a flag disc, a filled dot, an inverted pill. Do not add a new color for a state. Warn rust is the only exception, and only for form errors.",
         "section": "colors"
       },
       {
-        "name": "The Look Token Rule",
-        "body": "HTML surfaces use the look tokens (`--ground`, `--surface`, `--surface-2`, `--text`, `--text-2`, `--line`, `--line-2`, `--live-text`, `--live-trace`, `--idle-pad`, `--focus`), which resolve per Theme with `light-dark()`. A surface that is Board in both machine Themes sets `color-scheme: dark` on itself or uses the palette tokens directly. A sheet, panel, or keep-out is `--surface` on `--ground`: in Paper a light sheet on the Paper Shade, in Board the Lifted Mask on the bare board, with a silkscreen edge of 3:1 or more.",
-        "section": "colors"
-      },
-      {
-        "name": "The Selected Means Inked Rule",
-        "body": "In Dungeon, a live, selected, hovered, or focused thing is inked: an ink block with Pulp Page text, as one step. There is no copper, no second ink, and no glow. Hover inverts only on a fine pointer (`(hover: hover) and (pointer: fine)`), so a tap never leaves a block inked; focus inverts and adds an ink ring.",
-        "section": "colors"
-      },
-      {
-        "name": "The Dungeon Scope Rule",
-        "body": "Every Dungeon rule is under `:root[data-theme=\"dungeon\"]` or on an `.only-dungeon` element. The page grounds come only through `.dungeon-pulp` and `.dungeon-cover`, whose rules name the Dungeon look. So Paper and Board never fetch a Dungeon face, tile, or plate.",
-        "section": "colors"
-      },
-      {
-        "name": "The Whole Pixel Rule",
-        "body": "Silkscreen is drawn on an 8px grid. Every Silkscreen size is a whole multiple of 8px, never below 8px. A size that scales is snapped with `max(8px, round(nearest, <size>, 8px))`, or `round(down, ...)` when it must not overflow. A fixed size is written as a multiple of 8px (16px, 24px, 32px).",
+        "name": "The Measured Mono Rule",
+        "body": "Use Geist Mono only for a value that is measured or counted: a time, a metric, a price line, a date. Words stay in Geist.",
         "section": "typography"
       },
       {
-        "name": "The Two Faces Rule",
-        "body": "Archivo reads; Silkscreen labels. Body text, ledes, and long sentences are never Silkscreen. Silkscreen carries names and titles only on Board, where they are print on the board.",
+        "name": "The Tight Display Rule",
+        "body": "Text at 1.375rem or larger uses weight 620 or more and negative tracking (-0.025em to -0.055em). Body text keeps normal tracking.",
         "section": "typography"
       },
       {
-        "name": "The Lining Figures Rule",
-        "body": "In Dungeon every element sets `font-variant-numeric: lining-nums`, because Alegreya's old-style \"1\" reads as \"I\" in \"U1\". The shared rule in `src/theme.css` is `!important`, so a `font` shorthand cannot reset it. Numerals are Alegreya, never IM Fell English.",
-        "section": "typography"
-      },
-      {
-        "name": "The Book Faces Rule",
-        "body": "IM Fell English sets titles, names, and running heads; Alegreya sets reading text and every number; Alegreya SC sets labels, choices, and key caps. IM Fell English has no bold: never set it above 400.",
-        "section": "typography"
-      },
-      {
-        "name": "The Declared Tier Rule",
-        "body": "At narrow sizes, ornament drops in declared steps and content keeps its size. The Title Screen has two tiers: at an aspect ratio of 1:1 or taller it goes to one column, drops the chip outline, and joins the pad traces to a vertical bus; below 600px wide, Paper drops pins 6 to 10 and lists their controls in text instead.",
-        "section": "layout"
-      },
-      {
-        "name": "The Keep-Out Rule",
-        "body": "Board traces never run under text. Text sits on a keep-out (a solid `--surface` area, the Lifted Mask in Board, with a silkscreen edge) or on the quiet board tile, whose traces are close to the mask color. The busy tile is for open background only.",
-        "section": "layout"
-      },
-      {
-        "name": "The Flat Page Rule",
-        "body": "In the machine world, pages are flat. A shadow belongs only to an overlay that pauses the game.",
-        "section": "elevation"
-      },
-      {
-        "name": "The Book on Cloth Rule",
-        "body": "In Dungeon, a page lies on the cover, so it may cast a shadow in the cover's dark (`rgb(6 18 11)`). Nothing on a page casts a shadow; boxes, stat boxes, and choices are flat ink.",
+        "name": "The Ring Before Shadow Rule",
+        "body": "A tile that holds a report (table, panel, demo) gets the hairline ring. Only a tile that is a live object (a Frame, the estimate) gets a drop shadow.",
         "section": "elevation"
       }
     ],
     "dos": [
-      "**Do** use the look tokens on HTML surfaces and let `light-dark()` pick between Paper and Board. Write each look under its `data-theme`; never pick a Theme with `prefers-color-scheme`.",
-      "**Do** give every Exhibit one Part label and show the same label on the poster, the Exhibit Panel, and the Skip View.",
-      "**Do** snap every Silkscreen size to a multiple of 8px, with `round()` when the size scales.",
-      "**Do** make select, press, and fix step changes: a color swap, a 1px press, frame steps (`steps()`), a \"patched\" mark.",
-      "**Do** put text on a keep-out or on the quiet board tile, never on the busy trace tile.",
-      "**Do** draw new game art in `scripts/machine-art/` with a fixed seed, and let the file name the generator.",
-      "**Do** take ornament from real datasheets and boards: pin numbers, notches, pads, designators, dotted leaders, LEDs, timing diagrams.",
-      "**Do** write every Dungeon rule under `:root[data-theme=\"dungeon\"]` or on an `.only-dungeon` element, and put the page grounds on with `.dungeon-pulp` and `.dungeon-cover`.",
-      "**Do** ink the selected thing in Dungeon: an ink block with Pulp Page text, as one step; invert on hover only on a fine pointer.",
-      "**Do** set every numeral in Alegreya in Dungeon; the shared lining figures rule covers every `font` shorthand.",
-      "**Do** take Dungeon ornament from real gamebooks and printed books: running heads, folios, section numbers between double rules, stat boxes, tick boxes, dotted leaders, the manicule, the pen-and-ink plate.",
-      "**Do** draw new Dungeon art in `scripts/dungeon-art/` with a fixed seed, and let the file name `scripts/dungeon-art.ts`.",
-      "**Do** call a Slime a Bug in every label and text."
+      "Do keep pass green on the live element only: the active Frame, the active timestamp, the key phrase, the total, the focus.",
+      "Do show state with a mark (check disc, flag disc, filled dot, inverted pill) on ink and white.",
+      "Do put measured numbers in Geist Mono with tabular figures, and all words in Geist.",
+      "Do use 20px tiles; give report tiles the hairline ring and live tiles the tile shadow.",
+      "Do make every action a pill; the primary action is ink with the white arrow disc.",
+      "Do ease scroll-linked motion with `cubic-bezier(0.32, 0.72, 0, 1)` and UI responses with `cubic-bezier(0.16, 1, 0.3, 1)`.",
+      "Do honor reduced motion: the Virtual scroll jumps to its target, the Filmstrip shows the swipe row, and Chapters only cross-fade in 200ms.",
+      "Do apply hover styles only for a fine pointer that can hover.",
+      "Do label every Demo store \"Demo\" and mark every Mock value with the dashed note."
     ],
     "donts": [
-      "**Don't** set copper text on Paper; use an ink label with a copper underline or trace.",
-      "**Don't** use copper for anything that is not live or selected.",
-      "**Don't** use soft glows, blurs, or gradients for state. (The Dungeon tick-box X is drawn with hard-stop gradients; it is a mark, not a blend.)",
-      "**Don't** set body text or long sentences in Silkscreen.",
-      "**Don't** round corners past 2px. (In Dungeon, only the die pips and the Theme radio boxes are round.)",
-      "**Don't** shrink content at narrow sizes; drop ornament in declared steps instead.",
-      "**Don't** add shadows to anything on a page; only overlays over the paused game cast one. (In Dungeon, a page on the cloth casts one too.)",
-      "**Don't** use copper, a second ink color, or a glow in Dungeon. Torch orange is only in the game.",
-      "**Don't** set a numeral or a bold in IM Fell English.",
-      "**Don't** make Dungeon a gold-serif fantasy skin or cream parchment with a red seal.",
-      "**Don't** let Paper or Board fetch a Dungeon face, tile, or plate."
-    ],
-    "secondNorthStar": "The Gamebook and the Keep"
+      "Don't add a dark theme or a dark section. The color scheme is light only.",
+      "Don't add a second accent hue, or use green as a large fill.",
+      "Don't use the mono for headings, labels, or running text.",
+      "Don't use square buttons or square tiles.",
+      "Don't add drop shadows to flat report tiles; use the hairline ring.",
+      "Don't add a small uppercase label above a section heading. A section opens with its heading.",
+      "Don't show a native scrollbar under the Virtual scroll; the Page map takes its place."
+    ]
   }
 }
