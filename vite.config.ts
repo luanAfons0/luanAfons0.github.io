@@ -1,6 +1,5 @@
-import type { Plugin } from "vite";
 import { defineConfig } from "vitest/config";
-import { goatCounterScriptTag } from "./src/analytics/analytics";
+import { goatCounter } from "./src/analytics/goatcounter-plugin";
 
 export default defineConfig({
 	base: "/portfolio/",
@@ -12,18 +11,3 @@ export default defineConfig({
 		include: ["src/**/*.test.ts", "scripts/**/*.test.mjs"],
 	},
 });
-
-/**
- * Puts the GoatCounter script tag in the head of the page. Build only: the dev server and the
- * tests never load it, so local work is not counted.
- */
-function goatCounter(): Plugin {
-	return {
-		name: "goatcounter",
-		apply: "build",
-		transformIndexHtml: {
-			order: "post",
-			handler: (html) => html.replace("</head>", `${goatCounterScriptTag()}</head>`),
-		},
-	};
-}
