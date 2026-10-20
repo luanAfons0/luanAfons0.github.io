@@ -11,15 +11,15 @@ describe("analytics track", () => {
 		const count = vi.fn();
 		window.goatcounter = { count };
 
-		track("exhibit/orca");
+		track("add/launch");
 
-		expect(count).toHaveBeenCalledWith({ path: "exhibit/orca", title: "exhibit/orca", event: true });
+		expect(count).toHaveBeenCalledWith({ path: "add/launch", title: "add/launch", event: true });
 	});
 
 	it("does not throw when the script is blocked or not loaded yet", () => {
-		expect(() => track("skip")).not.toThrow();
+		expect(() => track("form-ready")).not.toThrow();
 		window.goatcounter = {};
-		expect(() => track("skip")).not.toThrow();
+		expect(() => track("form-ready")).not.toThrow();
 	});
 
 	it("does not throw when the script throws", () => {
@@ -28,7 +28,7 @@ describe("analytics track", () => {
 				throw new Error("boom");
 			},
 		};
-		expect(() => track("new-game")).not.toThrow();
+		expect(() => track("form-ready")).not.toThrow();
 	});
 });
 

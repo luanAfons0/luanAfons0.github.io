@@ -2,6 +2,25 @@
   "detector": {
     "ignoreRules": [],
     "ignoreFiles": [],
-    "ignoreValues": []
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/ui-studio/freelance-home.html"
+        ],
+        "createdAt": "2026-10-20T12:34:30.000Z",
+        "reason": "Claude: .shot lets the demo browser frame bleed off the tile's bottom edge on purpose; .faq border-top sits above summaries with 22px vertical padding; captures show both"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/ui-studio/freelance-home.html"
+        ],
+        "createdAt": "2026-10-20T13:21:43.378Z",
+        "reason": "Claude: user approved the Store Audit mock (v8) with Geist and Geist Mono; the mock is the approved rule and stays as it is, and DESIGN.md records the same Geist world of the built page"
+      }
+    ]
   }
 }

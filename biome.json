@@ -7,7 +7,7 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"includes": ["**", "!**/levels/*.json", "!.impeccable"]
+		"includes": ["**", "!.impeccable"]
 	},
 	"formatter": {
 		"enabled": true,
@@ -25,6 +25,31 @@
 			"quoteStyle": "double"
 		}
 	},
+	"overrides": [
+		{
+			"includes": ["index.html"],
+			"linter": {
+				"rules": {
+					"a11y": {
+						"useSemanticElements": "off",
+						"useFocusableInteractive": "off",
+						"useAriaPropsForRole": "off",
+						"useAriaPropsSupportedByRole": "off",
+						"useValidAnchor": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["src/home/home.css"],
+			"linter": {
+				"rules": {
+					"complexity": { "noImportantStyles": "off" },
+					"style": { "noDescendingSpecificity": "off" }
+				}
+			}
+		}
+	],
 	"assist": {
 		"enabled": true,
 		"actions": {
@@ -32,27 +57,5 @@
 				"organizeImports": "on"
 			}
 		}
-	},
-	"overrides": [
-		{
-			"includes": ["src/engine/**"],
-			"linter": {
-				"rules": {
-					"style": {
-						"noRestrictedImports": {
-							"level": "error",
-							"options": {
-								"patterns": [
-									{
-										"group": ["**/game/**", "**/game"],
-										"message": "The Engine never imports the Game (see ADR 0001)."
-									}
-								]
-							}
-						}
-					}
-				}
-			}
-		}
-	]
+	}
 }

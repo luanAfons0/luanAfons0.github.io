@@ -1,5 +1,7 @@
 # Dungeon is the default Theme
 
+Status: superseded by [ADR 0005](0005-freelance-home-replaces-the-game.md). The freelance home page replaced the game. The game stays in git history under the tag `game-final`.
+
 A visitor with no saved Theme now sees Dungeon on every surface: the Title Screen, the game (the dungeon art set), the Pause Menu, and the Skip View, also with JavaScript off. A saved Theme still wins. Paper and Board stay as choices in the Theme select and the Theme switch.
 
 This replaces the system look of ADR 0003 and of its amendment on the Skip View: with no saved Theme, the system light or dark setting (`prefers-color-scheme`) no longer chooses Paper or Board, and Dungeon is no longer "saved only". No Theme follows the system setting.
