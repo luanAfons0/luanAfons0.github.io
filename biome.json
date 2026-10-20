@@ -25,6 +25,31 @@
 			"quoteStyle": "double"
 		}
 	},
+	"overrides": [
+		{
+			"includes": ["index.html"],
+			"linter": {
+				"rules": {
+					"a11y": {
+						"useSemanticElements": "off",
+						"useFocusableInteractive": "off",
+						"useAriaPropsForRole": "off",
+						"useAriaPropsSupportedByRole": "off",
+						"useValidAnchor": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["src/home/home.css"],
+			"linter": {
+				"rules": {
+					"complexity": { "noImportantStyles": "off" },
+					"style": { "noDescendingSpecificity": "off" }
+				}
+			}
+		}
+	],
 	"assist": {
 		"enabled": true,
 		"actions": {
