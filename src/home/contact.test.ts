@@ -225,6 +225,16 @@ describe("a valid submit", () => {
 		expect(fetchSpy).not.toHaveBeenCalled();
 	});
 
+	it.each(["$&", "$`", "$'", "$$"])("writes a first name with %s as it was typed", (name) => {
+		mount();
+		type("f-name", `${name} Silva`);
+		type("f-msg", "Hi");
+
+		submit();
+
+		expect(el("#sent-msg").textContent).toBe(`Thanks, ${name}. I reply within one business day.`);
+	});
+
 	it("writes the success message in Portuguese", () => {
 		localStorage.setItem("la.lang", "pt");
 		mount();

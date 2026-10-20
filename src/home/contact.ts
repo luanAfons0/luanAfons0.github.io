@@ -88,7 +88,9 @@ export function mountContact({ doc, win, signal, language }: HomeContext): void 
 				byId(`f-${first}`)?.focus();
 				return;
 			}
-			sentMsg.textContent = language.t("c.sent").replace("{name}", name.split(" ")[0] ?? "");
+			// A function replacer, so that a "$" in the name is not read as a replace pattern.
+			const firstName = name.split(" ")[0] ?? "";
+			sentMsg.textContent = language.t("c.sent").replace("{name}", () => firstName);
 			form.hidden = true;
 			sent.hidden = false;
 			track("form-ready");
