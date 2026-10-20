@@ -1,6 +1,6 @@
 // Type imports only: analytics must not load the Home page code at run time.
-import type { Lang } from "../home/copy";
-import type { PackageKey } from "../home/offer";
+import type { Lang } from "../home/copy.ts";
+import type { PackageKey } from "../home/offer.ts";
 
 /** The GoatCounter site code. Change it here only. */
 export const GOATCOUNTER_SITE = "luanafons0";

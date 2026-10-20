@@ -236,6 +236,33 @@ describe("the odometer", () => {
 		expect(columns()).toEqual(["1", "1", "8", "0"]);
 		expect(one("#r-total").getAttribute("aria-label")).toBe("$1,180");
 	});
+
+	it("ends on the last total when two changes come before the roll starts", () => {
+		mount();
+
+		// A new shape waits two frames to roll; the second change has the same shape and fills at once.
+		addButton("fix").click();
+		addButton("care").click();
+		// The roll still starts from the old digits.
+		expect(columns()).toEqual(["0", "9", "0", "0"]);
+		nextFrame();
+		nextFrame();
+
+		expect(columns()).toEqual(["1", "1", "8", "0"]);
+		expect(one("#r-total").getAttribute("aria-label")).toBe("$1,180");
+	});
+
+	it("ends on the last total when two new shapes come before the roll starts", () => {
+		mount();
+
+		addButton("fix").click();
+		addButton("fix").click();
+		nextFrame();
+		nextFrame();
+
+		expect(columns()).toEqual(["9", "0", "0"]);
+		expect(one("#r-total").getAttribute("aria-label")).toBe("$900");
+	});
 });
 
 describe("the add event", () => {

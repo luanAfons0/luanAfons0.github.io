@@ -134,6 +134,32 @@ describe("the Home page markup", () => {
 		expect(all("[data-add][aria-pressed=true]").map((b) => b.getAttribute("data-add"))).toEqual(["launch"]);
 	});
 
+	it("shows all 4 Chapters, stacked, with JavaScript off", () => {
+		// The page with its styles, as a browser with JavaScript off applies them: the `<noscript>` style counts.
+		// The build moves the style sheet to the end of the head, after the `<noscript>`, so the test does too.
+		const css = readFileSync(resolve(import.meta.dirname, "home.css"), "utf8");
+		const styled = new DOMParser().parseFromString(
+			HTML.replace(/<link rel="stylesheet"[^>]*>/, "").replace("</head>", `<style>${css}</style></head>`),
+			"text/html",
+		);
+		document.documentElement.innerHTML = styled.documentElement.innerHTML;
+
+		const chapters = [...document.querySelectorAll(".chapters > .chapter")].map((c) => getComputedStyle(c));
+		expect(chapters).toHaveLength(4);
+		for (const chapter of chapters) {
+			expect([chapter.visibility, chapter.opacity, chapter.gridArea]).toEqual(["visible", "1", "auto"]);
+		}
+		// With JavaScript on, the browser ignores the `<noscript>` style, so the mock's look stays.
+		expect(document.querySelector("head > noscript > style")).not.toBeNull();
+	});
+
+	it("keeps a form submit on the page with JavaScript off, so the fields never go into a URL", () => {
+		const form = page.querySelector<HTMLFormElement>("#form");
+		// Outside a <dialog>, a dialog-method submit does nothing: no request, no new URL.
+		expect(form?.method).toBe("dialog");
+		expect(form?.hasAttribute("action")).toBe(false);
+	});
+
 	it("has no link to a missing id", () => {
 		for (const a of all("a[href^='#']")) {
 			const id = a.getAttribute("href")?.slice(1);

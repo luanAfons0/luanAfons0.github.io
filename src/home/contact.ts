@@ -21,13 +21,19 @@ export function mountContact({ doc, win, signal, language }: HomeContext): void 
 			() => {
 				const src = byId(button.dataset.copy ?? "");
 				if (!src) return;
+				// The clipboard can answer after dispose(): then nothing changes.
 				const done = () => {
+					if (signal.aborted) return;
 					button.textContent = language.t("c.copied");
-					win.setTimeout(() => {
+					const stop = () => win.clearTimeout(timer);
+					const timer = win.setTimeout(() => {
+						signal.removeEventListener("abort", stop);
 						button.textContent = language.t("c.copy");
 					}, COPIED_MS);
+					signal.addEventListener("abort", stop, { once: true });
 				};
 				const select = () => {
+					if (signal.aborted) return;
 					const range = doc.createRange();
 					range.selectNodeContents(src);
 					const selection = win.getSelection();
@@ -82,7 +88,9 @@ export function mountContact({ doc, win, signal, language }: HomeContext): void 
 				byId(`f-${first}`)?.focus();
 				return;
 			}
-			sentMsg.textContent = language.t("c.sent").replace("{name}", name.split(" ")[0] ?? "");
+			// A function replacer, so that a "$" in the name is not read as a replace pattern.
+			const firstName = name.split(" ")[0] ?? "";
+			sentMsg.textContent = language.t("c.sent").replace("{name}", () => firstName);
 			form.hidden = true;
 			sent.hidden = false;
 			track("form-ready");

@@ -10,6 +10,19 @@
     <link rel="preload" href="/fonts/geist/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="/fonts/geist-mono/geist-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="/src/home/home.css">
+    <!-- JavaScript off: no script steps the Chapters, so the stage stops holding and all 4 Chapters stack under it.
+         The build puts home.css after this block, so each rule starts with :root to win. -->
+    <noscript>
+      <style>
+        :root .chapters { gap: 28px; }
+        :root .chapter { grid-area: auto; opacity: 1; transform: none; filter: none; visibility: visible; }
+        @media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+          :root .fs { height: auto; }
+          :root .fs-stop { display: none; }
+          :root .fs-stage { position: static; height: auto; grid-template-rows: auto calc(max(var(--stage-h), 600px) - 15rem) auto; }
+        }
+      </style>
+    </noscript>
   </head>
   <body>
     <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -145,7 +158,7 @@
             <h2 id="pk-title" data-t="pk.title">Pick a package</h2>
             <p data-t="pk.sub">Each one has a starting price. After a 15-minute call you get a fixed price on one page.</p>
           </div>
-          <!-- MOCK PRICES: Luan sets the real values in PRICES (script below). -->
+          <!-- MOCK PRICES: Luan sets the real values in PRICES (src/home/offer.ts). -->
           <div class="ptable" role="table" aria-labelledby="pk-title">
             <div class="prow prow--head" role="row">
               <span role="columnheader" data-t="pk.h1">Package</span>
@@ -344,7 +357,7 @@
               <p><span class="mock-note" data-t="mock.contact">Mock contact details and booking link. The form sends nothing.</span></p>
             </div>
             <div>
-              <form class="form" id="form" novalidate>
+              <form class="form" id="form" method="dialog" novalidate>
                 <div class="field">
                   <label for="f-name" data-t="c.name">Your name</label>
                   <input id="f-name" name="name" autocomplete="name" aria-describedby="e-name">
