@@ -16,6 +16,11 @@ function all<E extends Element = HTMLElement>(selector: string): E[] {
 	return [...document.querySelectorAll<E>(selector)];
 }
 
+/** The elements outside the Twin copy: the page as assistive technology reads it. */
+function outsideTwin<E extends Element = HTMLElement>(selector: string): E[] {
+	return all<E>(selector).filter((el) => !el.closest('.vs-copy[aria-hidden="true"]'));
+}
+
 function langButton(id: "en" | "pt"): HTMLButtonElement {
 	const button = document.querySelector<HTMLButtonElement>(`.lang button[data-lang="${id}"]`);
 	if (!button) throw new Error(`no ${id} button`);
@@ -145,7 +150,7 @@ describe("the translated page", () => {
 	it("keeps the English text of the markup word for word", () => {
 		const before = all("[data-t]").map((el) => el.textContent);
 		mount();
-		expect(all("[data-t]").map((el) => el.textContent)).toEqual(before);
+		expect(outsideTwin("[data-t]").map((el) => el.textContent)).toEqual(before);
 	});
 
 	it("marks the {key} words of the process text in green, in both languages", () => {
@@ -168,13 +173,13 @@ describe("the booking Frame", () => {
 		mount();
 
 		const days = () =>
-			all(".days .day").map((d) => [d.querySelector("small")?.textContent, d.querySelector("b")?.textContent]);
+			outsideTwin(".days .day").map((d) => [d.querySelector("small")?.textContent, d.querySelector("b")?.textContent]);
 		expect(days()).toEqual([
 			["Mon", "26"],
 			["Tue", "27"],
 			["Wed", "28"],
 		]);
-		expect(all(".days .day.on").map((d) => d.querySelector("b")?.textContent)).toEqual(["27"]);
+		expect(outsideTwin(".days .day.on").map((d) => d.querySelector("b")?.textContent)).toEqual(["27"]);
 
 		langButton("pt").click();
 
@@ -199,7 +204,7 @@ describe("the analytics events", () => {
 
 	it("sends book-call for each Book a call link", () => {
 		mount();
-		const links = all<HTMLAnchorElement>("a").filter((a) => a.querySelector('[data-t="cta.book"]'));
+		const links = outsideTwin<HTMLAnchorElement>("a").filter((a) => a.querySelector('[data-t="cta.book"]'));
 		expect(links).toHaveLength(4);
 
 		for (const link of links) link.querySelector("span")?.click();
