@@ -87,22 +87,29 @@ export function mountBuilder({ doc, win, signal, language }: HomeContext): void 
 			);
 	}
 
+	/** The digits the odometer ends on, and the rolls that wait for their two frames (mock bug: see below). */
+	let target = "";
+	let rollsWaiting = 0;
+
 	/**
 	 * Shows `str` on the odometer and announces it. The digit columns are built again only when the shape changes:
 	 * new columns start from the old digits, right-aligned, so the total rolls from the last one (mock lines 1084–1101).
+	 * Unlike the mock, a change that comes while a roll waits only moves the target, so the odometer always ends on
+	 * the last total.
 	 */
 	function setOdometer(el: HTMLElement, str: string): void {
 		const shape = str.replace(/\d/g, "0");
 		el.setAttribute("aria-label", str);
 		const digits = str.replace(/\D/g, "");
+		target = digits;
 		const fill = () => {
-			el.dataset.digits = digits;
+			el.dataset.digits = target;
 			all<HTMLElement>(".roll-col", el).forEach((col, k) => {
-				col.style.setProperty("--v", digits[k] ?? "0");
+				col.style.setProperty("--v", target[k] ?? "0");
 			});
 		};
 		if (el.dataset.shape === shape) {
-			fill();
+			if (rollsWaiting === 0) fill();
 			return;
 		}
 		el.dataset.shape = shape;
@@ -115,10 +122,12 @@ export function mountBuilder({ doc, win, signal, language }: HomeContext): void 
 				return `<span class="roll" aria-hidden="true"><span class="roll-col" style="--v:${from}">${DIGITS}</span></span>`;
 			})
 			.join("");
-		// Two frames, so that the browser paints the old digits before the roll starts.
+		// Two frames, so that the browser paints the old digits before the roll starts. The last roll to wait fills.
+		rollsWaiting++;
 		win.requestAnimationFrame(() =>
 			win.requestAnimationFrame(() => {
-				if (!signal.aborted) fill();
+				rollsWaiting--;
+				if (!signal.aborted && rollsWaiting === 0) fill();
 			}),
 		);
 	}
