@@ -40,7 +40,15 @@ The approved mock, `.impeccable/mocks/ui-studio/freelance-home.html`, is the rul
 - `src/home/home.css`: all the styles of the mock, in the order of the mock, and the two `@font-face` rules. Biome turns off some CSS rules for it, and some a11y rules for `index.html`, because the mock is the rule (`overrides` in `biome.json`).
 - `public/fonts/`: Geist and Geist Mono (Fontsource 5.3.0, Latin, variable), each with its OFL license. `index.html` preloads both.
 - `public/photos/`: the 6 Demo store photos of the mock. Each JPEG keeps the comment that names its origin; do not strip it. The footer credits each author.
-- `src/main.ts` is the home entry. Now it is empty.
+- `src/main.ts` is the home entry. It only calls `mountHome(document)`.
+- `src/home/home.ts`: `mountHome(doc)`, the one seam of the Home page. It starts each part in the order of the mock, gives each part one `HomeContext` (`doc`, `win`, `signal`, `language`, `scroll`), and returns `dispose()`. `dispose()` aborts `signal`, and `signal` stops every listener, observer, animation frame loop, and timer. Do not edit `home.ts` to add a feature: each feature has its own file, and the mount already calls it.
+- `src/home/copy.ts`: the EN and PT dictionaries of the mock, word for word (`T`), the `Lang` and `CopyKey` types, `STORAGE_KEY` (`la.lang`), and `translate(lang, key)`. A missing text falls back to English, then to the key.
+- `src/home/offer.ts`: the Mock values of the prices (`PRICES`, `DEMO_PRICES`), the order of the Project builder items (`PICKS`), and the items that are on at the start (`DEFAULT_PICKS`).
+- `src/home/format.ts`: money in the language of the page (`fmt`, `price`, `money`): USD for English, BRL for Portuguese.
+- `src/home/language.ts`: `createLanguage(doc, signal)`. It restores and saves the language, wires the EN/PT toggle, and sends `lang/<id>`. `apply()` puts the language on the whole page (the html `lang`, `[data-t]`, `[data-t-aria]`, `[data-t-ph]`, `[data-price]`, `[data-demo-price]`, the pressed toggle, and the booking days), then runs each `onChange` function in the order that they were added. A storage error does not stop the page.
+- `src/home/tracking.ts`: the `book-call` and `whatsapp` events, from one click listener on the document.
+- The feature files, one per ticket. Each has its final signature: `scroll.ts` (`mountScroll`, the Virtual scroll and the Twin copy, and the `Scroll` interface), `page-map.ts` (`mountPageMap`), `builder.ts` (`mountBuilder`), `contact.ts` (`mountContact`), and `filmstrip.ts` (`mountFilmstrip`). A file that says `STUB` does nothing yet.
+- `src/home/test-support/page.ts`: `loadHomeBody()` puts the body of the real `index.html` in the test document and resets the root. `src/home/home.test.ts` mounts the page on it.
 - `src/analytics/`: GoatCounter (see Analytics). `goatcounter-plugin.ts` is the `goatcounter` Vite plugin. It puts the GoatCounter script tag at the end of the head, in the production build only. `vite.config.ts` uses it.
 - `public/favicon.svg`: the favicon.
 - `scripts/check-size.mjs`: the gzipped JS size check of `pnpm size`. It fails when the build has no JavaScript.
@@ -63,7 +71,7 @@ Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/ag
 
 ## Analytics
 
-`src/analytics/analytics.ts` holds the GoatCounter site code (`GOATCOUNTER_SITE`), the script tag, and `track(event)`. GoatCounter uses no cookies. `track` uses optional chaining and a `try`, so a blocked script never throws. The Home page sends no events yet. `AnalyticsEvent` is a string until then; make it a union of the event names when the page gets them. The spec (#51) lists these events: Book a call clicks, the WhatsApp link, a language change (`lang/<id>`), Add to project (`add/<package>`), and a valid form submit (`form-ready`). Send no other events.
+`src/analytics/analytics.ts` holds the GoatCounter site code (`GOATCOUNTER_SITE`), the script tag, and `track(event)`. GoatCounter uses no cookies. `track` uses optional chaining and a `try`, so a blocked script never throws. `AnalyticsEvent` is the union of all the events of the spec (#51): `book-call` (a Book a call link), `whatsapp` (the WhatsApp link of the hero), `lang/<id>` (the visitor changes the language; not on restore), `add/<package>` (an "Add to project" button puts a Package in the project; not when it takes it out), and `form-ready` (a valid form submit). Send no other events. `analytics.ts` imports only types from `src/home/`.
 
 ## History
 
