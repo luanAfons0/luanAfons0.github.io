@@ -1,2 +1,4 @@
-// The home entry. It is empty until the freelance home page is built on it.
-export {};
+// The home entry.
+import { mountHome } from "./home/home";
+
+mountHome(document);
