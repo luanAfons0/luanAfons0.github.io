@@ -1,4 +1,4 @@
-// The Filmstrip: the active Frame, the Timeline and the Chapters (mock lines 1005–1042 and 1149–1150).
+// The Filmstrip: the active Frame, the Timeline and the Chapters (mock lines 916–953 and 1041–1042).
 import type { HomeContext } from "./home";
 
 /**

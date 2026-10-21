@@ -24,9 +24,13 @@ const type = (id: string, value: string) => {
 };
 const fillValid = () => {
 	type("f-name", "Maria Silva");
+	type("f-email", "maria@loja.com.br");
 	type("f-url", "https://loja.com.br");
 	type("f-msg", "I need a faster checkout.");
 };
+/** Makes the form service answer with `status` and `body`, and returns the fetch spy. */
+const service = (status = 200, body: unknown = { success: true }) =>
+	vi.spyOn(window, "fetch").mockResolvedValue(new Response(JSON.stringify(body), { status }));
 const copyButton = (id: string) => el(`[data-copy="${id}"]`);
 const flush = () => new Promise((r) => setTimeout(r, 0));
 
@@ -131,39 +135,65 @@ describe("the copy buttons", () => {
 
 describe("the form rules", () => {
 	it("shows an error under each wrong field, marks it aria-invalid, and focuses the first", () => {
+		const fetchSpy = service();
 		mount();
 
 		submit();
 
-		for (const id of ["name", "msg"]) {
+		for (const id of ["name", "email", "msg"]) {
 			expect(el(`#f-${id}`).getAttribute("aria-invalid")).toBe("true");
 			expect(el(`#e-${id}`).hidden).toBe(false);
 		}
 		expect(el("#e-name").textContent).toBe("Add your name so I know who to answer.");
+		expect(el("#e-email").textContent).toBe("Add a valid email so I can answer you.");
 		expect(el("#e-msg").textContent).toBe("Tell me in a few words what you need.");
 		expect(el("#f-url").getAttribute("aria-invalid")).toBe("false");
 		expect(el("#e-url").hidden).toBe(true);
 		expect(document.activeElement).toBe(el("#f-name"));
 		expect(el("#form").hidden).toBe(false);
 		expect(el("#sent").hidden).toBe(true);
+		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
+	it("turns off the browser check, so the page shows its own errors", () => {
+		mount();
+
+		expect(el<HTMLFormElement>("#form").noValidate).toBe(true);
 	});
 
 	it("treats a name of only spaces as missing", () => {
 		mount();
+		fillValid();
 		type("f-name", "   ");
-		type("f-msg", "Hi");
 
 		submit();
 
 		expect(el("#f-name").getAttribute("aria-invalid")).toBe("true");
 	});
 
-	it("leaves the link optional", () => {
+	it.each(["maria", "maria@loja", "@loja.com", "maria @loja.com", "maria@@loja.com"])(
+		"rejects the email %s and focuses it",
+		(email) => {
+			mount();
+			fillValid();
+			type("f-email", email);
+
+			submit();
+
+			expect(el("#f-email").getAttribute("aria-invalid")).toBe("true");
+			expect(document.activeElement).toBe(el("#f-email"));
+			expect(el("#f-name").getAttribute("aria-invalid")).toBe("false");
+		},
+	);
+
+	it("leaves the link optional", async () => {
+		service();
 		mount();
-		type("f-name", "Ana");
-		type("f-msg", "Hi");
+		fillValid();
+		type("f-url", "");
 
 		submit();
+		await flush();
 
 		expect(el("#sent").hidden).toBe(false);
 	});
@@ -172,9 +202,8 @@ describe("the form rules", () => {
 		"rejects the link %s and focuses it",
 		(url) => {
 			mount();
-			type("f-name", "Ana");
+			fillValid();
 			type("f-url", url);
-			type("f-msg", "Hi");
 
 			submit();
 
@@ -186,8 +215,10 @@ describe("the form rules", () => {
 	);
 
 	it("focuses the message when only it is wrong, and clears an error once fixed", () => {
+		service();
 		mount();
-		type("f-name", "Ana");
+		fillValid();
+		type("f-msg", "");
 
 		submit();
 		expect(document.activeElement).toBe(el("#f-msg"));
@@ -212,40 +243,148 @@ describe("the form rules", () => {
 });
 
 describe("a valid submit", () => {
-	it("shows the success state with the first name and sends nothing", () => {
-		const fetchSpy = vi.spyOn(globalThis, "fetch");
+	it("posts every field of the form to the form service as a simple request, with no preflight", async () => {
+		const fetchSpy = service();
 		mount();
 		fillValid();
 
 		submit();
+		await flush();
+
+		expect(fetchSpy).toHaveBeenCalledTimes(1);
+		const [url, init] = fetchSpy.mock.calls[0] ?? [];
+		expect(url).toBe("https://api.web3forms.com/submit");
+		expect(init?.method).toBe("POST");
+		// FormData and only safe headers: the browser sends no CORS preflight, which the service can block.
+		expect(init?.headers).toEqual({ Accept: "application/json" });
+		expect(init?.body).toBeInstanceOf(FormData);
+		expect(Object.fromEntries(init?.body as FormData)).toEqual({
+			access_key: el<HTMLInputElement>('#form input[name="access_key"]').value,
+			subject: "New message from the portfolio",
+			from_name: "Luan portfolio",
+			name: "Maria Silva",
+			email: "maria@loja.com.br",
+			store_link: "https://loja.com.br",
+			message: "I need a faster checkout.",
+		});
+	});
+
+	it("shows Sending on the button while the message is on its way, and sends once", async () => {
+		let answer: (r: Response) => void = () => {};
+		const fetchSpy = vi
+			.spyOn(window, "fetch")
+			.mockImplementation(() => new Promise<Response>((resolve) => (answer = resolve)));
+		mount();
+		fillValid();
+		const button = el<HTMLButtonElement>('#form button[type="submit"]');
+
+		submit();
+		submit();
+
+		expect(button.disabled).toBe(true);
+		expect(button.getAttribute("aria-busy")).toBe("true");
+		expect(button.textContent).toBe("Sending…");
+		expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+		answer(new Response(JSON.stringify({ success: true })));
+		await flush();
+
+		expect(button.disabled).toBe(false);
+		expect(button.textContent).toBe("Send message");
+		expect(el("#sent").hidden).toBe(false);
+	});
+
+	it("shows the success state with the first name when the service says yes", async () => {
+		service();
+		mount();
+		fillValid();
+
+		submit();
+		await flush();
 
 		expect(el("#form").hidden).toBe(true);
 		expect(el("#sent").hidden).toBe(false);
+		expect(el("#sent").textContent).toContain("Message sent");
 		expect(el("#sent-msg").textContent).toBe("Thanks, Maria. I reply within one business day.");
-		expect(fetchSpy).not.toHaveBeenCalled();
 	});
 
-	it.each(["$&", "$`", "$'", "$$"])("writes a first name with %s as it was typed", (name) => {
+	it.each(["$&", "$`", "$'", "$$"])("writes a first name with %s as it was typed", async (name) => {
+		service();
 		mount();
+		fillValid();
 		type("f-name", `${name} Silva`);
-		type("f-msg", "Hi");
 
 		submit();
+		await flush();
 
 		expect(el("#sent-msg").textContent).toBe(`Thanks, ${name}. I reply within one business day.`);
 	});
 
-	it("writes the success message in Portuguese", () => {
+	it("writes the success message in Portuguese", async () => {
+		service();
 		localStorage.setItem("la.lang", "pt");
 		mount();
 		fillValid();
 
 		submit();
+		await flush();
 
+		expect(el("#sent").textContent).toContain("Mensagem enviada");
 		expect(el("#sent-msg").textContent).toBe("Obrigado, Maria. Eu respondo em até um dia útil.");
 	});
 
-	it("sends form-ready once, and not for an invalid submit", () => {
+	it.each([
+		["a refusal", () => service(400, { success: false, message: "Invalid access key" })],
+		["an answer that is not JSON", () => vi.spyOn(window, "fetch").mockResolvedValue(new Response("<html>"))],
+		["a network error", () => vi.spyOn(window, "fetch").mockRejectedValue(new TypeError("offline"))],
+	])("shows the send error and keeps the text after %s", async (_, answer) => {
+		answer();
+		mount();
+		fillValid();
+
+		submit();
+		await flush();
+
+		expect(el("#e-send").hidden).toBe(false);
+		expect(el("#e-send").textContent).toBe("The message did not send. Try again, or message me on WhatsApp.");
+		expect(el("#form").hidden).toBe(false);
+		expect(el("#sent").hidden).toBe(true);
+		expect(el<HTMLTextAreaElement>("#f-msg").value).toBe("I need a faster checkout.");
+		expect(el<HTMLButtonElement>('#form button[type="submit"]').disabled).toBe(false);
+	});
+
+	it("hides the send error when the visitor tries again and it works", async () => {
+		const fetchSpy = vi.spyOn(window, "fetch").mockRejectedValueOnce(new TypeError("offline"));
+		mount();
+		fillValid();
+		submit();
+		await flush();
+
+		fetchSpy.mockResolvedValue(new Response(JSON.stringify({ success: true })));
+		submit();
+		await flush();
+
+		expect(el("#e-send").hidden).toBe(true);
+		expect(el("#sent").hidden).toBe(false);
+	});
+
+	it("changes nothing on the page when the answer comes after dispose()", async () => {
+		let answer: (r: Response) => void = () => {};
+		vi.spyOn(window, "fetch").mockImplementation(() => new Promise<Response>((resolve) => (answer = resolve)));
+		const home = mount();
+		fillValid();
+		submit();
+
+		home.dispose();
+		answer(new Response(JSON.stringify({ success: true })));
+		await flush();
+
+		expect(el("#sent").hidden).toBe(true);
+		expect(el("#e-send").hidden).toBe(true);
+	});
+
+	it("sends form-ready once, and not for an invalid submit", async () => {
+		service();
 		const count = vi.fn<(vars?: GoatCounterVars) => void>();
 		window.goatcounter = { count };
 		mount();
@@ -255,20 +394,24 @@ describe("a valid submit", () => {
 
 		fillValid();
 		submit();
+		await flush();
 		expect(count.mock.calls.map(([v]) => v?.path)).toEqual(["form-ready"]);
 		delete window.goatcounter;
 	});
 
-	it("Write another resets the form, shows it, and focuses the name", () => {
+	it("Write another resets the form, shows it, and focuses the name", async () => {
+		service();
 		mount();
 		fillValid();
 		submit();
+		await flush();
 
 		el("#again").click();
 
 		expect(el("#form").hidden).toBe(false);
 		expect(el("#sent").hidden).toBe(true);
 		expect(el<HTMLInputElement>("#f-name").value).toBe("");
+		expect(el<HTMLInputElement>("#f-email").value).toBe("");
 		expect(el<HTMLInputElement>("#f-msg").value).toBe("");
 		expect(document.activeElement).toBe(el("#f-name"));
 	});

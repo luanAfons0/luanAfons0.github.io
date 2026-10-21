@@ -51,7 +51,7 @@ describe("the Home page mount", () => {
 });
 
 describe("the language switch", () => {
-	it("puts the page in Portuguese with BRL prices, then back in English with USD prices", () => {
+	it("puts the page in Portuguese with BRL Demo store prices, then back in English with USD prices", () => {
 		mount();
 
 		langButton("pt").click();
@@ -62,14 +62,16 @@ describe("the language switch", () => {
 		expect(langButton("en").getAttribute("aria-pressed")).toBe("false");
 		expect(document.querySelector("#services")?.getAttribute("aria-label")).toBe("O que eu faço");
 		expect(document.querySelector("#f-url")?.getAttribute("placeholder")).toBe("https://sualoja.com.br");
-		expect(document.querySelector('[data-price="launch"]')?.textContent).toBe("R$ 4.500");
+		expect(document.querySelector('a[href="#builder"]')?.textContent).toBe("Seu projeto");
+		expect(document.querySelector("#est-title")?.textContent).toBe("Seu projeto");
 		expect(document.querySelector('[data-demo-price="coffee"]')?.textContent).toBe("R$ 54,90");
 
 		langButton("en").click();
 
 		expect(document.documentElement.lang).toBe("en");
 		expect(document.querySelector("h1")?.textContent).toBe("Shopify stores, built to sell");
-		expect(document.querySelector('[data-price="launch"]')?.textContent).toBe("$900");
+		expect(document.querySelector('a[href="#builder"]')?.textContent).toBe("Your project");
+		expect(document.querySelector("#est-title")?.textContent).toBe("Your project");
 		expect(document.querySelector('[data-demo-price="coffee"]')?.textContent).toBe("$12");
 	});
 });
@@ -124,9 +126,11 @@ describe("the translated page", () => {
 			const texts = all("[data-t]");
 			const labels = all("[data-t-aria]");
 			const placeholders = all("[data-t-ph]");
+			const links = all("[data-t-href]");
 			expect(texts.length).toBeGreaterThan(100);
 			expect(labels.length).toBeGreaterThan(0);
 			expect(placeholders.length).toBeGreaterThan(0);
+			expect(links.length).toBeGreaterThan(0);
 
 			for (const el of texts) {
 				const key = el.dataset.t as CopyKey;
@@ -135,6 +139,7 @@ describe("the translated page", () => {
 			}
 			for (const el of labels) expect(el.getAttribute("aria-label")).toBe(T[lang][el.dataset.tAria as CopyKey]);
 			for (const el of placeholders) expect(el.getAttribute("placeholder")).toBe(T[lang][el.dataset.tPh as CopyKey]);
+			for (const el of links) expect(el.getAttribute("href")).toBe(T[lang][el.dataset.tHref as CopyKey]);
 
 			// No text, label or placeholder anywhere on the page is a dictionary key. A key that is also
 			// a real text of the dictionary ("free" is the text of "r.free") cannot be told apart, so it is left out.
@@ -205,11 +210,11 @@ describe("the analytics events", () => {
 	it("sends book-call for each Book a call link", () => {
 		mount();
 		const links = outsideTwin<HTMLAnchorElement>("a").filter((a) => a.querySelector('[data-t="cta.book"]'));
-		expect(links).toHaveLength(4);
+		expect(links).toHaveLength(3);
 
 		for (const link of links) link.querySelector("span")?.click();
 
-		expect(events()).toEqual(["book-call", "book-call", "book-call", "book-call"]);
+		expect(events()).toEqual(["book-call", "book-call", "book-call"]);
 	});
 
 	it("sends whatsapp for the WhatsApp link of the hero", () => {

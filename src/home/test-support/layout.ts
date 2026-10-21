@@ -9,7 +9,8 @@ export interface Box {
 /**
  * Gives happy-dom a layout, because happy-dom lays out nothing (every height is 0). Each key is a selector, and
  * each element that matches it gets that box. An element with a `top` has the first copy of the page
- * (`.vs-copy`) as its offset parent, so its `top` is its y inside that copy.
+ * (`.vs-copy`) as its offset parent, so its `top` is its y inside that copy. `getBoundingClientRect` gives the same
+ * box, with the copy at y 0.
  */
 export function fakeLayout(boxes: Record<string, Box>): void {
 	const boxOf = (el: HTMLElement): Box | undefined => {
@@ -21,6 +22,10 @@ export function fakeLayout(boxes: Record<string, Box>): void {
 	});
 	vi.spyOn(HTMLElement.prototype, "offsetTop", "get").mockImplementation(function (this: HTMLElement) {
 		return boxOf(this)?.top ?? 0;
+	});
+	vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
+		const box = boxOf(this);
+		return new DOMRect(0, box?.top ?? 0, 0, box?.height ?? 0);
 	});
 	// happy-dom has no offsetParent, so the test defines it, and takes it away when the test ends.
 	const own = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetParent");

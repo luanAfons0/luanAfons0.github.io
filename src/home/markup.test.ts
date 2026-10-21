@@ -22,11 +22,10 @@ describe("the Home page markup", () => {
 		expect(all("main > section").map((s) => s.id || s.className)).toEqual([
 			"hero wrap",
 			"services",
-			"packages",
-			"builder",
 			"process",
 			"demos",
 			"faq",
+			"builder",
 			"contact",
 		]);
 		expect(page.querySelector("main + footer.foot .foot-name")?.textContent).toBe("Luan Afonso");
@@ -50,7 +49,7 @@ describe("the Home page markup", () => {
 	it("has the head of the page: lang, title, description, color scheme, viewport, favicon and styles", () => {
 		expect(HTML).toContain('<link rel="stylesheet" href="/src/home/home.css">');
 		expect(page.documentElement.lang).toBe("en");
-		expect(page.title).toBe("Luan Afonso Freelance");
+		expect(page.title).toBe("Luan portfolio");
 		expect(page.querySelector('meta[name="description"]')?.getAttribute("content")).toMatch(/Shopify/);
 		expect(page.querySelector('meta[name="color-scheme"]')?.getAttribute("content")).toBe("light");
 		expect(page.querySelector('meta[name="viewport"]')?.getAttribute("content")).toBe(
@@ -114,24 +113,33 @@ describe("the Home page markup", () => {
 	});
 
 	it("shows the Project builder as the mock first renders it: Store launch and Speed audit on", () => {
-		const picks = all("#picks > .pick");
-		expect(
-			picks.map((p) => [p.querySelector(".pick-name")?.textContent, p.querySelector(".pick-price")?.textContent]),
-		).toEqual([
-			["Store launch", "+$900"],
-			["Store fix", "+$160"],
-			["Care plan, first month", "+$120"],
-			["Speed audit", "Free"],
-			["Product import", "+$100"],
-			["Custom section", "+$180"],
-			["Second language", "+$140"],
+		expect(all("#picks > .pick .pick-name").map((n) => n.textContent)).toEqual([
+			"Store launch",
+			"Store fix",
+			"Care plan, first month",
+			"Speed audit",
+			"Product import",
+			"Custom section",
+			"Second language",
 		]);
 		const on = all<HTMLInputElement>("input.switch").filter((i) => i.checked);
 		expect(on.map((i) => i.dataset.pick)).toEqual(["launch", "audit"]);
 		expect(all("#strip > .seg").map((s) => s.textContent)).toEqual(["1", "2"]);
-		expect(all("#r-lines > .line").map((l) => l.textContent)).toEqual(["1Store launch$900", "2Speed auditfree"]);
-		expect(page.querySelector("#r-total")?.getAttribute("aria-label")).toBe("$900");
-		expect(all("[data-add][aria-pressed=true]").map((b) => b.getAttribute("data-add"))).toEqual(["launch"]);
+		expect(all("#r-lines > .line").map((l) => l.textContent)).toEqual(["1Store launch", "2Speed audit"]);
+		expect(page.querySelector("#est-title")?.textContent).toBe("Your project");
+	});
+
+	it("shows no service price with JavaScript off, only the Demo store prices", () => {
+		for (const selector of ["#packages", "[data-add]", "[data-price]", ".pick-price", "#r-total"]) {
+			expect(all(selector), selector).toHaveLength(0);
+		}
+		expect(all("[data-demo-price]").length).toBeGreaterThan(0);
+	});
+
+	it("has a Book a call link in the builder that fills the message and goes to the contact form", () => {
+		const link = page.querySelector("#builder a[data-prefill]");
+		expect(link?.getAttribute("href")).toBe("#contact");
+		expect(link?.textContent).toMatch(/Book a call/);
 	});
 
 	it("shows all 4 Chapters, stacked, with JavaScript off", () => {
@@ -153,11 +161,43 @@ describe("the Home page markup", () => {
 		expect(document.querySelector("head > noscript > style")).not.toBeNull();
 	});
 
-	it("keeps a form submit on the page with JavaScript off, so the fields never go into a URL", () => {
+	it("posts the form to the form service with JavaScript off, in the body and never in a URL", () => {
 		const form = page.querySelector<HTMLFormElement>("#form");
-		// Outside a <dialog>, a dialog-method submit does nothing: no request, no new URL.
-		expect(form?.method).toBe("dialog");
-		expect(form?.hasAttribute("action")).toBe(false);
+		expect(form?.getAttribute("action")).toBe("https://api.web3forms.com/submit");
+		expect(form?.method.toLowerCase()).toBe("post");
+		// The browser checks the necessary fields itself; the script turns this off and checks them in its place.
+		expect(form?.hasAttribute("novalidate")).toBe(false);
+		expect(all("#form [required]").map((f) => f.getAttribute("name"))).toEqual(["name", "email", "message"]);
+		expect(page.querySelector<HTMLInputElement>('#form input[name="access_key"]')?.value).toMatch(/^[0-9a-f-]{36}$/);
+		// The spam trap: people never see it, so only a bot checks it.
+		const trap = page.querySelector<HTMLInputElement>('#form input[name="botcheck"]');
+		expect(trap?.hidden).toBe(true);
+		expect(trap?.tabIndex).toBe(-1);
+	});
+
+	it("has LinkedIn in the contact channels and in the footer, and no link that goes nowhere", () => {
+		const profile = "https://www.linkedin.com/in/luan-henrique-afonso/?locale=en-US";
+		expect(page.querySelector("#contact .channels a")?.getAttribute("href")).toBe(profile);
+		// The Open button opens the profile in a new tab, so the visitor keeps the page.
+		expect(page.querySelector("#contact .channels a")?.getAttribute("target")).toBe("_blank");
+		expect(page.querySelector("#contact .channels a")?.getAttribute("rel")).toBe("noopener");
+		// The footer profiles (GitHub, LinkedIn) do the same; the page links (FAQ, Back to the top) stay in the tab.
+		const footer = all<HTMLAnchorElement>("footer.foot nav a");
+		expect(footer.map((l) => [l.textContent, l.getAttribute("target"), l.getAttribute("rel")])).toEqual([
+			["GitHub", "_blank", "noopener"],
+			["LinkedIn", "_blank", "noopener"],
+			["FAQ", null, null],
+			["Back to the top", null, null],
+		]);
+		expect(page.querySelector("footer.foot nav a[data-t-href]")?.getAttribute("href")).toBe(profile);
+		expect(all('a[href="#"]')).toHaveLength(0);
+		expect(all("#contact .mock-note")).toHaveLength(0);
+	});
+
+	it("opens a WhatsApp chat with Luan from the hero, in a new tab", () => {
+		const link = page.querySelector(".hero-cta .text-link");
+		expect(link?.getAttribute("href")).toBe("https://wa.me/5516997638477");
+		expect([link?.getAttribute("target"), link?.getAttribute("rel")]).toEqual(["_blank", "noopener"]);
 	});
 
 	it("has no link to a missing id", () => {

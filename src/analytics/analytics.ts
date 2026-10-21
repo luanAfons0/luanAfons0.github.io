@@ -1,6 +1,5 @@
 // Type imports only: analytics must not load the Home page code at run time.
 import type { Lang } from "../home/copy.ts";
-import type { PackageKey } from "../home/offer.ts";
 
 /** The GoatCounter site code. Change it here only. */
 export const GOATCOUNTER_SITE = "luanafons0";
@@ -16,10 +15,9 @@ export function goatCounterScriptTag(): string {
  * - `book-call`: a click on a Book a call link.
  * - `whatsapp`: a click on the WhatsApp link of the hero.
  * - `lang/<id>`: the visitor changes the language.
- * - `add/<package>`: an "Add to project" button puts a Package in the Project builder (not when it takes it out).
  * - `form-ready`: a valid submit of the contact form.
  */
-export type AnalyticsEvent = "book-call" | "whatsapp" | `lang/${Lang}` | `add/${PackageKey}` | "form-ready";
+export type AnalyticsEvent = "book-call" | "whatsapp" | `lang/${Lang}` | "form-ready";
 
 /** Sends one event to GoatCounter. A blocked or missing script, or a script that throws, never breaks the site. */
 export function track(event: AnalyticsEvent): void {

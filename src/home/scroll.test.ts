@@ -81,7 +81,7 @@ describe("the Twin copy", () => {
 const LAYOUT = {
 	".vs-copy": { height: 5000 },
 	".nav": { height: 64 },
-	"#packages": { top: 1000, height: 600 },
+	"#process": { top: 1000, height: 600 },
 	"#faq": { top: 4000, height: 500 },
 };
 
@@ -122,12 +122,26 @@ describe("the wheel", () => {
 
 		wheel(100);
 		frames.frame(16);
-		// 1 - exp(-0.016 * 8) of the way: 12.0px of 100px.
-		expect(position()).toBeCloseTo(12.01, 1);
+		// 1 - exp(-0.016 * 8) of the way: 12.01px of 100px, on whole pixels.
+		expect(position()).toBe(12);
 		frames.frame(16);
-		expect(position()).toBeCloseTo(22.58, 1);
+		expect(position()).toBe(23);
 		for (let i = 0; i < 100; i++) frames.frame(16);
 		expect(position()).toBe(100);
+	});
+
+	it("puts the page on whole device pixels, so that a sticky block does not shake", () => {
+		fakeLayout(LAYOUT);
+		fakeReducedMotion(false);
+		vi.spyOn(window, "devicePixelRatio", "get").mockReturnValue(1.5);
+		const frames = fakeFrames();
+		mount();
+
+		wheel(100);
+		for (let i = 0; i < 20; i++) {
+			frames.frame(16);
+			expect(Math.abs(position() * 1.5 - Math.round(position() * 1.5))).toBeLessThan(0.01);
+		}
 	});
 
 	it("loops: up from the top shows the end of the page, and down past the end shows the start", () => {
@@ -272,7 +286,7 @@ describe("the in-page links", () => {
 		mount();
 		const click = new MouseEvent("click", { bubbles: true, cancelable: true });
 
-		el('.nav-links a[href="#packages"]').dispatchEvent(click);
+		el('.nav-links a[href="#process"]').dispatchEvent(click);
 		frames.frame(16);
 		const first = position();
 		for (let i = 0; i < 100; i++) frames.frame(16);
@@ -281,9 +295,9 @@ describe("the in-page links", () => {
 		expect(first).toBeGreaterThan(0);
 		expect(first).toBeLessThan(500);
 		expect(position()).toBe(1000 - 64);
-		expect(document.activeElement).toBe(el("#packages"));
-		expect(el("#packages").tabIndex).toBe(-1);
-		expect(location.hash).toBe("#packages");
+		expect(document.activeElement).toBe(el("#process"));
+		expect(el("#process").tabIndex).toBe(-1);
+		expect(location.hash).toBe("#process");
 	});
 
 	it("go up through the seam when the section is nearer that way round", () => {

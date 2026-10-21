@@ -1,15 +1,15 @@
 # Portfolio
 
-The freelance site of Luan Afonso, a Shopify developer. It is one Home page in English and Portuguese. Store owners read what Luan does, see the Packages and their prices, build a Project estimate, and book a call.
+The freelance site of Luan Afonso, a Shopify developer. It is one Home page in English and Portuguese. Store owners read what Luan does, see how Luan works, build a Project list, and book a call. The page shows no service prices: the price comes after the call.
 
 ## Language
 
 **Home page**:
-The one page of the site, "The Store Audit". The approved mock (`.impeccable/mocks/ui-studio/freelance-home.html`) is the rule for its layout, copy, motion, and behavior.
+The one page of the site, "The Store Audit". The approved mock (`.impeccable/mocks/ui-studio/freelance-home-no-prices.html`) is the rule for its layout, copy, motion, and behavior.
 _Avoid_: Landing page, Title Screen, portfolio (as the name of the page)
 
 **Mock value**:
-A placeholder value that Luan replaces with the real value later: the prices, the WhatsApp number, the email, the booking link, and the sample Demo stores. The page marks each group of Mock values with a dashed note (`.mock-note`), and the code marks them with a `MOCK VALUES` comment. Do not remove a mark until Luan gives the real value.
+A placeholder value that Luan replaces with the real value later: the sample Demo stores. The page marks each group of Mock values with a dashed note (`.mock-note`), and the code marks them with a `MOCK VALUES` comment. Do not remove a mark until Luan gives the real value.
 _Avoid_: Fake data, dummy value. "The mock" alone is the approved design file, not a Mock value.
 
 **Demo store**:
@@ -36,17 +36,13 @@ _Avoid_: Progress bar. The 4 steps of "How I work" are the process, not the Time
 
 ## Offer
 
-**Package**:
-One offer in the package table: Store fix, Store launch, or Care plan. A Package shows what you get, the time, and a from-price (a starting price, not a fixed price). One Package is "Recommended". "Add to project" puts a Package in the Project builder.
-_Avoid_: Plan, tier, product, service (for a row of the package table)
-
 **Project builder**:
-The "Build your project" section. The visitor switches services on and off, and each service that is on goes into the Project estimate. The services are the 3 Packages and 4 more items (Speed audit, Product import, Custom section, Second language). The switches and the "Add to project" buttons of the package table always agree.
-_Avoid_: Calculator, configurator, cart
+The "Build your project" section. The visitor switches services on and off, and each service that is on goes into the Project list. The 7 services are Store launch, Store fix, Care plan, Speed audit, Product import, Custom section, and Second language. The switches show no prices.
+_Avoid_: Calculator, configurator, cart, Package (the old package table is gone)
 
-**Project estimate**:
-The card next to the switches of the Project builder. It shows the project strip (one unit per service that is on), one numbered line per service, and a total that rolls to the new amount. It is an estimate, not a quote: the fixed price comes after a 15-minute call. When no service is on, it shows an empty state.
-_Avoid_: Quote, invoice, order, cart
+**Project list**:
+The card next to the switches of the Project builder. The page titles it "Your project". It shows the project strip (one equal segment per service that is on), one numbered line per service with no value, and a note. It has no total and no price: the price comes after a 15-minute call. When no service is on, it shows an empty state. Its Book a call link (`data-prefill`) fills the contact field "What do you need?" with "I am interested in:" and one "- <service>" line for each service.
+_Avoid_: Project estimate (the old name), quote, invoice, order, cart
 
 ## Scroll
 

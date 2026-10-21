@@ -48,7 +48,7 @@ export function mountHome(doc: Document = document): Home {
 
 	mountTracking(ctx);
 
-	// The first render, after every part has added its onChange function (mock line 1148).
+	// The first render, after every part has added its onChange function (mock line 1040).
 	language.apply();
 
 	return { dispose: () => controller.abort() };

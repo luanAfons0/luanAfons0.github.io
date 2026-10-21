@@ -25,32 +25,18 @@ function langButton(id: "en" | "pt"): HTMLButtonElement {
 	return one<HTMLButtonElement>(`.lang button[data-lang="${id}"]`);
 }
 
-/** Expects every "Add to project" button of a Package (the Twin copy too) to read as `want`: label, icon, pressed. */
-function expectAddButtons(key: string, want: { label: string; icon: string; pressed: string }): void {
-	const buttons = all(`[data-add="${key}"]`).map((b) => ({
-		label: b.querySelector("span")?.textContent,
-		icon: b.querySelector("use")?.getAttribute("href"),
-		pressed: b.getAttribute("aria-pressed"),
-	}));
-	expect(buttons.length).toBeGreaterThan(0);
-	for (const button of buttons) expect(button).toEqual(want);
-}
-
-/** Intl puts a no-break space between "R$" and the amount. */
-const NBSP = " ";
-const IN_PROJECT = { label: "In your project", icon: "#i-check", pressed: "true" };
-const NOT_IN_PROJECT = { label: "Add to project", icon: "#i-plus", pressed: "false" };
-
 const pick = (key: string) => one<HTMLInputElement>(`#picks [data-pick="${key}"]`);
 const toggle = (key: string) => pick(key).click();
-const addButton = (key: string) => one<HTMLButtonElement>(`[data-add="${key}"]`);
+const message = () => one<HTMLTextAreaElement>("#f-msg");
+/** The Book a call link of the Project list in the first copy. */
+const bookFromProject = () => one<HTMLAnchorElement>("[data-prefill]");
 
-/** The Project estimate, as a visitor reads it: the strip units, the numbered lines, and the announced total. */
-function estimate() {
+/** The Project list, as a visitor reads it: the strip units, the numbered lines, and whether the note shows. */
+function project() {
 	return {
 		strip: all("#strip > span").map((s) => `${s.className}:${s.textContent}`),
 		lines: all("#r-lines li").map((li) => li.textContent),
-		total: one("#r-total").getAttribute("aria-label"),
+		note: !one(".est-note").hidden,
 	};
 }
 
@@ -62,6 +48,7 @@ beforeEach(() => {
 afterEach(() => {
 	for (const home of homes) home.dispose();
 	homes = [];
+	vi.useRealTimers();
 	vi.restoreAllMocks();
 });
 
@@ -71,10 +58,10 @@ describe("the first render", () => {
 		mount();
 		vi.useRealTimers();
 
-		expect(estimate()).toEqual({
-			strip: ["seg:1", "seg free:2"],
-			lines: ["1Store launch$900", "2Speed auditfree"],
-			total: "$900",
+		expect(project()).toEqual({
+			strip: ["seg:1", "seg:2"],
+			lines: ["1Store launch", "2Speed audit"],
+			note: true,
 		});
 		expect(all<HTMLInputElement>("#picks [data-pick]").map((i) => [i.dataset.pick, i.checked])).toEqual([
 			["launch", true],
@@ -85,187 +72,170 @@ describe("the first render", () => {
 			["section", false],
 			["lang2", false],
 		]);
-		expectAddButtons("launch", IN_PROJECT);
-		expectAddButtons("fix", NOT_IN_PROJECT);
 		expect(one("#r-date").textContent).toBe("Oct 20, 2026");
+	});
+
+	it("shows no price in the switches or in the Project list", () => {
+		mount();
+
+		expect(all(".pick-price")).toEqual([]);
+		expect(one("#builder").textContent).not.toMatch(/\$|R\$|free|total/i);
 	});
 });
 
-describe("the Add to project buttons and the builder switches", () => {
-	it("puts a Package in the project from the table, and the switch follows", () => {
-		mount();
-
-		addButton("fix").click();
-
-		expectAddButtons("fix", IN_PROJECT);
-		expect(pick("fix").checked).toBe(true);
-		expect(estimate().lines).toEqual(["1Store launch$900", "2Store fix$160", "3Speed auditfree"]);
-	});
-
-	it("takes a Package out of the project from the table, and the switch follows", () => {
-		mount();
-
-		addButton("launch").click();
-
-		expectAddButtons("launch", NOT_IN_PROJECT);
-		expect(pick("launch").checked).toBe(false);
-		expect(estimate().total).toBe("$0");
-	});
-
-	it("syncs every button of the Package when the last one is clicked (the Twin copy, once it exists)", () => {
-		mount();
-
-		all<HTMLButtonElement>('[data-add="care"]').at(-1)?.click();
-
-		expectAddButtons("care", IN_PROJECT);
-		expect(pick("care").checked).toBe(true);
-	});
-
-	it("adds a switched-on service to the strip, the lines and the total, and the table button follows", () => {
+describe("the builder switches", () => {
+	it("adds a switched-on service to the strip and the lines as one equal unit, and takes it out again", () => {
 		mount();
 
 		toggle("fix");
 
-		expect(estimate()).toEqual({
-			strip: ["seg:1", "seg is-new:2", "seg free:3"],
-			lines: ["1Store launch$900", "2Store fix$160", "3Speed auditfree"],
-			total: "$1,060",
+		expect(project()).toEqual({
+			strip: ["seg:1", "seg is-new:2", "seg:3"],
+			lines: ["1Store launch", "2Store fix", "3Speed audit"],
+			note: true,
 		});
-		expectAddButtons("fix", IN_PROJECT);
+		expect(all("#r-lines li").map((li) => li.className)).toEqual(["line", "line is-new", "line"]);
+		expect(all<HTMLElement>("#strip > span").map((s) => s.getAttribute("style"))).toEqual([null, null, null]);
 
 		toggle("launch");
 
-		expect(estimate()).toEqual({
-			strip: ["seg:1", "seg free:2"],
-			lines: ["1Store fix$160", "2Speed auditfree"],
-			total: "$160",
+		expect(project()).toEqual({
+			strip: ["seg:1", "seg:2"],
+			lines: ["1Store fix", "2Speed audit"],
+			note: true,
 		});
-		expectAddButtons("launch", NOT_IN_PROJECT);
 	});
-});
 
-describe("the strip", () => {
-	it("marks only the new unit as new, and gives each unit its price as its size", () => {
+	it("marks nothing as new with reduced motion", () => {
+		vi.spyOn(window, "matchMedia").mockImplementation(
+			(media) => ({ media, matches: media.includes("reduce"), addEventListener() {} }) as unknown as MediaQueryList,
+		);
 		mount();
 
 		toggle("fix");
 
-		expect(all("#strip > span").map((s) => [s.textContent, s.className, s.style.getPropertyValue("--g")])).toEqual([
-			["1", "seg", "900"],
-			["2", "seg is-new", "160"],
-			["3", "seg free", "60"],
-		]);
+		expect(project().strip).toEqual(["seg:1", "seg:2", "seg:3"]);
 	});
-});
 
-describe("the totals in both currencies", () => {
-	it("shows the lines and the total in BRL in Portuguese, and in USD again in English", () => {
+	it("shows the switches and the lines in Portuguese, and in English again", () => {
 		mount();
 		toggle("section");
 
 		langButton("pt").click();
 
-		expect(estimate()).toEqual({
-			strip: ["seg:1", "seg free:2", "seg:3"],
-			lines: [`1Loja novaR$${NBSP}4.500`, "2Auditoria de velocidadegrátis", `3Seção personalizadaR$${NBSP}900`],
-			total: `R$${NBSP}5.400`,
-		});
-		expect(pick("launch").closest("label")?.querySelector(".pick-price")?.textContent).toBe(`+R$${NBSP}4.500`);
-		expect(pick("audit").closest("label")?.querySelector(".pick-price")?.textContent).toBe("Grátis");
+		expect(project().lines).toEqual(["1Loja nova", "2Auditoria de velocidade", "3Seção personalizada"]);
 		expect(pick("section").checked).toBe(true);
-		expectAddButtons("launch", { label: "No seu projeto", icon: "#i-check", pressed: "true" });
-		expectAddButtons("fix", { label: "Pôr no projeto", icon: "#i-plus", pressed: "false" });
+		expect(pick("launch").closest("label")?.querySelector(".pick-name")?.textContent).toBe("Loja nova");
 
 		langButton("en").click();
 
-		expect(estimate().total).toBe("$1,080");
-		expect(estimate().lines.at(-1)).toBe("3Custom section$180");
+		expect(project().lines.at(-1)).toBe("3Custom section");
 	});
 });
 
 describe("the empty state", () => {
-	it("shows the empty strip and the empty line when nothing is on, and a zero total", () => {
+	it("shows the empty strip and the empty line, and hides the note, when nothing is on", () => {
 		mount();
 
 		toggle("launch");
 		toggle("audit");
 
-		expect(estimate()).toEqual({
+		expect(project()).toEqual({
 			strip: ["strip-empty:"],
-			lines: ["Nothing in the project yet. Switch on a service to see the total."],
-			total: "$0",
+			lines: ["Nothing here yet. Switch on a service to add it."],
+			note: false,
 		});
 		expect(one("#r-lines li").className).toBe("lines-empty");
 
 		langButton("pt").click();
 
-		expect(estimate().lines).toEqual(["Ainda não há nada no projeto. Ligue um serviço para ver o total."]);
-		expect(estimate().total).toBe(`R$${NBSP}0`);
+		expect(project().lines).toEqual(["Ainda não há nada aqui. Ligue um serviço para adicionar."]);
 	});
 });
 
-describe("the odometer", () => {
-	let frames: FrameRequestCallback[] = [];
+describe("Book a call from the Project list", () => {
 	beforeEach(() => {
-		frames = [];
-		vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb) => frames.push(cb));
-	});
-	/** Runs the frames that wait now. */
-	const nextFrame = () => {
-		for (const cb of frames.splice(0)) cb(0);
-	};
-	const columns = () => all("#r-total .roll-col").map((col) => col.style.getPropertyValue("--v"));
-
-	it("rolls from the last total to the new one, and announces the new total", () => {
-		mount();
-		expect(columns()).toEqual(["9", "0", "0"]);
-
-		addButton("fix").click();
-
-		expect(one("#r-total").getAttribute("aria-label")).toBe("$1,060");
-		expect(one("#r-total").getAttribute("role")).toBe("status");
-		// New columns start from the old digits, right-aligned.
-		expect(columns()).toEqual(["0", "9", "0", "0"]);
-		nextFrame();
-		nextFrame();
-		expect(columns()).toEqual(["1", "0", "6", "0"]);
-
-		addButton("care").click();
-
-		// Same shape: the columns roll at once.
-		expect(columns()).toEqual(["1", "1", "8", "0"]);
-		expect(one("#r-total").getAttribute("aria-label")).toBe("$1,180");
+		vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
 	});
 
-	it("ends on the last total when two changes come before the roll starts", () => {
+	it("puts the list in the message, then an empty line, and puts the cursor at the end", () => {
 		mount();
 
-		// A new shape waits two frames to roll; the second change has the same shape and fills at once.
-		addButton("fix").click();
-		addButton("care").click();
-		// The roll still starts from the old digits.
-		expect(columns()).toEqual(["0", "9", "0", "0"]);
-		nextFrame();
-		nextFrame();
+		bookFromProject().click();
 
-		expect(columns()).toEqual(["1", "1", "8", "0"]);
-		expect(one("#r-total").getAttribute("aria-label")).toBe("$1,180");
+		expect(message().value).toBe("I am interested in:\n- Store launch\n- Speed audit\n\n");
+		expect(message().classList.contains("is-filled")).toBe(true);
+		vi.runAllTimers();
+		expect(document.activeElement).toBe(message());
+		expect(message().selectionStart).toBe(message().value.length);
+		expect(message().selectionEnd).toBe(message().value.length);
 	});
 
-	it("ends on the last total when two new shapes come before the roll starts", () => {
+	it("replaces the list that it put there before, and keeps the text that the visitor wrote after it", () => {
+		mount();
+		bookFromProject().click();
+		message().value += "My store sells coffee.";
+
+		toggle("fix");
+		toggle("launch");
+		bookFromProject().click();
+
+		expect(message().value).toBe("I am interested in:\n- Store fix\n- Speed audit\n\nMy store sells coffee.");
+	});
+
+	it("puts the list before text that the visitor wrote first", () => {
+		mount();
+		message().value = "Hi, I need help.";
+
+		bookFromProject().click();
+
+		expect(message().value).toBe("I am interested in:\n- Store launch\n- Speed audit\n\nHi, I need help.");
+	});
+
+	it("takes its old list out when the project is empty, and still moves the focus to the message", () => {
+		mount();
+		bookFromProject().click();
+		toggle("launch");
+		toggle("audit");
+
+		bookFromProject().click();
+
+		expect(message().value).toBe("");
+		expect(message().classList.contains("is-filled")).toBe(false);
+		vi.runAllTimers();
+		expect(document.activeElement).toBe(message());
+	});
+
+	it("writes the list in the language of the page", () => {
+		mount();
+		langButton("pt").click();
+
+		bookFromProject().click();
+
+		expect(message().value).toBe("Tenho interesse em:\n- Loja nova\n- Auditoria de velocidade\n\n");
+	});
+
+	it("fills the message of the first copy from the link of the Twin copy too", () => {
 		mount();
 
-		addButton("fix").click();
-		addButton("fix").click();
-		nextFrame();
-		nextFrame();
+		all<HTMLAnchorElement>("[data-prefill]").at(-1)?.click();
 
-		expect(columns()).toEqual(["9", "0", "0"]);
-		expect(one("#r-total").getAttribute("aria-label")).toBe("$900");
+		expect(all("[data-prefill]").length).toBe(2);
+		expect(message().value).toBe("I am interested in:\n- Store launch\n- Speed audit\n\n");
+	});
+
+	it("does not move the focus after dispose()", () => {
+		const home = mount();
+		bookFromProject().click();
+
+		home.dispose();
+		vi.runAllTimers();
+
+		expect(document.activeElement).not.toBe(message());
 	});
 });
 
-describe("the add event", () => {
+describe("the analytics events", () => {
 	let count: ReturnType<typeof vi.fn<(vars?: GoatCounterVars) => void>>;
 	beforeEach(() => {
 		count = vi.fn<(vars?: GoatCounterVars) => void>();
@@ -276,18 +246,6 @@ describe("the add event", () => {
 	});
 	const events = () => count.mock.calls.map(([vars]) => vars?.path);
 
-	it("sends add/<package> when a table button puts a Package in the project, not when it takes it out", () => {
-		mount();
-
-		addButton("fix").click();
-		addButton("care").click();
-		addButton("fix").click();
-		addButton("launch").click();
-		addButton("launch").click();
-
-		expect(events()).toEqual(["add/fix", "add/care", "add/launch"]);
-	});
-
 	it("sends nothing for the builder switches", () => {
 		mount();
 
@@ -295,5 +253,13 @@ describe("the add event", () => {
 		toggle("import");
 
 		expect(events()).toEqual([]);
+	});
+
+	it("sends book-call for the Book a call link of the Project list", () => {
+		mount();
+
+		bookFromProject().click();
+
+		expect(events()).toEqual(["book-call"]);
 	});
 });

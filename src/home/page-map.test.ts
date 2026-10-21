@@ -15,11 +15,10 @@ beforeEach(() => {
 	fakeLayout({
 		".vs-copy": { height: 4000 },
 		".nav": { height: 64 },
-		"#packages": { top: 400 },
-		"#builder": { top: 1000 },
-		"#process": { top: 1600 },
-		"#demos": { top: 2000 },
-		"#faq": { top: 3000 },
+		"#process": { top: 400 },
+		"#demos": { top: 1000 },
+		"#faq": { top: 1600 },
+		"#builder": { top: 2000 },
 		"#contact": { top: 3200 },
 	});
 });
@@ -39,7 +38,7 @@ describe("the Page map", () => {
 
 		const ticks = [...document.querySelectorAll<HTMLElement>(".map > .map-tick")].map((tick) => tick.style.left);
 
-		expect(ticks).toEqual(["10%", "25%", "40%", "50%", "75%", "80%"]);
+		expect(ticks).toEqual(["10%", "25%", "40%", "50%", "80%"]);
 	});
 
 	it("fills with the position in the loop", () => {
@@ -63,6 +62,6 @@ describe("the Page map", () => {
 
 		window.dispatchEvent(new Event("resize"));
 
-		expect(document.querySelectorAll(".map-tick")).toHaveLength(6);
+		expect(document.querySelectorAll(".map-tick")).toHaveLength(5);
 	});
 });
