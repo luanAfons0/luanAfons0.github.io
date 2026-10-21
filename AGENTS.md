@@ -6,6 +6,10 @@ The freelance Home page of Luan Afonso, a Shopify developer, written in TypeScri
 
 Use pnpm. `pnpm dev` (dev server), `pnpm build` (type check, then Vite build), `pnpm typecheck`, `pnpm lint` (Biome check), `pnpm format` (Biome fix), `pnpm test` (Vitest, one run), `pnpm size` (gzipped JS budget of 100 KB; run after `pnpm build`). Before you commit, `pnpm typecheck && pnpm lint && pnpm test` must pass.
 
+## Deploy
+
+The site is the GitHub Pages user site of `luanAfons0`, at https://luanafons0.github.io/. `.github/workflows/deploy.yml` builds and deploys each push to `main`. The repo is public, so commit no secret and no screenshot of another site. The Vite base is `/`.
+
 ## Commits and pull requests
 
 Commits follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/):
@@ -63,7 +67,7 @@ The approved mock, `.impeccable/mocks/ui-studio/freelance-home-no-prices.html`, 
 
 ### Issue tracker
 
-Issues and specs live in GitHub Issues on `luanAfons0/portfolio`, through the `gh` CLI. See `docs/agents/issue-tracker.md`.
+Issues and specs live in GitHub Issues on `luanAfons0/luanAfons0.github.io`, through the `gh` CLI. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
