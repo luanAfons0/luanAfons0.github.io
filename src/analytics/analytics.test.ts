@@ -11,9 +11,9 @@ describe("analytics track", () => {
 		const count = vi.fn();
 		window.goatcounter = { count };
 
-		track("add/launch");
+		track("lang/pt");
 
-		expect(count).toHaveBeenCalledWith({ path: "add/launch", title: "add/launch", event: true });
+		expect(count).toHaveBeenCalledWith({ path: "lang/pt", title: "lang/pt", event: true });
 	});
 
 	it("does not throw when the script is blocked or not loaded yet", () => {

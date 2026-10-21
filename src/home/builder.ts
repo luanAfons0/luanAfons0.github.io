@@ -1,22 +1,19 @@
-// The Project builder: the switches, the "Add to project" buttons of the package table, and the Project estimate
-// (mock lines 985 and 1055–1114).
-import { track } from "../analytics/analytics";
-import { fmt, locale, money, price } from "./format";
-import type { HomeContext } from "./home";
-import { DEFAULT_PICKS, type PackageKey, PICKS, type PickKey } from "./offer";
+// The Project builder: the switches, the Project list, and the Book a call link that puts the list in the message
+// of the contact form (mock lines 966–1006).
 
-const DIGITS = [..."0123456789"].map((n) => `<span>${n}</span>`).join("");
+import { locale } from "./format";
+import type { HomeContext } from "./home";
+import { DEFAULT_PICKS, PICKS, type PickKey } from "./offer";
 
 /**
- * Starts the Project builder. It renders the switches and the Project estimate, wires every `[data-add]` button
- * (the Twin copy too), sends `add/<package>`, and calls `ctx.language.onChange` to render again in a new language.
+ * Starts the Project builder. It renders the switches and the Project list, calls `ctx.language.onChange` to render
+ * again in a new language, and wires each `[data-prefill]` link (the Twin copy too) to fill the message of the form.
  */
 export function mountBuilder({ doc, win, signal, language }: HomeContext): void {
 	const selected = new Set<PickKey>(DEFAULT_PICKS);
 	let shownItems = new Set(selected);
 	const reduce = win.matchMedia("(prefers-reduced-motion: reduce)");
 	const { t } = language;
-	const cost = (k: PickKey) => price(language.current(), k);
 	const all = <E extends Element = HTMLElement>(selector: string, root: ParentNode = doc) => [
 		...root.querySelectorAll<E>(selector),
 	];
@@ -24,20 +21,8 @@ export function mountBuilder({ doc, win, signal, language }: HomeContext): void 
 	const picks = doc.getElementById("picks");
 	const strip = doc.getElementById("strip");
 	const lines = doc.getElementById("r-lines");
-	const total = doc.getElementById("r-total");
 	const date = doc.getElementById("r-date");
-
-	function syncAddButton(b: HTMLElement): void {
-		const on = selected.has(b.dataset.add as PickKey);
-		b.setAttribute("aria-pressed", String(on));
-		b.querySelector("use")?.setAttribute("href", on ? "#i-check" : "#i-plus");
-		const label = b.querySelector("span");
-		if (label) label.textContent = t(on ? "pk.added" : "pk.add");
-	}
-
-	function syncAddButtons(k?: PickKey): void {
-		for (const b of all(k ? `[data-add="${k}"]` : "[data-add]")) syncAddButton(b);
-	}
+	const msg = doc.getElementById("f-msg") as HTMLTextAreaElement | null;
 
 	function renderPicks(): void {
 		if (!picks) return;
@@ -45,91 +30,28 @@ export function mountBuilder({ doc, win, signal, language }: HomeContext): void 
 			(k) => `
     <li class="pick"><label>
       <span><span class="pick-name">${t(`i.${k}`)}</span><span class="pick-desc">${t(`i.${k}.d`)}</span></span>
-      <span class="pick-price">${cost(k) === 0 ? t("free") : `+${money(language.current(), k)}`}</span>
       <input class="switch" type="checkbox" role="switch" id="pick-${k}" data-pick="${k}" ${selected.has(k) ? "checked" : ""}>
     </label></li>`,
 		).join("");
 	}
 
-	/** Each item that is on locks into the strip as one unit and gets one numbered line (mock lines 1071–1083). */
+	/** Each item that is on locks into the strip as one equal unit and gets one numbered line (mock lines 979–991). */
 	function renderProject(animate: boolean): void {
 		const items = PICKS.filter((k) => selected.has(k));
-		const unit = cost("import") * 0.6;
 		const fresh = (k: PickKey) => (animate && !shownItems.has(k) && !reduce.matches ? " is-new" : "");
 		if (strip) {
 			strip.innerHTML = items.length
-				? items
-						.map(
-							(k, n) =>
-								`<span class="seg${cost(k) === 0 ? " free" : ""}${fresh(k)}" style="--g:${Math.max(cost(k), unit)}">${n + 1}</span>`,
-						)
-						.join("")
+				? items.map((k, n) => `<span class="seg${fresh(k)}">${n + 1}</span>`).join("")
 				: `<span class="strip-empty"></span>`;
 		}
 		if (lines) {
 			lines.innerHTML = items.length
-				? items
-						.map(
-							(k, n) =>
-								`<li class="line"><i>${n + 1}</i><span>${t(`i.${k}`)}</span><span class="v">${cost(k) === 0 ? t("r.free") : money(language.current(), k)}</span></li>`,
-						)
-						.join("")
+				? items.map((k, n) => `<li class="line${fresh(k)}"><i>${n + 1}</i><span>${t(`i.${k}`)}</span></li>`).join("")
 				: `<li class="lines-empty">${t("r.empty")}</li>`;
 		}
+		// The note talks about the list, so it hides when the list is empty.
+		for (const note of all(".est-note")) note.hidden = !items.length;
 		shownItems = new Set(items);
-		if (total)
-			setOdometer(
-				total,
-				fmt(
-					language.current(),
-					items.reduce((sum, k) => sum + cost(k), 0),
-				),
-			);
-	}
-
-	/** The digits the odometer ends on, and the rolls that wait for their two frames (mock bug: see below). */
-	let target = "";
-	let rollsWaiting = 0;
-
-	/**
-	 * Shows `str` on the odometer and announces it. The digit columns are built again only when the shape changes:
-	 * new columns start from the old digits, right-aligned, so the total rolls from the last one (mock lines 1084–1101).
-	 * Unlike the mock, a change that comes while a roll waits only moves the target, so the odometer always ends on
-	 * the last total.
-	 */
-	function setOdometer(el: HTMLElement, str: string): void {
-		const shape = str.replace(/\d/g, "0");
-		el.setAttribute("aria-label", str);
-		const digits = str.replace(/\D/g, "");
-		target = digits;
-		const fill = () => {
-			el.dataset.digits = target;
-			all<HTMLElement>(".roll-col", el).forEach((col, k) => {
-				col.style.setProperty("--v", target[k] ?? "0");
-			});
-		};
-		if (el.dataset.shape === shape) {
-			if (rollsWaiting === 0) fill();
-			return;
-		}
-		el.dataset.shape = shape;
-		const prev = [...(el.dataset.digits ?? "")];
-		let k = 0;
-		el.innerHTML = [...str]
-			.map((c) => {
-				if (!/\d/.test(c)) return `<span aria-hidden="true">${c}</span>`;
-				const from = prev[prev.length - (digits.length - k++)] ?? 0;
-				return `<span class="roll" aria-hidden="true"><span class="roll-col" style="--v:${from}">${DIGITS}</span></span>`;
-			})
-			.join("");
-		// Two frames, so that the browser paints the old digits before the roll starts. The last roll to wait fills.
-		rollsWaiting++;
-		win.requestAnimationFrame(() =>
-			win.requestAnimationFrame(() => {
-				rollsWaiting--;
-				if (!signal.aborted && rollsWaiting === 0) fill();
-			}),
-		);
 	}
 
 	picks?.addEventListener(
@@ -140,31 +62,60 @@ export function mountBuilder({ doc, win, signal, language }: HomeContext): void 
 			const k = input.dataset.pick as PickKey;
 			if (input.checked) selected.add(k);
 			else selected.delete(k);
-			syncAddButtons(k);
 			renderProject(true);
 		},
 		{ signal },
 	);
 
-	for (const b of all("[data-add]")) {
-		b.addEventListener(
+	/** The list that the builder put in the message last. */
+	let lastFill = "";
+
+	/**
+	 * Puts "I am interested in:" and one line per item at the start of the message, then an empty line. A list that
+	 * the builder put there before is replaced; text that the visitor wrote stays after it (mock lines 993–1006).
+	 */
+	function fillMessage(field: HTMLTextAreaElement): void {
+		const items = PICKS.filter((k) => selected.has(k));
+		const fill = items.length ? `${t("c.msgIntro")}\n${items.map((k) => `- ${t(`i.${k}`)}`).join("\n")}\n\n` : "";
+		const own =
+			lastFill && field.value.startsWith(lastFill)
+				? field.value.slice(lastFill.length)
+				: field.value === lastFill
+					? ""
+					: field.value;
+		field.value = fill + own;
+		lastFill = fill;
+		// Browsers without field-sizing: content grow the field here, so the line after the list stays in view.
+		if (!win.CSS?.supports?.("field-sizing", "content")) {
+			field.style.height = "";
+			field.style.height = `${field.scrollHeight + 2}px`;
+		}
+		field.classList.remove("is-filled");
+		void field.offsetWidth;
+		if (fill) field.classList.add("is-filled");
+	}
+
+	for (const link of all("[data-prefill]")) {
+		link.addEventListener(
 			"click",
 			() => {
-				const k = b.dataset.add as PackageKey;
-				const adding = !selected.has(k);
-				if (adding) selected.add(k);
-				else selected.delete(k);
-				syncAddButtons(k);
-				renderPicks();
-				renderProject(true);
-				if (adding) track(`add/${k}`);
+				if (!msg) return;
+				fillMessage(msg);
+				// The Virtual scroll moves the page to the form after this listener. Then the focus goes to the end
+				// of the message.
+				const timer = win.setTimeout(() => {
+					signal.removeEventListener("abort", stop);
+					msg.focus({ preventScroll: true });
+					msg.setSelectionRange(msg.value.length, msg.value.length);
+				});
+				const stop = () => win.clearTimeout(timer);
+				signal.addEventListener("abort", stop, { once: true });
 			},
 			{ signal },
 		);
 	}
 
 	language.onChange((lang) => {
-		syncAddButtons();
 		if (date) {
 			date.textContent = new Intl.DateTimeFormat(locale(lang), {
 				day: "2-digit",

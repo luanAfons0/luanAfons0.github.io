@@ -1,4 +1,4 @@
-// The Page map under the nav: where the visitor is in the loop, with one tick per section (mock lines 1044–1053).
+// The Page map under the nav: where the visitor is in the loop, with one tick per section (mock lines 955–964).
 // It replaces the scrollbar that the Virtual scroll hides.
 import type { HomeContext } from "./home";
 import type { FrameHook } from "./scroll";

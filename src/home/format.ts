@@ -1,6 +1,6 @@
-// Money and dates in the language of the page (mock lines 967–969).
+// Money and dates in the language of the page (mock line 882).
 import type { Lang } from "./copy";
-import { type PickKey, PRICES, type Price } from "./offer";
+import type { Price } from "./offer";
 
 /** The Intl locale of a language. */
 export function locale(lang: Lang): string {
@@ -21,14 +21,4 @@ export function fmt(lang: Lang, value: number, cents = false): string {
 		minimumFractionDigits: digits,
 		maximumFractionDigits: digits,
 	}).format(value);
-}
-
-/** The price of a Project builder item in the currency of `lang`. */
-export function price(lang: Lang, key: PickKey): number {
-	return inCurrency(lang, PRICES[key]);
-}
-
-/** The price of a Project builder item as money, for example "$900" or "R$ 4.500". */
-export function money(lang: Lang, key: PickKey): string {
-	return fmt(lang, price(lang, key));
 }

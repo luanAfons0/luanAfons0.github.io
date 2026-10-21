@@ -1,10 +1,10 @@
 // The language of the Home page: English (USD) or Portuguese (BRL). It restores and saves the choice,
-// wires the EN/PT toggle, and puts every translated text, label, placeholder and price on the page
-// (mock lines 850–852 and 971–1003).
+// wires the EN/PT toggle, and puts every translated text, label, placeholder, link and Demo store price on the page
+// (mock lines 765–767 and 884–914).
 import { track } from "../analytics/analytics";
 import { type CopyKey, LANGS, type Lang, STORAGE_KEY, translate } from "./copy";
-import { fmt, inCurrency, locale, money } from "./format";
-import { DEMO_PRICES, type DemoProductKey, type PickKey } from "./offer";
+import { fmt, inCurrency, locale } from "./format";
+import { DEMO_PRICES, type DemoProductKey } from "./offer";
 
 export interface Language {
 	/** The language that the page shows now. */
@@ -40,7 +40,7 @@ function save(win: Window, lang: Lang): void {
 	}
 }
 
-/** The next 3 weekdays after `from`, with no Saturday or Sunday (mock line 999). */
+/** The next 3 weekdays after `from`, with no Saturday or Sunday (mock line 910). */
 function nextWeekdays(from: Date): Date[] {
 	const days: Date[] = [];
 	const d = new Date(from);
@@ -61,7 +61,7 @@ export function createLanguage(doc: Document, signal: AbortSignal): Language {
 	const t = (key: CopyKey | string) => translate(lang, key);
 	const all = <E extends Element = HTMLElement>(selector: string) => [...doc.querySelectorAll<E>(selector)];
 
-	/** The booking Frame shows the next 3 weekdays, in the language of the page (mock lines 996–1003). */
+	/** The booking Frame shows the next 3 weekdays, in the language of the page (mock lines 907–914). */
 	function renderDays(): void {
 		const weekday = new Intl.DateTimeFormat(locale(lang), { weekday: "short" });
 		const html = nextWeekdays(new Date())
@@ -87,7 +87,7 @@ export function createLanguage(doc: Document, signal: AbortSignal): Language {
 		}
 		for (const el of all("[data-t-aria]")) el.setAttribute("aria-label", t(el.dataset.tAria ?? ""));
 		for (const el of all("[data-t-ph]")) el.setAttribute("placeholder", t(el.dataset.tPh ?? ""));
-		for (const el of all("[data-price]")) el.textContent = money(lang, el.dataset.price as PickKey);
+		for (const el of all("[data-t-href]")) el.setAttribute("href", t(el.dataset.tHref ?? ""));
 		for (const el of all("[data-demo-price]")) {
 			el.textContent = fmt(lang, inCurrency(lang, DEMO_PRICES[el.dataset.demoPrice as DemoProductKey]), lang === "pt");
 		}
