@@ -1,8 +1,9 @@
 name: Deploy to Pages
 
-# Manual only until GitHub Pages is on (the repo is private for now).
-# When Pages is on, add back:  push: { branches: [main] }
+# Each push to main puts the site on https://luanafons0.github.io/.
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:

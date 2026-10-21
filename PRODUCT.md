@@ -45,7 +45,7 @@ The page reads as the audit that Luan sends to a store owner: a store measured F
 
 - Luan has no client work yet. The Demo stores, the demo metrics, and the audits are samples, and the page labels each one as a demo. Never invent clients, results, dates, or metrics.
 - The WhatsApp number (+55 16 99763-8477), the email (luan.hmatao@gmail.com), and the LinkedIn profile are real. There is no booking link: the visitor writes, and Luan sets the call time in the reply.
-- Source code: https://github.com/luanAfons0/portfolio. GitHub profile: https://github.com/luanAfons0.
+- Source code: https://github.com/luanAfons0/luanAfons0.github.io. GitHub profile: https://github.com/luanAfons0.
 
 ## Product Principles
 

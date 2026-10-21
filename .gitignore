@@ -6,3 +6,5 @@ dist/
 .impeccable/tmp/
 .impeccable/hook.cache.json
 .impeccable/review/
+# Screenshots of other sites, used only as design references: keep them local, the repo is public.
+.impeccable/mocks/ui-studio/references/
