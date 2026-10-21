@@ -1,4 +1,4 @@
-// The Virtual scroll and the Twin copy (mock lines 856–965).
+// The Virtual scroll and the Twin copy (mock lines 771–881).
 // The page does not scroll. Wheel, touch and keys move a target, and each frame eases the track toward it.
 // The track holds the page two times, and the offset wraps at the height of one copy, so the end flows into the start.
 
@@ -9,7 +9,7 @@ export interface FrameHook {
 	measure?(): void;
 }
 
-/** The small surface of the Virtual scroll that the other parts of the page use (mock line 964). */
+/** The small surface of the Virtual scroll that the other parts of the page use (mock line 880). */
 export interface Scroll {
 	/** The y of `el` inside the first copy of the page. */
 	topOf(el: HTMLElement): number;
@@ -47,7 +47,7 @@ function find<E extends HTMLElement>(doc: Document, selector: string): E {
 	return el;
 }
 
-/** Moves `main` and the footer into the first copy, and makes the Twin copy from it (mock lines 859–871). */
+/** Moves `main` and the footer into the first copy, and makes the Twin copy from it (mock lines 774–783). */
 function buildView(doc: Document, signal: AbortSignal) {
 	const nav = find(doc, ".nav");
 	const view = doc.createElement("div");
@@ -115,16 +115,22 @@ export function mountScroll(doc: Document, signal: AbortSignal): Scroll {
 		len = copy.offsetHeight || 1;
 		const marked = [...copy.querySelectorAll<HTMLElement>("[data-sticky]")];
 		for (const el of marked) el.style.transform = "";
+		// The exact layout box, not the whole pixels of offsetTop: a lost fraction moves the block off the pixel grid.
+		const origin = copy.getBoundingClientRect().top;
+		const box = (el: HTMLElement) => {
+			const r = el.getBoundingClientRect();
+			return { top: r.top - origin, bottom: r.bottom - origin };
+		};
 		stickies = marked
 			.filter((el) => win.getComputedStyle(el).position === "sticky")
 			.map((el) => {
-				const top = topOf(el);
-				const parent = el.parentElement as HTMLElement;
+				const own = box(el);
+				const parent = box(el.parentElement as HTMLElement);
 				return {
 					el,
 					at: Number.parseFloat(win.getComputedStyle(el).top) || 0,
-					top,
-					max: topOf(parent) + parent.offsetHeight - top - el.offsetHeight,
+					top: own.top,
+					max: parent.bottom - own.bottom,
 				};
 			});
 		shown = Number.NaN;
@@ -139,7 +145,10 @@ export function mountScroll(doc: Document, signal: AbortSignal): Scroll {
 			still.matches || Math.abs(target - current) < 0.1
 				? target
 				: current + (target - current) * (1 - Math.exp(-dt * 8));
-		const m = wrap(current);
+		// Snap to whole device pixels: a fraction rounds one way in the track and the other way in a sticky block,
+		// so the sticky block shakes by one pixel.
+		const dpr = win.devicePixelRatio || 1;
+		const m = Math.round(wrap(current) * dpr) / dpr;
 		if (m !== shown) {
 			shown = m;
 			track.style.transform = `translate3d(0, ${-m}px, 0)`;
