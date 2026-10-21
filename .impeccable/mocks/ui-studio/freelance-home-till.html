@@ -1,0 +1,1167 @@
+<title>Luan Afonso Freelance</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Doto:wght@700..900&display=swap">
+<style>
+/* Layout: a dark till counter. Thermal-paper tickets carry every offer; the hero is a sticky
+   center-focus ticket carousel stepped by page scroll, then packages, a receipt builder,
+   the process tape, demo slips, questions and a contact slip. */
+:root {
+  --counter: #22262a;
+  --counter-2: #2c3136;
+  --counter-3: #191c1f;
+  --on-counter: #e9ebe7;
+  --on-counter-2: #a9afb2;
+  --paper: #eef0ec;
+  --paper-2: #dfe2dd;
+  --print: #17181a;
+  --print-2: #4a4f53;
+  --stamp: #2b4fd8;
+  --stamp-deep: #2140b4;
+  --sans: "Archivo", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --dot: "Doto", "Archivo", ui-monospace, monospace;
+  --nav-h: 64px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --zig: 9px;
+  color-scheme: dark;
+}
+@property --d { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --ad { syntax: "<number>"; inherits: true; initial-value: 0; }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scrollbar-color: #4a5056 var(--counter-3); scroll-padding-top: var(--nav-h); }
+body {
+  margin: 0;
+  background: var(--fleck, none), radial-gradient(1400px 820px at 68% -120px, #353b42 0%, var(--counter) 70%) no-repeat, var(--counter);
+  background-size: 128px 128px, auto, auto;
+  color: var(--on-counter);
+  font: 400 16px/1.55 var(--sans);
+  font-variation-settings: "wdth" 100;
+  -webkit-font-smoothing: antialiased;
+  caret-color: var(--stamp);
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 50; background: var(--counter);
+}
+::selection { background: var(--stamp); color: var(--paper); }
+a { color: inherit; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 2px solid var(--paper); outline-offset: 3px; border-radius: 4px; }
+.paper :focus-visible, .on-paper :focus-visible { outline-color: var(--stamp); }
+img, canvas { max-width: 100%; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+p { margin: 0; }
+button { font: inherit; color: inherit; }
+.wrap {
+  width: 100%; max-width: 1240px; margin-inline: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* Paper: thermal stock with a serrated tear at top and bottom. */
+.paper {
+  background: var(--paper);
+  color: var(--print);
+  -webkit-mask:
+    conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / calc(2 * var(--zig)) 51% repeat-x,
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--zig)) 51% repeat-x;
+  mask:
+    conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / calc(2 * var(--zig)) 51% repeat-x,
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--zig)) 51% repeat-x;
+}
+.dot { font-family: var(--dot); font-weight: 900; letter-spacing: .02em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+.rule { border: 0; border-top: 2px dashed currentColor; opacity: .55; margin: 0; }
+.mock-note {
+  display: inline-block; font-size: .8125rem; line-height: 1.4; color: var(--on-counter-2);
+  border: 1px dashed currentColor; border-radius: 4px; padding: .3em .6em;
+}
+.on-paper .mock-note, .paper .mock-note { color: var(--print-2); }
+
+/* Buttons: the blue rubber stamp is the only action color. */
+.stamp {
+  --ink: var(--stamp); --ring: 3px; --ring-2: 5px;
+  position: relative; isolation: isolate;
+  display: inline-flex; align-items: center; justify-content: center; gap: .55em;
+  padding: .9em 1.35em; border: 0; border-radius: 4px; cursor: pointer;
+  background: transparent; color: var(--paper); text-decoration: none; white-space: nowrap;
+  font: 800 1rem/1 var(--sans); font-variation-settings: "wdth" 78; text-transform: uppercase; letter-spacing: .07em;
+  transform: rotate(var(--tilt, -1.5deg));
+  transition: transform 140ms var(--ease-out);
+}
+/* The ink layer carries the stamp texture; the label stays crisp on top of it. */
+.stamp::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit;
+  background: var(--ink); box-shadow: inset 0 0 0 var(--ring) var(--ink), inset 0 0 0 var(--ring-2) rgb(238 240 236 / .9);
+  -webkit-mask: var(--ink-mask, none) 0 0 / 100% 100%; mask: var(--ink-mask, none) 0 0 / 100% 100%;
+  transition: background-color .2s ease, box-shadow .2s ease;
+}
+.stamp:hover { --ink: var(--stamp-deep); text-decoration: none; }
+.stamp:active { transform: rotate(var(--tilt, -1.5deg)) scale(.97); }
+.stamp--small { padding: .7em 1em; font-size: .8125rem; --tilt: 0deg; --ring: 2px; --ring-2: 3.5px; }
+.ink-btn {
+  display: inline-flex; align-items: center; gap: .5em; cursor: pointer;
+  padding: .7em 1em; border-radius: 4px; border: 2px solid var(--print); background: transparent; color: var(--print);
+  font: 700 .875rem/1 var(--sans); font-variation-settings: "wdth" 85; text-transform: uppercase; letter-spacing: .06em;
+  transition: background-color .18s var(--ease-out), color .18s var(--ease-out), transform .18s var(--ease-out);
+}
+.ink-btn:hover { background: var(--print); color: var(--paper); }
+.ink-btn:active { transform: scale(.97); }
+.ink-btn[aria-pressed="true"] { background: var(--print); border-color: var(--print); color: var(--paper); }
+.ink-btn svg { width: 1em; height: 1em; }
+
+/* Nav */
+.nav {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 40; height: var(--nav-h);
+  background: rgb(34 38 42 / .94); border-bottom: 1px solid rgb(233 235 231 / .08);
+  backdrop-filter: blur(8px);
+}
+.nav .wrap { height: 100%; display: flex; align-items: center; gap: 28px; }
+.mark { font-family: var(--dot); font-weight: 900; font-size: 1.15rem; letter-spacing: .04em; text-decoration: none; white-space: nowrap; }
+.nav-links { display: flex; gap: 24px; margin: 0 0 0 auto; padding: 0; list-style: none; }
+.nav-links a { color: var(--on-counter-2); text-decoration: none; font-weight: 500; font-size: .9375rem; }
+.nav-links a:hover { color: var(--on-counter); }
+.lang { display: inline-flex; border: 1px solid rgb(233 235 231 / .22); border-radius: 4px; padding: 2px; }
+.lang button { border: 0; background: transparent; cursor: pointer; padding: .35em .6em; border-radius: 3px; font: 700 .75rem/1 var(--sans); letter-spacing: .08em; color: var(--on-counter-2); }
+.lang button[aria-pressed="true"] { background: var(--paper); color: var(--print); }
+@media (max-width: 900px) { .nav-links { display: none; } .lang { margin-left: auto; } .nav .wrap { gap: 12px; } }
+@media (max-width: 400px) { .mark { font-size: 1rem; } }
+
+/* Hero till: a tall section; the stage sticks while page scroll steps the tickets. */
+.till { --n: 4; --step: 52vh; --stage-h: calc(100dvh - var(--nav-h)); position: relative; height: calc(var(--stage-h) + (var(--n) - 1) * var(--step)); overflow-x: clip; }
+.till-stop { position: absolute; left: 0; right: 0; top: calc(var(--k) * var(--step)); height: var(--step); pointer-events: none; }
+.till-stage {
+  position: sticky; top: calc(var(--nav-h) + env(safe-area-inset-top, 0px)); height: var(--stage-h); min-height: 560px;
+  display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: center; gap: 24px;
+}
+.hero-copy { display: grid; gap: 28px; align-content: center; max-width: 520px; }
+.hero-title { font-family: var(--dot); font-weight: 900; text-transform: uppercase; font-size: clamp(2rem, 3.1vw, 3rem); line-height: 1.04; letter-spacing: .01em; color: var(--paper); }
+.chapters { display: grid; min-height: 9.5rem; }
+.chapter { grid-area: 1 / 1; display: grid; gap: 10px; align-content: start; transition: opacity 150ms ease, transform 150ms ease, filter 150ms ease, visibility 0s 150ms; opacity: 0; transform: translateY(-4px); filter: blur(2px); visibility: hidden; }
+.chapter.is-active { opacity: 1; transform: none; filter: none; visibility: visible; transition: opacity 280ms var(--ease-out) 60ms, transform 280ms var(--ease-out) 60ms, filter 280ms var(--ease-out) 60ms, visibility 0s; }
+.chapter h2 { font-size: 1.375rem; font-weight: 700; font-variation-settings: "wdth" 88; color: var(--on-counter); }
+.chapter p { color: var(--on-counter-2); max-width: 46ch; }
+.chapter a { color: var(--on-counter); font-weight: 600; justify-self: start; }
+.hero-cta { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+.hero-cta a.text-link { color: var(--on-counter-2); font-weight: 500; }
+.hero-cta a.text-link:hover { color: var(--on-counter); }
+
+.carousel { position: relative; height: 100%; display: grid; grid-template-rows: minmax(0, 1fr); }
+.track { --bleed: max(16px, calc((100vw - 1240px) / 2 + 16px)); position: relative; min-height: 0; margin-right: calc(-1 * var(--bleed));
+  -webkit-mask: linear-gradient(90deg, #0000, #000 12px); mask: linear-gradient(90deg, #0000, #000 12px); }
+.ticket {
+  --gap: 236px; --w: 248px;
+  position: absolute; left: calc(50% - var(--bleed) / 2); top: 53%; width: var(--w); z-index: 1;
+  transform: translate(-50%, -50%) translate3d(calc(var(--d) * var(--gap)), calc(min(var(--ad), 2.5) * 30px), 0) scale(calc(1 - min(var(--ad), 2) * .2));
+  opacity: clamp(0, calc(2.4 - var(--ad)), 1);
+  filter: brightness(calc(1 - min(var(--ad), 2) * .3)) drop-shadow(0 22px 26px rgb(8 10 12 / .5));
+  transition: --d 520ms var(--ease-drawer), --ad 520ms var(--ease-drawer);
+  cursor: pointer;
+}
+.ticket.is-active { cursor: default; }
+.ticket .fig {
+  position: absolute; left: 50%; top: -128px; width: 240px; height: 240px; image-rendering: pixelated; z-index: 2;
+  transform: translateX(-50%) translateY(calc(min(var(--ad), 1) * 8px)) scale(calc(1 - min(var(--ad), 1) * .1));
+  transform-origin: 50% 100%;
+}
+.js .ticket:not(.is-printed) .fig { clip-path: inset(0 0 100% 0); }
+.ticket.is-printing .fig { animation: print 1s steps(30, end) both; }
+@keyframes print { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+.ticket-paper { position: relative; padding: 124px 22px 26px; display: grid; gap: 8px; min-height: 352px; align-content: start; }
+.t-name { font-size: 1.6rem; line-height: 1; }
+.t-sub { font-weight: 600; font-variation-settings: "wdth" 90; color: var(--print); }
+.t-meta { font-size: .875rem; color: var(--print-2); }
+.t-foot { margin-top: 10px; display: flex; align-items: end; justify-content: space-between; gap: 12px; }
+.t-slot { text-align: right; display: grid; justify-items: end; gap: 2px; }
+.t-slot small { font-size: .75rem; color: var(--print-2); font-variation-settings: "wdth" 90; }
+.t-slot span { font-size: 1.35rem; line-height: 1; white-space: nowrap; }
+.bars { width: 84px; height: 22px; image-rendering: pixelated; }
+
+
+/* Row layout: phones and reduced motion get a swipe row, no sticky stage. */
+@media (max-width: 767px), (prefers-reduced-motion: reduce) {
+  .till { height: auto; }
+  .till-stop { display: none; }
+  .till-stage { position: static; height: auto; min-height: 0; grid-template-columns: minmax(0, 1fr); gap: 0; padding-block: 36px 24px; }
+  .hero-copy { display: contents; }
+  .hero-title { order: 1; margin-bottom: 20px; }
+  .hero-cta { order: 2; margin-bottom: 8px; }
+  .carousel { order: 3; height: auto; }
+  .chapters { order: 4; min-height: 8.5rem; }
+  .track { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 150px calc(50% - 124px) 34px; margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); scrollbar-width: none; -webkit-mask: none; mask: none; margin-right: calc(-1 * max(16px, env(safe-area-inset-right, 0px))); }
+  .track::-webkit-scrollbar { display: none; }
+  .ticket { position: relative; left: auto; top: auto; flex: 0 0 var(--w); scroll-snap-align: center; opacity: 1;
+    transform: translateY(calc(min(var(--ad), 1) * 18px)) scale(calc(1 - min(var(--ad), 1) * .08));
+    filter: brightness(calc(1 - min(var(--ad), 1) * .25)) drop-shadow(0 16px 20px rgb(8 10 12 / .5)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; }
+  .js .ticket:not(.is-printed) .fig { clip-path: none; }
+  .chapter, .chapter.is-active { transform: none; filter: none; transition: opacity 200ms ease, visibility 0s !important; transition-duration: 200ms, 0s !important; }
+}
+
+/* Sections */
+.section { padding-block: 104px; }
+.section-head { display: grid; gap: 14px; margin-bottom: 48px; max-width: 640px; }
+.section-head h2 { font-size: clamp(2rem, 3.4vw, 3rem); line-height: 1; font-weight: 800; font-variation-settings: "wdth" 72; color: var(--paper); }
+.section-head p { color: var(--on-counter-2); max-width: 58ch; }
+@media (max-width: 767px) { .section { padding-block: 72px; } .section-head { margin-bottom: 36px; } }
+
+/* Packages: receipts hanging from a rail, lengths set by content. */
+.rail { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; align-items: start; padding-top: 26px; }
+.rail::before { content: ""; position: absolute; left: -12px; right: -12px; top: 0; height: 8px; border-radius: 2px; background: linear-gradient(#3a4046, #2a2e33); box-shadow: 0 2px 0 rgb(0 0 0 / .35); }
+.pkg { position: relative; filter: drop-shadow(0 18px 22px rgb(8 10 12 / .45)); transition: transform 240ms var(--ease-out); transform-origin: 50% 0; }
+@media (hover: hover) and (pointer: fine) { .pkg:hover { transform: rotate(-.6deg) translateY(2px); } }
+.pkg::before { content: ""; position: absolute; top: -26px; left: 50%; width: 28px; height: 30px; margin-left: -14px; border-radius: 3px 3px 2px 2px; background: linear-gradient(#5b636b, #3b4248); z-index: 2; }
+.pkg-paper { padding: 34px 26px 30px; display: grid; gap: 14px; }
+.pkg h3 { font-family: var(--dot); font-weight: 900; font-size: 1.7rem; line-height: 1; text-transform: uppercase; }
+.pkg ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 7px; }
+.pkg li { display: flex; gap: 8px; align-items: baseline; font-size: .9375rem; }
+.pkg li::before { content: ""; flex: 0 0 6px; height: 6px; background: var(--print); transform: translateY(-2px); }
+.pkg .price { display: grid; gap: 2px; }
+.pkg .price small { font-size: .8125rem; color: var(--print-2); }
+.pkg .price strong { font-family: var(--dot); font-weight: 900; font-size: 2.3rem; line-height: 1; }
+.pkg .price em { font-style: normal; font-size: 1rem; }
+.pkg .terms { font-size: .8125rem; color: var(--print-2); }
+.pkg--rec .pkg-paper { padding-top: 54px; }
+.rec-stamp {
+  position: absolute; top: 18px; right: 18px; z-index: 3; transform: rotate(6deg);
+  color: var(--print); border: 2px solid currentColor; border-radius: 4px; padding: .35em .6em; box-shadow: inset 0 0 0 2px var(--paper), inset 0 0 0 3.5px currentColor;
+  font: 800 .75rem/1 var(--sans); font-variation-settings: "wdth" 78; letter-spacing: .1em; text-transform: uppercase;
+}
+.pkg-note { margin-top: 30px; }
+@media (max-width: 900px) { .rail { grid-template-columns: minmax(0, 1fr); max-width: 440px; gap: 48px; } .rail::before { display: none; } .pkg::before { display: none; } }
+
+/* Builder: switches on the counter, the receipt printing on the right. */
+.builder { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 56px; align-items: start; }
+.picks { list-style: none; margin: 0; padding: 0; border-top: 1px solid rgb(233 235 231 / .12); }
+.pick { border-bottom: 1px solid rgb(233 235 231 / .12); }
+.pick label { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 18px; align-items: center; padding: 18px 8px; cursor: pointer; border-radius: 4px; transition: background-color .2s var(--ease-out); }
+.pick label:hover { background: rgb(233 235 231 / .04); }
+.pick-name { font-weight: 650; color: var(--on-counter); display: block; }
+.pick-desc { font-size: .875rem; color: var(--on-counter-2); display: block; }
+.pick-price { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--on-counter); white-space: nowrap; }
+.switch { appearance: none; -webkit-appearance: none; margin: 0; width: 44px; height: 24px; border-radius: 4px; border: 2px solid var(--on-counter-2); position: relative; cursor: pointer; transition: background-color .22s var(--ease-out), border-color .22s var(--ease-out); }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 2px; background: var(--on-counter-2); transition: transform .22s var(--ease-out), background-color .22s var(--ease-out); }
+.switch:checked { background: var(--paper); border-color: var(--paper); }
+.switch:checked::after { transform: translateX(20px); background: var(--print); }
+.switch:active::after { transform: scaleX(1.25); transform-origin: left; }
+.switch:checked:active::after { transform: translateX(20px) scaleX(1.25); transform-origin: right; }
+.receipt-wrap { position: sticky; top: calc(var(--nav-h) + 24px); filter: drop-shadow(0 20px 26px rgb(8 10 12 / .5)); }
+.receipt { padding: 34px 28px 32px; display: grid; gap: 14px; }
+.r-head { text-align: center; display: grid; gap: 4px; }
+.r-head .dot { font-size: 1.5rem; }
+.r-head small { color: var(--print-2); font-size: .8125rem; }
+.r-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; min-height: 5.5rem; }
+.r-line { display: flex; gap: 8px; align-items: baseline; font-size: .9375rem; }
+.r-line .lead { flex: 1; border-bottom: 2px dotted rgb(23 24 26 / .35); transform: translateY(-4px); min-width: 12px; }
+.r-line .v { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.r-line.is-printing { animation: print .32s steps(6, end) both; }
+.r-empty { color: var(--print-2); font-size: .9375rem; padding: 6px 0; }
+.r-total { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.r-total > span:first-child { font-family: var(--dot); font-weight: 900; font-size: 1.25rem; }
+.odo { font-family: var(--dot); font-weight: 900; font-size: 2.2rem; line-height: 1; display: inline-flex; white-space: pre; font-variant-numeric: tabular-nums; }
+.roll { display: inline-block; height: 1em; overflow: hidden; }
+.roll-col { display: block; transform: translateY(calc(var(--v) * -1em)); transition: transform 450ms var(--ease-out); }
+.roll-col span { display: block; height: 1em; }
+.r-note { font-size: .8125rem; color: var(--print-2); }
+.r-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.r-foot .bars { width: 108px; height: 26px; }
+@media (max-width: 900px) { .builder { grid-template-columns: minmax(0, 1fr); gap: 40px; } .receipt-wrap { position: static; max-width: 440px; } }
+
+/* Process: one long tape, perforated between the steps. */
+.tape { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); --zig: 8px; padding: 0; margin: 0; }
+.tape > li { list-style: none; position: relative; padding: 40px 28px 40px; display: grid; gap: 10px; align-content: start; }
+.tape > li + li { border-left: 2px dashed rgb(23 24 26 / .3); }
+.tape h3 { font-family: var(--dot); font-weight: 900; font-size: 1.5rem; text-transform: uppercase; line-height: 1; }
+.tape p { color: var(--print-2); font-size: .9375rem; }
+.tape-wrap { padding: 0; margin: 0; filter: drop-shadow(0 18px 22px rgb(8 10 12 / .45)); }
+@media (max-width: 900px) { .tape { grid-template-columns: minmax(0, 1fr); } .tape > li + li { border-left: 0; border-top: 2px dashed rgb(23 24 26 / .3); } .tape > li { padding: 28px 24px; } }
+
+/* Demo slips */
+.slips { display: grid; gap: 36px; }
+.slip { position: relative; filter: drop-shadow(0 16px 20px rgb(8 10 12 / .45)); max-width: 980px; }
+.slip:nth-child(2) { margin-left: auto; }
+.slip-paper { padding: 36px 32px 32px; display: grid; gap: 20px; }
+.slip h3 { font-family: var(--dot); font-weight: 900; font-size: 1.6rem; text-transform: uppercase; line-height: 1; padding-right: 120px; }
+.slip dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin: 0; }
+.slip dt { font-weight: 700; font-size: .8125rem; text-transform: uppercase; letter-spacing: .08em; color: var(--print-2); margin-bottom: 4px; }
+.slip dd { margin: 0; font-size: .9375rem; }
+.demo-stamp { position: absolute; top: 26px; right: 30px; transform: rotate(-7deg); font-family: var(--dot); font-weight: 900; font-size: 1.6rem; text-transform: uppercase; color: var(--print); border: 3px solid currentColor; border-radius: 4px; padding: .1em .4em; letter-spacing: .08em; box-shadow: inset 0 0 0 2px var(--paper), inset 0 0 0 4px currentColor; z-index: 2; }
+@media (max-width: 767px) { .slip dl { grid-template-columns: minmax(0, 1fr); gap: 14px; } .slip h3 { padding-right: 90px; font-size: 1.35rem; } .demo-stamp { font-size: 1.2rem; right: 18px; } .slip-paper { padding: 32px 22px 28px; } }
+
+/* Questions */
+.faq { max-width: 780px; border-top: 1px solid rgb(233 235 231 / .12); }
+.faq details { border-bottom: 1px solid rgb(233 235 231 / .12); }
+.faq summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; gap: 20px; align-items: center; padding: 22px 4px; font-weight: 650; font-size: 1.125rem; color: var(--on-counter); }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary svg { flex: 0 0 18px; width: 18px; height: 18px; transition: transform 200ms var(--ease-out); color: var(--on-counter-2); }
+.faq details[open] summary svg { transform: rotate(45deg); }
+.faq details p { padding: 0 4px 24px; color: var(--on-counter-2); max-width: 62ch; }
+
+/* Contact slip */
+.contact { max-width: 900px; margin-inline: auto; filter: drop-shadow(0 22px 28px rgb(8 10 12 / .5)); }
+.contact-paper { padding: 52px 48px 46px; display: grid; gap: 26px; }
+.contact h2 { font-family: var(--dot); font-weight: 900; text-transform: uppercase; font-size: clamp(1.7rem, 2.8vw, 2.4rem); line-height: 1.05; }
+.contact .lede { color: var(--print-2); max-width: 56ch; }
+.channels { display: flex; flex-wrap: wrap; align-items: center; gap: 18px 28px; }
+.channel { display: grid; gap: 2px; }
+.channel small { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--print-2); font-weight: 700; }
+.channel-row { display: flex; align-items: center; gap: 8px; }
+.channel-row span { font-weight: 600; font-variant-numeric: tabular-nums; user-select: all; }
+.copy { border: 1px solid rgb(23 24 26 / .35); background: transparent; border-radius: 4px; padding: .3em .55em; font-size: .75rem; font-weight: 700; cursor: pointer; color: var(--print); }
+.copy { transition: transform 140ms var(--ease-out), background-color .2s ease; }
+.copy:hover { background: rgb(23 24 26 / .07); }
+.copy:active { transform: scale(.97); }
+.form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 20px; }
+.field { display: grid; gap: 6px; align-content: start; }
+.field--wide { grid-column: 1 / -1; }
+.field label { font-weight: 650; font-size: .9375rem; }
+.field input, .field textarea {
+  font: inherit; color: var(--print); background: #f8f9f6; border: 2px solid rgb(23 24 26 / .4); border-radius: 4px; padding: .7em .8em;
+  transition: border-color .18s var(--ease-out), box-shadow .18s var(--ease-out);
+}
+.field textarea { min-height: 120px; resize: vertical; }
+.field input::placeholder, .field textarea::placeholder { color: #6a7074; }
+.field input:focus, .field textarea:focus { outline: none; border-color: var(--stamp); box-shadow: 0 0 0 3px rgb(43 79 216 / .22); }
+.field [aria-invalid="true"] { border-color: #b3261e; }
+.err { color: #a3211a; font-size: .875rem; font-weight: 600; }
+.form-foot { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.sent { display: grid; gap: 10px; padding: 18px 20px; border: 2px dashed var(--stamp); border-radius: 4px; color: var(--print); }
+.sent strong { font-family: var(--dot); font-weight: 900; font-size: 1.4rem; color: var(--stamp); text-transform: uppercase; }
+@media (max-width: 767px) { .contact-paper { padding: 40px 22px 34px; } .form { grid-template-columns: minmax(0, 1fr); } }
+
+/* Virtual scroll (JS on): the page is a fixed view, and the script moves the track. The track holds the page two times. */
+.vs-on, .vs-on body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+.vs-on .nav { position: fixed; inset: env(safe-area-inset-top, 0px) 0 auto; }
+.vs { position: fixed; inset: 0; overflow: clip; touch-action: pan-x pinch-zoom; }
+.vs-track { will-change: transform; }
+.vs-copy {
+  position: relative; padding-top: calc(var(--nav-h) + env(safe-area-inset-top, 0px));
+  /* The lamp fades in under the nav, so the seam between the copies shows no edge. */
+  background: var(--fleck, none), linear-gradient(var(--counter) var(--nav-h), rgb(34 38 42 / 0) 300px) no-repeat, radial-gradient(1400px 820px at 68% -120px, #353b42 0%, var(--counter) 70%) no-repeat, var(--counter);
+  background-size: 128px 128px, auto, auto, auto;
+}
+.till.is-jump .ticket, .till.is-jump .chapter { transition: none !important; }
+
+/* Footer */
+.foot { border-top: 1px solid rgb(233 235 231 / .1); padding-block: 40px 56px; }
+.foot .wrap { display: flex; align-items: center; justify-content: space-between; gap: 20px 32px; flex-wrap: wrap; }
+.foot small { color: var(--on-counter-2); font-size: .875rem; }
+.foot nav { display: flex; gap: 20px; font-size: .875rem; }
+.foot nav a { color: var(--on-counter-2); }
+</style>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="mark" href="#top" aria-label="Luan Afonso">LUAN AFONSO</a>
+    <ul class="nav-links">
+      <li><a href="#top" data-t="nav.services">Services</a></li>
+      <li><a href="#packages" data-t="nav.packages">Packages</a></li>
+      <li><a href="#process" data-t="nav.process">How I work</a></li>
+      <li><a href="#faq" data-t="nav.faq">FAQ</a></li>
+    </ul>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+      <button type="button" data-lang="pt" aria-pressed="false">PT</button>
+    </div>
+    <a class="stamp stamp--small" href="#contact" data-t="cta.book">Book a call</a>
+  </div>
+</header>
+
+<main id="top">
+  <section class="till" id="services" aria-labelledby="hero-title">
+    <div class="till-stop" style="--k:0" data-stop="0" aria-hidden="true"></div>
+    <div class="till-stop" style="--k:1" data-stop="1" aria-hidden="true"></div>
+    <div class="till-stop" style="--k:2" data-stop="2" aria-hidden="true"></div>
+    <div class="till-stop" style="--k:3" data-stop="3" aria-hidden="true"></div>
+
+    <div class="till-stage wrap">
+      <div class="hero-copy">
+        <h1 class="hero-title" id="hero-title" data-t="hero.title">Shopify stores, built to sell</h1>
+        <div class="chapters" aria-live="polite">
+          <article class="chapter is-active" data-chapter="0">
+            <h2 data-t="ch0.t">Hi, I'm Luan.</h2>
+            <p data-t="ch0.p">A developer from Brazil who builds and fixes online stores. You talk to me from the first call to launch day.</p>
+            <a href="#process" data-t="ch0.a">How I work</a>
+          </article>
+          <article class="chapter" data-chapter="1">
+            <h2 data-t="ch1.t">Shopify stores</h2>
+            <p data-t="ch1.p">New stores, theme changes, custom sections and app setup. You get a fixed price after a short call.</p>
+            <a href="#packages" data-t="ch1.a">See packages</a>
+          </article>
+          <article class="chapter" data-chapter="2">
+            <h2 data-t="ch3.t">Free speed audit</h2>
+            <p data-t="ch3.p">Send me your store link. I test it on a phone and send you a short list of fixes.</p>
+            <a href="#contact" data-t="ch3.a">Ask for the audit</a>
+          </article>
+          <article class="chapter" data-chapter="3">
+            <h2 data-t="ch5.t">Let's talk</h2>
+            <p data-t="ch5.p">15 minutes, free. Tell me about your store, and I tell you what I would fix first.</p>
+            <a href="#faq" data-t="ch5.a">Read the FAQ</a>
+          </article>
+        </div>
+        <div class="hero-cta">
+          <a class="stamp" href="#contact" data-t="cta.book">Book a call</a>
+          <a class="text-link" href="#contact" data-t="hero.wa">or message me on WhatsApp</a>
+        </div>
+      </div>
+
+      <div class="carousel" role="region" aria-roledescription="carousel" aria-label="What I do" data-t-aria="carousel.label">
+        <div class="track">
+          <article class="ticket is-active" style="--d:0;--ad:0;z-index:10" data-k="0" aria-roledescription="slide" aria-label="1 / 4">
+            <canvas class="fig" data-fig="bust" width="80" height="80" aria-hidden="true"></canvas>
+            <div class="ticket-paper paper">
+              <p class="t-name dot" data-t="t0.n">Hello</p>
+              <p class="t-sub" data-t="t0.s">Luan Afonso, developer</p>
+              <hr class="rule">
+              <p class="t-meta" data-t="t0.m">Brazil, remote</p>
+              <div class="t-foot"><canvas class="bars" data-bars="HELLO" width="42" height="11" aria-hidden="true"></canvas><p class="t-slot"><span class="dot">UTC-3</span></p></div>
+            </div>
+          </article>
+          <article class="ticket" style="--d:1;--ad:1;z-index:9" data-k="1" aria-roledescription="slide" aria-label="2 / 4">
+            <canvas class="fig" data-fig="bag" width="80" height="80" aria-hidden="true"></canvas>
+            <div class="ticket-paper paper">
+              <p class="t-name dot">Shopify</p>
+              <p class="t-sub" data-t="t1.s">Themes, sections, apps</p>
+              <hr class="rule">
+              <p class="t-meta" data-t="t1.m">1 to 4 weeks</p>
+              <div class="t-foot"><canvas class="bars" data-bars="SHOPIFY" width="42" height="11" aria-hidden="true"></canvas><p class="t-slot"><small data-t="from">from</small><span class="dot" data-price="shopify">$300</span></p></div>
+            </div>
+          </article>
+          <article class="ticket" style="--d:2;--ad:2;z-index:8" data-k="2" aria-roledescription="slide" aria-label="3 / 4">
+            <canvas class="fig" data-fig="watch" width="80" height="80" aria-hidden="true"></canvas>
+            <div class="ticket-paper paper">
+              <p class="t-name dot" data-t="t3.n">Speed audit</p>
+              <p class="t-sub" data-t="t3.s">Mobile load check</p>
+              <hr class="rule">
+              <p class="t-meta" data-t="t3.m">2 business days</p>
+              <div class="t-foot"><canvas class="bars" data-bars="AUDIT" width="42" height="11" aria-hidden="true"></canvas><p class="t-slot"><span class="dot" data-t="free">Free</span></p></div>
+            </div>
+          </article>
+          <article class="ticket" style="--d:3;--ad:3;z-index:7" data-k="3" aria-roledescription="slide" aria-label="5 / 4">
+            <canvas class="fig" data-fig="cup" width="80" height="80" aria-hidden="true"></canvas>
+            <div class="ticket-paper paper">
+              <p class="t-name dot" data-t="t5.n">Let's talk</p>
+              <p class="t-sub" data-t="t5.s">Video call</p>
+              <hr class="rule">
+              <p class="t-meta" data-t="t5.m">15 minutes</p>
+              <div class="t-foot"><canvas class="bars" data-bars="TALK" width="42" height="11" aria-hidden="true"></canvas><p class="t-slot"><span class="dot" data-t="free">Free</span></p></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="packages" aria-labelledby="pk-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="pk-title" data-t="pk.title">Pick a package</h2>
+        <p data-t="pk.sub">Each one has a starting price. After a 15-minute call you get a fixed price on one page.</p>
+      </div>
+      <!-- MOCK PRICES: Luan sets the real values in PRICES (script below). -->
+      <div class="rail">
+        <article class="pkg">
+          <div class="pkg-paper paper">
+            <h3 data-t="pk1.n">Store fix</h3>
+            <ul>
+              <li data-t="pk1.l1">Theme and layout changes</li>
+              <li data-t="pk1.l2">Bug and checkout fixes</li>
+              <li data-t="pk1.l3">Up to 10 hours of work</li>
+              <li data-t="pk1.l4">Ready in about 1 week</li>
+            </ul>
+            <hr class="rule">
+            <div class="price"><small data-t="from">from</small><strong data-price="fix">$160</strong></div>
+            <p class="terms" data-t="pk.terms">Fixed price after a 15-minute call.</p>
+            <button class="ink-btn" type="button" data-add="fix" aria-pressed="false"><span data-t="pk.add">Add to receipt</span></button>
+          </div>
+        </article>
+        <article class="pkg pkg--rec">
+          <span class="rec-stamp" data-t="pk.rec">Recommended</span>
+          <div class="pkg-paper paper">
+            <h3 data-t="pk2.n">Store launch</h3>
+            <ul>
+              <li data-t="pk2.l1">Shopify store setup</li>
+              <li data-t="pk2.l2">Theme with your brand</li>
+              <li data-t="pk2.l3">Payments and shipping set up</li>
+              <li data-t="pk2.l4">2 weeks of support after launch</li>
+            </ul>
+            <hr class="rule">
+            <div class="price"><small data-t="from">from</small><strong data-price="launch">$900</strong></div>
+            <p class="terms" data-t="pk.terms">Fixed price after a 15-minute call.</p>
+            <button class="ink-btn" type="button" data-add="launch" aria-pressed="true"><span data-t="pk.added">On the receipt</span></button>
+          </div>
+        </article>
+        <article class="pkg">
+          <div class="pkg-paper paper">
+            <h3 data-t="pk3.n">Care plan</h3>
+            <ul>
+              <li data-t="pk3.l1">Updates and backups</li>
+              <li data-t="pk3.l2">Small changes every month</li>
+              <li data-t="pk3.l3">Monthly speed check</li>
+              <li data-t="pk3.l4">Cancel any time</li>
+            </ul>
+            <hr class="rule">
+            <div class="price"><small data-t="from">from</small><strong><span data-price="care">$120</span><em data-t="permo">/mo</em></strong></div>
+            <p class="terms" data-t="pk3.terms">Monthly. No contract.</p>
+            <button class="ink-btn" type="button" data-add="care" aria-pressed="false"><span data-t="pk.add">Add to receipt</span></button>
+          </div>
+        </article>
+      </div>
+      <p class="pkg-note"><span class="mock-note" data-t="mock.prices">Mock prices. Luan sets the real ones.</span></p>
+    </div>
+  </section>
+
+  <section class="section" id="builder" aria-labelledby="b-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="b-title" data-t="b.title">Build your receipt</h2>
+        <p data-t="b.sub">Switch services on and off. The total is an estimate, not a quote.</p>
+      </div>
+      <div class="builder">
+        <ul class="picks" id="picks"></ul>
+        <div class="receipt-wrap">
+          <div class="receipt paper" aria-labelledby="r-title">
+            <div class="r-head">
+              <p class="dot" id="r-title">Luan Afonso</p>
+              <small><span data-t="r.kind">Store work estimate</span> · <span id="r-date"></span></small>
+            </div>
+            <hr class="rule">
+            <ul class="r-lines" id="r-lines" aria-live="polite"></ul>
+            <hr class="rule">
+            <div class="r-total"><span>Total</span><span class="odo" id="r-total" role="status"></span></div>
+            <p class="r-note" data-t="r.note">Estimate only. The fixed price comes after a 15-minute call.</p>
+            <div class="r-foot">
+              <canvas class="bars" data-bars="RECEIPT" width="54" height="13" aria-hidden="true"></canvas>
+              <a class="stamp" href="#contact" data-t="cta.book">Book a call</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="process" aria-labelledby="pr-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="pr-title" data-t="pr.title">How I work</h2>
+      </div>
+      <div class="tape-wrap">
+        <ol class="tape paper">
+          <li><h3 data-t="pr1.n">Call</h3><p data-t="pr1.p">15 minutes, free. You tell me about the store.</p></li>
+          <li><h3 data-t="pr2.n">Scope</h3><p data-t="pr2.p">One page with the work, the dates and a fixed price.</p></li>
+          <li><h3 data-t="pr3.n">Build</h3><p data-t="pr3.p">A preview link every week, so you see progress.</p></li>
+          <li><h3 data-t="pr4.n">Launch</h3><p data-t="pr4.p">Your store goes live. Then 2 weeks of support.</p></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="demos" aria-labelledby="d-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="d-title" data-t="d.title">Demo stores</h2>
+        <p data-t="d.sub">I am new to freelancing, so there are no client stories here yet. These demo stores show how I work, and each one says it is a demo.</p>
+        <p><span class="mock-note" data-t="mock.demos">Sample entries. Luan replaces them with his real demo stores.</span></p>
+      </div>
+      <div class="slips">
+        <article class="slip">
+          <span class="demo-stamp" aria-label="Demo">Demo</span>
+          <div class="slip-paper paper">
+            <h3 data-t="d1.n">Coffee roaster on Shopify</h3>
+            <dl>
+              <div><dt data-t="d.p">Problem</dt><dd data-t="d1.p">Needs coffee subscriptions and fast pages on a phone.</dd></div>
+              <div><dt data-t="d.a">Approach</dt><dd data-t="d1.a">A free theme, a subscription app and compressed photos.</dd></div>
+              <div><dt data-t="d.r">Result</dt><dd data-t="d.rr">Live link and speed report here when it is built.</dd></div>
+            </dl>
+          </div>
+        </article>
+        <article class="slip">
+          <span class="demo-stamp" aria-label="Demo">Demo</span>
+          <div class="slip-paper paper">
+            <h3 data-t="d2.n">Clothing store on Shopify</h3>
+            <dl>
+              <div><dt data-t="d.p">Problem</dt><dd data-t="d2.p">Sizes and colors per product, and Pix at checkout.</dd></div>
+              <div><dt data-t="d.a">Approach</dt><dd data-t="d2.a">Product variants, a Pix payment app and optimized images.</dd></div>
+              <div><dt data-t="d.r">Result</dt><dd data-t="d.rr">Live link and speed report here when it is built.</dd></div>
+            </dl>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="faq" aria-labelledby="f-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="f-title" data-t="f.title">Questions</h2>
+      </div>
+      <div class="faq">
+        <details><summary><span data-t="f1.q">Do you work with stores outside Brazil?</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg></summary><p data-t="f1.a">Yes. I work remotely, in English or Portuguese.</p></details>
+        <details><summary><span data-t="f2.q">How do you set the price?</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg></summary><p data-t="f2.a">Each package shows a starting price. After a 15-minute call, I send a one-page scope with a fixed price.</p></details>
+        <details><summary><span data-t="f3.q">I already have a store. Can you help?</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg></summary><p data-t="f3.a">Yes. I fix, speed up and add features to stores that already exist. The free audit is a good place to start.</p></details>
+        <details><summary><span data-t="f4.q">When should I not hire you?</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg></summary><p data-t="f4.a">When you need a brand identity or product photos first. I build and fix the store; a designer or a photographer does those better.</p></details>
+        <details><summary><span data-t="f5.q">Who owns the store and the code?</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg></summary><p data-t="f5.a">You do. The accounts, the theme and the code are yours.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="contact" aria-labelledby="c-title">
+    <div class="wrap">
+      <div class="contact">
+        <div class="contact-paper paper on-paper">
+          <h2 id="c-title" data-t="c.title">Tell me about your store</h2>
+          <p class="lede" data-t="c.sub">The 15-minute call is free. If you prefer to write, use the form or WhatsApp.</p>
+          <div class="channels">
+            <a class="stamp" href="#" data-t="cta.book">Book a call</a>
+            <div class="channel"><small>WhatsApp</small><div class="channel-row"><span id="wa">+55 00 00000-0000</span><button class="copy" type="button" data-copy="wa" data-t="c.copy">Copy</button></div></div>
+            <div class="channel"><small>Email</small><div class="channel-row"><span id="mail">contato@seudominio.com</span><button class="copy" type="button" data-copy="mail" data-t="c.copy">Copy</button></div></div>
+          </div>
+          <p><span class="mock-note" data-t="mock.contact">Mock contact details and booking link. The form sends nothing.</span></p>
+          <hr class="rule">
+          <form class="form" id="form" novalidate>
+            <div class="field">
+              <label for="f-name" data-t="c.name">Your name</label>
+              <input id="f-name" name="name" autocomplete="name" aria-describedby="e-name">
+              <p class="err" id="e-name" hidden></p>
+            </div>
+            <div class="field">
+              <label for="f-url" data-t="c.url">Store link (optional)</label>
+              <input id="f-url" name="url" inputmode="url" autocomplete="url" placeholder="https://yourstore.com" data-t-ph="c.urlph" aria-describedby="e-url">
+              <p class="err" id="e-url" hidden></p>
+            </div>
+            <div class="field field--wide">
+              <label for="f-msg" data-t="c.msg">What do you need?</label>
+              <textarea id="f-msg" name="msg" aria-describedby="e-msg"></textarea>
+              <p class="err" id="e-msg" hidden></p>
+            </div>
+            <div class="form-foot">
+              <button class="ink-btn" type="submit"><span data-t="c.send">Send message</span></button>
+            </div>
+          </form>
+          <div class="sent" id="sent" role="status" hidden>
+            <strong data-t="c.sentT">Message ready</strong>
+            <p id="sent-msg"></p>
+            <button class="ink-btn" type="button" id="again" style="justify-self:start"><span data-t="c.again">Write another</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <nav aria-label="Footer"><a href="https://github.com/luanAfons0">GitHub</a><a href="#faq" data-t="nav.faq">FAQ</a></nav>
+    <small>© 2026 Luan Afonso</small>
+  </div>
+</footer>
+
+<script>
+document.documentElement.classList.add("js");
+
+/* MOCK VALUES: Luan sets the real prices. Whole currency units. */
+const PRICES = {
+  shopify: { brl: 1500, usd: 300 },
+  fix: { brl: 800, usd: 160 }, launch: { brl: 4500, usd: 900 }, care: { brl: 600, usd: 120 },
+  audit: { brl: 0, usd: 0 }, import: { brl: 500, usd: 100 }, section: { brl: 900, usd: 180 }, lang2: { brl: 700, usd: 140 },
+};
+const PICKS = ["launch", "fix", "care", "audit", "import", "section", "lang2"];
+
+const T = {
+  en: {
+    "nav.services": "Services", "nav.packages": "Packages", "nav.process": "How I work", "nav.faq": "FAQ",
+    "cta.book": "Book a call", "hero.title": "Shopify stores, built to sell", "hero.wa": "or message me on WhatsApp",
+    "ch0.t": "Hi, I'm Luan.", "ch0.p": "A developer from Brazil who builds and fixes online stores. You talk to me from the first call to launch day.", "ch0.a": "How I work",
+    "ch1.t": "Shopify stores", "ch1.p": "New stores, theme changes, custom sections and app setup. You get a fixed price after a short call.", "ch1.a": "See packages",
+    "ch3.t": "Free speed audit", "ch3.p": "Send me your store link. I test it on a phone and send you a short list of fixes.", "ch3.a": "Ask for the audit",
+    "ch5.t": "Let's talk", "ch5.p": "15 minutes, free. Tell me about your store, and I tell you what I would fix first.", "ch5.a": "Read the FAQ",
+    "t0.n": "Hello", "t0.s": "Luan Afonso, developer", "t0.m": "Brazil, remote",
+    "t1.s": "Themes, sections, apps", "t1.m": "1 to 4 weeks",
+    "t3.n": "Speed audit", "t3.s": "Mobile load check", "t3.m": "2 business days",
+    "t5.n": "Let's talk", "t5.s": "Video call", "t5.m": "15 minutes",
+    "from": "from", "free": "Free", "permo": "/mo",
+    "carousel.label": "What I do",
+    "pk.title": "Pick a package", "pk.sub": "Each one has a starting price. After a 15-minute call you get a fixed price on one page.",
+    "pk1.n": "Store fix", "pk1.l1": "Theme and layout changes", "pk1.l2": "Bug and checkout fixes", "pk1.l3": "Up to 10 hours of work", "pk1.l4": "Ready in about 1 week",
+    "pk2.n": "Store launch", "pk2.l1": "Shopify store setup", "pk2.l2": "Theme with your brand", "pk2.l3": "Payments and shipping set up", "pk2.l4": "2 weeks of support after launch",
+    "pk3.n": "Care plan", "pk3.l1": "Updates and backups", "pk3.l2": "Small changes every month", "pk3.l3": "Monthly speed check", "pk3.l4": "Cancel any time", "pk3.terms": "Monthly. No contract.",
+    "pk.terms": "Fixed price after a 15-minute call.", "pk.add": "Add to receipt", "pk.added": "On the receipt", "pk.rec": "Recommended",
+    "mock.prices": "Mock prices. Luan sets the real ones.",
+    "b.title": "Build your receipt", "b.sub": "Switch services on and off. The total is an estimate, not a quote.",
+    "i.launch": "Store launch", "i.launch.d": "Full Shopify setup",
+    "i.fix": "Store fix", "i.fix.d": "Up to 10 hours of changes",
+    "i.care": "Care plan, first month", "i.care.d": "Updates, backups, small changes",
+    "i.audit": "Speed audit", "i.audit.d": "Mobile test and a list of fixes",
+    "i.import": "Product import", "i.import.d": "Up to 200 products from a spreadsheet",
+    "i.section": "Custom section", "i.section.d": "One new block for your theme",
+    "i.lang2": "Second language", "i.lang2.d": "Your store in English and Portuguese",
+    "r.kind": "Store work estimate", "r.note": "Estimate only. The fixed price comes after a 15-minute call.",
+    "r.empty": "The receipt is empty. Switch on a service to see the total.", "r.free": "free",
+    "pr.title": "How I work",
+    "pr1.n": "Call", "pr1.p": "15 minutes, free. You tell me about the store.",
+    "pr2.n": "Scope", "pr2.p": "One page with the work, the dates and a fixed price.",
+    "pr3.n": "Build", "pr3.p": "A preview link every week, so you see progress.",
+    "pr4.n": "Launch", "pr4.p": "Your store goes live. Then 2 weeks of support.",
+    "d.title": "Demo stores", "d.sub": "I am new to freelancing, so there are no client stories here yet. These demo stores show how I work, and each one says it is a demo.",
+    "mock.demos": "Sample entries. Luan replaces them with his real demo stores.",
+    "d.p": "Problem", "d.a": "Approach", "d.r": "Result", "d.rr": "Live link and speed report here when it is built.",
+    "d1.n": "Coffee roaster on Shopify", "d1.p": "Needs coffee subscriptions and fast pages on a phone.", "d1.a": "A free theme, a subscription app and compressed photos.",
+    "d2.n": "Clothing store on Shopify", "d2.p": "Sizes and colors per product, and Pix at checkout.", "d2.a": "Product variants, a Pix payment app and optimized images.",
+    "f.title": "Questions",
+    "f1.q": "Do you work with stores outside Brazil?", "f1.a": "Yes. I work remotely, in English or Portuguese.",
+    "f2.q": "How do you set the price?", "f2.a": "Each package shows a starting price. After a 15-minute call, I send a one-page scope with a fixed price.",
+    "f3.q": "I already have a store. Can you help?", "f3.a": "Yes. I fix, speed up and add features to stores that already exist. The free audit is a good place to start.",
+    "f4.q": "When should I not hire you?", "f4.a": "When you need a brand identity or product photos first. I build and fix the store; a designer or a photographer does those better.",
+    "f5.q": "Who owns the store and the code?", "f5.a": "You do. The accounts, the theme and the code are yours.",
+    "c.title": "Tell me about your store", "c.sub": "The 15-minute call is free. If you prefer to write, use the form or WhatsApp.",
+    "c.copy": "Copy", "c.copied": "Copied", "mock.contact": "Mock contact details and booking link. The form sends nothing.",
+    "c.name": "Your name", "c.url": "Store link (optional)", "c.urlph": "https://yourstore.com", "c.msg": "What do you need?", "c.send": "Send message",
+    "e.name": "Add your name so I know who to answer.", "e.url": "The link must start with https:// or http://", "e.msg": "Tell me in a few words what you need.",
+    "c.sentT": "Message ready", "c.sent": "Thanks, {name}. I reply within one business day.", "c.again": "Write another",
+  },
+  pt: {
+    "nav.services": "Serviços", "nav.packages": "Pacotes", "nav.process": "Como trabalho", "nav.faq": "Dúvidas",
+    "cta.book": "Agendar conversa", "hero.title": "Lojas Shopify feitas para vender", "hero.wa": "ou fale comigo no WhatsApp",
+    "ch0.t": "Oi, eu sou o Luan.", "ch0.p": "Sou desenvolvedor, aqui do Brasil, e crio e conserto lojas virtuais. Você fala direto comigo, da primeira conversa ao lançamento.", "ch0.a": "Como trabalho",
+    "ch1.t": "Lojas Shopify", "ch1.p": "Loja nova, ajustes no tema, seções personalizadas e configuração de apps. Você recebe um preço fechado depois de uma conversa rápida.", "ch1.a": "Ver pacotes",
+    "ch3.t": "Auditoria de velocidade grátis", "ch3.p": "Me mande o link da sua loja. Eu testo no celular e te envio uma lista curta de correções.", "ch3.a": "Pedir a auditoria",
+    "ch5.t": "Vamos conversar", "ch5.p": "15 minutos, grátis. Me conte sobre a sua loja e eu digo o que arrumaria primeiro.", "ch5.a": "Ver as dúvidas",
+    "t0.n": "Olá", "t0.s": "Luan Afonso, desenvolvedor", "t0.m": "Brasil, remoto",
+    "t1.s": "Temas, seções, apps", "t1.m": "1 a 4 semanas",
+    "t3.n": "Auditoria", "t3.s": "Teste no celular", "t3.m": "2 dias úteis",
+    "t5.n": "Vamos falar", "t5.s": "Chamada de vídeo", "t5.m": "15 minutos",
+    "from": "a partir de", "free": "Grátis", "permo": "/mês",
+    "carousel.label": "O que eu faço",
+    "pk.title": "Escolha um pacote", "pk.sub": "Cada um tem um preço inicial. Depois de 15 minutos de conversa, você recebe um preço fechado em uma página.",
+    "pk1.n": "Ajuste na loja", "pk1.l1": "Mudanças no tema e no layout", "pk1.l2": "Correção de erros e do checkout", "pk1.l3": "Até 10 horas de trabalho", "pk1.l4": "Pronto em cerca de 1 semana",
+    "pk2.n": "Loja nova", "pk2.l1": "Montagem da loja na Shopify", "pk2.l2": "Tema com a sua marca", "pk2.l3": "Pagamentos e frete configurados", "pk2.l4": "2 semanas de suporte após o lançamento",
+    "pk3.n": "Plano mensal", "pk3.l1": "Atualizações e backups", "pk3.l2": "Pequenas mudanças todo mês", "pk3.l3": "Teste de velocidade mensal", "pk3.l4": "Cancele quando quiser", "pk3.terms": "Mensal. Sem fidelidade.",
+    "pk.terms": "Preço fechado depois de 15 minutos de conversa.", "pk.add": "Pôr no recibo", "pk.added": "No recibo", "pk.rec": "Recomendado",
+    "mock.prices": "Preços de exemplo. O Luan define os reais.",
+    "b.title": "Monte o seu recibo", "b.sub": "Ligue e desligue serviços. O total é uma estimativa, não um orçamento.",
+    "i.launch": "Loja nova", "i.launch.d": "Montagem completa na Shopify",
+    "i.fix": "Ajuste na loja", "i.fix.d": "Até 10 horas de ajustes",
+    "i.care": "Plano mensal, 1º mês", "i.care.d": "Atualizações, backups, pequenas mudanças",
+    "i.audit": "Auditoria de velocidade", "i.audit.d": "Teste no celular e lista de correções",
+    "i.import": "Importação de produtos", "i.import.d": "Até 200 produtos a partir de uma planilha",
+    "i.section": "Seção personalizada", "i.section.d": "Um bloco novo para o seu tema",
+    "i.lang2": "Segundo idioma", "i.lang2.d": "Sua loja em português e inglês",
+    "r.kind": "Estimativa de serviços", "r.note": "Só uma estimativa. O preço fechado vem depois de 15 minutos de conversa.",
+    "r.empty": "O recibo está vazio. Ligue um serviço para ver o total.", "r.free": "grátis",
+    "pr.title": "Como eu trabalho",
+    "pr1.n": "Conversa", "pr1.p": "15 minutos, grátis. Você me conta sobre a loja.",
+    "pr2.n": "Escopo", "pr2.p": "Uma página com o trabalho, as datas e o preço fechado.",
+    "pr3.n": "Construção", "pr3.p": "Um link de prévia toda semana, para você acompanhar.",
+    "pr4.n": "Lançamento", "pr4.p": "A loja vai ao ar. Depois, 2 semanas de suporte.",
+    "d.title": "Lojas de demonstração", "d.sub": "Estou começando como freelancer, então ainda não há histórias de clientes aqui. Estas lojas de demonstração mostram como eu trabalho, e cada uma avisa que é demo.",
+    "mock.demos": "Exemplos. O Luan troca pelas lojas de demonstração reais.",
+    "d.p": "Problema", "d.a": "Solução", "d.r": "Resultado", "d.rr": "Link no ar e relatório de velocidade aqui quando ficar pronta.",
+    "d1.n": "Torrefação de café na Shopify", "d1.p": "Precisa de assinatura de café e páginas rápidas no celular.", "d1.a": "Um tema gratuito, um app de assinatura e fotos comprimidas.",
+    "d2.n": "Loja de roupas na Shopify", "d2.p": "Tamanhos e cores por produto, e Pix no checkout.", "d2.a": "Variantes de produto, um app de Pix e imagens otimizadas.",
+    "f.title": "Dúvidas",
+    "f1.q": "Você atende lojas fora do Brasil?", "f1.a": "Sim. Trabalho de forma remota, em português ou inglês.",
+    "f2.q": "Como você define o preço?", "f2.a": "Cada pacote mostra um preço inicial. Depois de 15 minutos de conversa, eu envio um escopo de uma página com o preço fechado.",
+    "f3.q": "Eu já tenho uma loja. Você ajuda?", "f3.a": "Sim. Eu corrijo, acelero e adiciono funções em lojas que já existem. A auditoria grátis é um bom começo.",
+    "f4.q": "Quando eu não devo te contratar?", "f4.a": "Quando você precisa primeiro de identidade visual ou de fotos de produto. Eu construo e conserto a loja; um designer ou um fotógrafo faz isso melhor.",
+    "f5.q": "De quem é a loja e o código?", "f5.a": "Seus. As contas, o tema e o código são seus.",
+    "c.title": "Me conte sobre a sua loja", "c.sub": "A conversa de 15 minutos é grátis. Se preferir escrever, use o formulário ou o WhatsApp.",
+    "c.copy": "Copiar", "c.copied": "Copiado", "mock.contact": "Contatos e link de agenda de exemplo. O formulário não envia nada.",
+    "c.name": "Seu nome", "c.url": "Link da loja (opcional)", "c.urlph": "https://sualoja.com.br", "c.msg": "Do que você precisa?", "c.send": "Enviar mensagem",
+    "e.name": "Coloque seu nome para eu saber a quem responder.", "e.url": "O link precisa começar com https:// ou http://", "e.msg": "Conte em poucas palavras do que você precisa.",
+    "c.sentT": "Mensagem pronta", "c.sent": "Obrigado, {name}. Eu respondo em até um dia útil.", "c.again": "Escrever outra",
+  },
+};
+
+let lang = "en";
+try { const saved = localStorage.getItem("la.lang"); if (saved === "pt" || saved === "en") lang = saved; } catch (e) {}
+const t = (k) => T[lang][k] ?? T.en[k] ?? k;
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+/* Virtual scroll: the page does not scroll. Wheel, touch and keys move a target, and each frame eases the track toward it.
+   The track holds the page two times, and the offset wraps at the height of one copy, so the end flows into the start. */
+const vs = (() => {
+  const view = document.createElement("div"), track = document.createElement("div"), copy = document.createElement("div");
+  view.className = "vs"; track.className = "vs-track"; copy.className = "vs-copy";
+  copy.append($("main"), $(".foot"));
+  const twin = copy.cloneNode(true);
+  twin.setAttribute("aria-hidden", "true");
+  $$("[id]", twin).forEach((el) => el.removeAttribute("id"));
+  $$("[for], [aria-labelledby]", twin).forEach((el) => { el.removeAttribute("for"); el.removeAttribute("aria-labelledby"); });
+  $$(".till-stop", twin).forEach((el) => el.remove());
+  $$("a, button, input, textarea, summary", twin).forEach((el) => { el.tabIndex = -1; });
+  $$(".ticket", twin).forEach((tk) => tk.classList.add("is-printed"));
+  twin.addEventListener("submit", (e) => e.preventDefault());
+  track.append(copy, twin); view.append(track);
+  $(".nav").after(view);
+  document.documentElement.classList.add("vs-on");
+
+  const still = matchMedia("(prefers-reduced-motion: reduce)"), hooks = [];
+  let target = 0, current = 0, shown = NaN, last = performance.now(), len = 1, dir = 1, stickies = [];
+  const navH = () => $(".nav").offsetHeight;
+  const wrap = (y) => ((y % len) + len) % len;
+  const topOf = (el) => { let y = 0; for (; el && el !== copy; el = el.offsetParent) y += el.offsetTop; return y; };
+  const move = (dy) => { target += dy; if (dy) dir = Math.sign(dy); };
+
+  /* position: sticky has no effect in a page that does not scroll, so each frame places the sticky blocks by hand. */
+  function measure() {
+    len = copy.offsetHeight;
+    stickies = $$(".till-stage, .receipt-wrap", copy).filter((el) => getComputedStyle(el).position === "sticky").map((el) => {
+      const top = topOf(el);
+      return { el, at: parseFloat(getComputedStyle(el).top) || 0, top, max: topOf(el.parentElement) + el.parentElement.offsetHeight - top - el.offsetHeight };
+    });
+    $$(".till-stage, .receipt-wrap", copy).forEach((el) => { el.style.transform = ""; });
+    shown = NaN;
+  }
+  function frame(now) {
+    const dt = Math.min(now - last, 64) / 1000; last = now;
+    current = still.matches || Math.abs(target - current) < 0.1 ? target : current + (target - current) * (1 - Math.exp(-dt * 8));
+    const m = wrap(current);
+    if (m !== shown) {
+      shown = m;
+      track.style.transform = `translate3d(0, ${-m}px, 0)`;
+      stickies.forEach((k) => { k.el.style.transform = `translateY(${Math.max(0, Math.min(m + k.at - k.top, k.max))}px)`; });
+      hooks.forEach((fn) => fn(m));
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* Go the short way round: forward through the seam when that is nearer. */
+  function goTo(el, at = navH()) {
+    let d = topOf(el) - at - wrap(target);
+    if (d > len / 2) d -= len; else if (d < -len / 2) d += len;
+    move(d);
+  }
+
+  addEventListener("wheel", (e) => {
+    if (e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+    e.preventDefault();
+    move(e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1));
+  }, { passive: false });
+
+  let ty = null, tx = 0, tt = 0, vy = 0, lock = null;
+  view.addEventListener("touchstart", (e) => { ({ clientX: tx, clientY: ty } = e.touches[0]); tt = e.timeStamp; vy = 0; lock = null; }, { passive: true });
+  view.addEventListener("touchmove", (e) => {
+    if (ty === null) return;
+    const { clientX: x, clientY: y } = e.touches[0], dy = ty - y;
+    if (!lock) { if (Math.abs(dy) + Math.abs(tx - x) < 6) return; lock = Math.abs(dy) > Math.abs(tx - x) ? "y" : "x"; }
+    if (lock !== "y") return;
+    vy = 0.8 * dy / Math.max(e.timeStamp - tt, 1) + 0.2 * vy;
+    ty = y; tx = x; tt = e.timeStamp;
+    move(dy); current = target;
+  }, { passive: true });
+  view.addEventListener("touchend", () => { if (lock === "y") move(vy * 300); ty = null; }, { passive: true });
+
+  addEventListener("keydown", (e) => {
+    if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.target.closest("input, textarea, select, [contenteditable]")) return;
+    if (e.key === " " && e.target.closest("a, button, summary")) return;
+    const page = innerHeight - navH() - 48;
+    const d = { ArrowDown: 80, ArrowUp: -80, PageDown: page, PageUp: -page, " ": e.shiftKey ? -page : page }[e.key];
+    if (e.key === "Home") { e.preventDefault(); move(-wrap(target)); }
+    else if (e.key === "End") { e.preventDefault(); move(len - innerHeight - wrap(target)); }
+    else if (d !== undefined) { e.preventDefault(); move(d); }
+  });
+
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest('a[href^="#"]'), el = a && document.getElementById(a.hash.slice(1));
+    if (!el) return;
+    e.preventDefault();
+    if (!el.matches("a, button, input, textarea, summary")) el.tabIndex = -1;
+    el.focus({ preventScroll: true });
+    goTo(el);
+    try { history.replaceState(null, "", a.hash); } catch (err) {}
+  });
+
+  /* Tab and form errors move the focus; bring the focused element into view. */
+  document.addEventListener("focusin", (e) => {
+    const el = e.target, r = el.getBoundingClientRect(), top = navH();
+    if (!copy.contains(el) || (r.top >= top && r.bottom <= innerHeight)) return;
+    goTo(el, r.height > innerHeight - top - 32 ? top : Math.max(top + 16, (innerHeight - r.height) / 2));
+  });
+
+  new ResizeObserver(measure).observe(copy);
+  addEventListener("resize", measure);
+  measure();
+  const start = location.hash && document.getElementById(location.hash.slice(1));
+  if (start) { target = current = topOf(start) - navH(); }
+  requestAnimationFrame(frame);
+
+  return { topOf, onFrame: (fn) => hooks.push(fn), dir: () => dir };
+})();
+const money = (key) => {
+  const v = PRICES[key][lang === "pt" ? "brl" : "usd"];
+  return new Intl.NumberFormat(lang === "pt" ? "pt-BR" : "en-US", { style: "currency", currency: lang === "pt" ? "BRL" : "USD", maximumFractionDigits: 0 }).format(v);
+};
+const moneyOf = (v) => new Intl.NumberFormat(lang === "pt" ? "pt-BR" : "en-US", { style: "currency", currency: lang === "pt" ? "BRL" : "USD", maximumFractionDigits: 0 }).format(v);
+
+function applyLang() {
+  document.documentElement.lang = lang === "pt" ? "pt-BR" : "en";
+  $$("[data-t]").forEach((el) => { el.textContent = t(el.dataset.t); });
+  $$("[data-t-aria]").forEach((el) => el.setAttribute("aria-label", t(el.dataset.tAria)));
+  $$("[data-t-ph]").forEach((el) => el.setAttribute("placeholder", t(el.dataset.tPh)));
+  $$("[data-price]").forEach((el) => { el.textContent = money(el.dataset.price); });
+  $$(".lang button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+  $$("[data-add]").forEach(syncAddButton);
+  $("#r-date").textContent = new Intl.DateTimeFormat(lang === "pt" ? "pt-BR" : "en-US", { day: "2-digit", month: "short", year: "numeric" }).format(new Date());
+  renderPicks();
+  renderReceipt(false);
+}
+$$(".lang button").forEach((b) => b.addEventListener("click", () => {
+  lang = b.dataset.lang;
+  try { localStorage.setItem("la.lang", lang); } catch (e) {}
+  applyLang();
+}));
+
+/* Figures: drawn in grey, then printed as one-bit ordered dither on paper, the way a thermal head prints. */
+const BAYER = [0,32,8,40,2,34,10,42,48,16,56,24,50,18,58,26,12,44,4,36,14,46,6,38,60,28,52,20,62,30,54,22,3,35,11,43,1,33,9,41,51,19,59,27,49,17,57,25,15,47,7,39,13,45,5,37,63,31,55,23,61,29,53,21];
+const INK = [23, 24, 26], PAPER = [238, 240, 236];
+function printFigure(canvas, draw) {
+  const W = canvas.width, H = canvas.height;
+  const src = document.createElement("canvas"); src.width = W; src.height = H;
+  const g = src.getContext("2d");
+  draw(g, W, H);
+  const s = g.getImageData(0, 0, W, H).data;
+  const alpha = (x, y) => (x < 0 || x >= W || y < 0) ? 0 : (y >= H ? 255 : s[(y * W + x) * 4 + 3]);
+  const out = canvas.getContext("2d"), img = out.createImageData(W, H), o = img.data;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = (y * W + x) * 4;
+    if (s[i + 3] < 128) continue;
+    const lum = (0.3 * s[i] + 0.59 * s[i + 1] + 0.11 * s[i + 2]) / 255;
+    const edge = alpha(x - 1, y) < 128 || alpha(x + 1, y) < 128 || alpha(x, y - 1) < 128 || alpha(x, y + 1) < 128;
+    const c = edge || lum < (BAYER[(y & 7) * 8 + (x & 7)] + 0.5) / 64 ? INK : PAPER;
+    o[i] = c[0]; o[i + 1] = c[1]; o[i + 2] = c[2]; o[i + 3] = 255;
+  }
+  out.putImageData(img, 0, 0);
+}
+const radial = (g, x, y, r, stops) => { const gr = g.createRadialGradient(x, y, 0, x, y, r); stops.forEach(([p, c]) => gr.addColorStop(p, c)); return gr; };
+const linear = (g, x0, y0, x1, y1, stops) => { const gr = g.createLinearGradient(x0, y0, x1, y1); stops.forEach(([p, c]) => gr.addColorStop(p, c)); return gr; };
+const FIGS = {
+  bust(g) {
+    g.fillStyle = radial(g, 30, 64, 46, [[0, "#f4f4f4"], [.55, "#9a9a9a"], [1, "#2e2e2e"]]);
+    g.beginPath(); g.ellipse(40, 86, 31, 24, 0, Math.PI, 0); g.fill();
+    g.fillStyle = linear(g, 34, 0, 47, 0, [[0, "#cfcfcf"], [1, "#4a4a4a"]]); g.fillRect(34, 46, 12, 18);
+    g.fillStyle = radial(g, 34, 26, 26, [[0, "#ffffff"], [.5, "#b4b4b4"], [1, "#3c3c3c"]]);
+    g.beginPath(); g.ellipse(40, 34, 15, 18, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = radial(g, 34, 16, 20, [[0, "#6a6a6a"], [1, "#1c1c1c"]]);
+    g.beginPath(); g.ellipse(40, 25, 16, 11, 0, Math.PI, 0); g.lineTo(55, 30); g.quadraticCurveTo(48, 22, 36, 24); g.lineTo(25, 30); g.fill();
+  },
+  bag(g) {
+    g.strokeStyle = "#3a3a3a"; g.lineWidth = 4; g.beginPath(); g.arc(40, 30, 12, Math.PI, 0); g.stroke();
+    g.fillStyle = linear(g, 18, 0, 64, 0, [[0, "#f6f6f6"], [.55, "#b0b0b0"], [1, "#5c5c5c"]]);
+    g.beginPath(); g.moveTo(18, 30); g.lineTo(62, 30); g.lineTo(66, 76); g.lineTo(14, 76); g.closePath(); g.fill();
+    g.fillStyle = "#e9e9e9"; g.fillRect(18, 30, 44, 6);
+    g.fillStyle = "#4a4a4a"; g.beginPath(); g.arc(30, 40, 2, 0, Math.PI * 2); g.arc(50, 40, 2, 0, Math.PI * 2); g.fill();
+    g.fillStyle = radial(g, 40, 56, 12, [[0, "#ffffff"], [1, "#9a9a9a"]]); g.fillRect(31, 50, 18, 12);
+  },
+  watch(g) {
+    g.fillStyle = linear(g, 34, 0, 46, 0, [[0, "#e4e4e4"], [1, "#545454"]]); g.fillRect(35, 10, 10, 9);
+    g.fillStyle = radial(g, 31, 38, 34, [[0, "#ffffff"], [.6, "#8c8c8c"], [1, "#2a2a2a"]]);
+    g.beginPath(); g.arc(40, 47, 27, 0, Math.PI * 2); g.fill();
+    g.fillStyle = radial(g, 35, 42, 26, [[0, "#ffffff"], [1, "#c9c9c9"]]);
+    g.beginPath(); g.arc(40, 47, 20, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = "#2a2a2a"; g.lineWidth = 2;
+    for (let k = 0; k < 12; k++) { const a = k * Math.PI / 6; g.beginPath(); g.moveTo(40 + Math.cos(a) * 15, 47 + Math.sin(a) * 15); g.lineTo(40 + Math.cos(a) * 18, 47 + Math.sin(a) * 18); g.stroke(); }
+    g.lineWidth = 3; g.beginPath(); g.moveTo(40, 47); g.lineTo(40, 33); g.moveTo(40, 47); g.lineTo(50, 53); g.stroke();
+  },
+  cup(g) {
+    g.fillStyle = radial(g, 34, 66, 36, [[0, "#ffffff"], [1, "#8a8a8a"]]);
+    g.beginPath(); g.ellipse(40, 72, 31, 7, 0, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = "#7a7a7a"; g.lineWidth = 5; g.beginPath(); g.arc(61, 48, 9, -Math.PI / 2, Math.PI / 2); g.stroke();
+    g.fillStyle = linear(g, 20, 0, 60, 0, [[0, "#ffffff"], [.5, "#c4c4c4"], [1, "#565656"]]);
+    g.beginPath(); g.moveTo(20, 34); g.lineTo(60, 34); g.lineTo(56, 64); g.quadraticCurveTo(40, 72, 24, 64); g.closePath(); g.fill();
+    g.fillStyle = "#e6e6e6"; g.beginPath(); g.ellipse(40, 34, 20, 6, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = radial(g, 36, 33, 16, [[0, "#5a5a5a"], [1, "#1e1e1e"]]); g.beginPath(); g.ellipse(40, 34, 17, 4.5, 0, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = "#d8d8d8"; g.lineWidth = 2.5;
+    [[34, 26], [44, 24]].forEach(([x, y]) => { g.beginPath(); g.moveTo(x, y); g.bezierCurveTo(x - 5, y - 6, x + 5, y - 10, x, y - 16); g.stroke(); });
+  },
+};
+function drawFigures() { $$("canvas[data-fig]").forEach((c) => printFigure(c, FIGS[c.dataset.fig])); }
+
+/* Stamp ink and counter flecks: 1-bit rasters made with the same Bayer matrix as the figures. */
+function hash(x, y, k) { let h = (x * 374761393 + y * 668265263 + k * 2147483647) >>> 0; h = (h ^ (h >>> 13)) * 1274126177 >>> 0; return (h ^ (h >>> 16)) / 4294967296; }
+function smooth(x, y, k) {
+  const xi = Math.floor(x), yi = Math.floor(y), fx = x - xi, fy = y - yi;
+  const ux = fx * fx * (3 - 2 * fx), uy = fy * fy * (3 - 2 * fy);
+  const a = hash(xi, yi, k), b = hash(xi + 1, yi, k), c = hash(xi, yi + 1, k), d = hash(xi + 1, yi + 1, k);
+  return a + (b - a) * ux + (c - a) * uy + (a - b - c + d) * ux * uy;
+}
+function inkMask() {
+  const W = 180, H = 60, c = document.createElement("canvas"); c.width = W; c.height = H;
+  const g = c.getContext("2d"), img = g.createImageData(W, H), o = img.data;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const d = Math.min(x, y, W - 1 - x, H - 1 - y);
+    const blot = smooth(x / 7, y / 5, 11);
+    const cover = (d < 2 ? 0.62 : d < 5 ? 0.8 : 0.9) - Math.max(0, 0.36 - blot) * 1.15;
+    const thresh = (BAYER[(y & 7) * 8 + (x & 7)] + 0.5) / 64 * 0.3 + hash(x, y, 3) * 0.7;
+    o[(y * W + x) * 4 + 3] = thresh < cover ? 255 : 0;
+  }
+  g.putImageData(img, 0, 0);
+  return c.toDataURL("image/png");
+}
+function fleckTile() {
+  const N = 128, c = document.createElement("canvas"); c.width = N; c.height = N;
+  const g = c.getContext("2d");
+  const tones = ["rgb(233 235 231 / .13)", "rgb(233 235 231 / .08)", "rgb(8 10 12 / .42)", "rgb(130 138 144 / .16)"];
+  for (let cy = 0; cy < N; cy += 8) for (let cx = 0; cx < N; cx += 8) for (let j = 0; j < 2; j++) {
+    const k = cy * N + cx + j * 7919;
+    const x = cx + Math.floor(hash(k, 1, 7) * 8), y = cy + Math.floor(hash(k, 2, 7) * 8), s = hash(k, 3, 7) < 0.8 ? 1 : 2;
+    g.fillStyle = tones[Math.floor(hash(k, 4, 7) * tones.length)]; g.fillRect(x, y, s, s);
+  }
+  return c.toDataURL("image/png");
+}
+document.documentElement.style.setProperty("--ink-mask", `url(${inkMask()})`);
+document.documentElement.style.setProperty("--fleck", `url(${fleckTile()})`);
+
+/* Barcodes: real Code-39-like stripes built from each ticket's code. */
+function drawBars(c) {
+  const g = c.getContext("2d"); g.fillStyle = "rgb(23 24 26)"; g.clearRect(0, 0, c.width, c.height);
+  let x = 1, seed = [...c.dataset.bars].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) >>> 0, 7);
+  while (x < c.width - 2) { seed = (seed * 1103515245 + 12345) >>> 0; const w = 1 + (seed >>> 29) % 2; g.fillRect(x, 0, w, c.height); x += w + 1 + ((seed >>> 27) % 2); }
+}
+$$("canvas[data-bars]").forEach(drawBars);
+
+/* The till: the virtual scroll picks the ticket at the center; on phones the swipe row does. */
+const till = $("#services"), tickets = $$(".ticket", till), chapters = $$(".chapter", till), stops = $$(".till-stop", till), track = $(".track", till);
+const rowMode = matchMedia("(max-width: 767px), (prefers-reduced-motion: reduce)");
+const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+let active = -1, observer = null;
+
+function setActive(i, instant = false) {
+  if (i === active) return;
+  active = i;
+  if (instant) till.classList.add("is-jump");
+  tickets.forEach((tk, k) => {
+    const d = k - i;
+    tk.style.setProperty("--d", d); tk.style.setProperty("--ad", Math.abs(d)); tk.style.zIndex = String(10 - Math.abs(d));
+    tk.classList.toggle("is-active", d === 0);
+  });
+  chapters.forEach((ch, k) => ch.classList.toggle("is-active", k === i));
+  if (instant) { void till.offsetWidth; till.classList.remove("is-jump"); }
+}
+function observe() {
+  observer?.disconnect();
+  if (rowMode.matches) {
+    observer = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) setActive(tickets.indexOf(e.target)); });
+    }, { root: track, threshold: 0.6 });
+    tickets.forEach((tk) => observer.observe(tk));
+  }
+}
+/* The stop under the middle of the view picks the ticket. Out of view, the till waits on the ticket it shows first:
+   the first one when the page comes round from the top, the last one when it comes back from below. */
+vs.onFrame((m) => {
+  if (rowMode.matches) return;
+  const top = vs.topOf(till), mid = m + innerHeight / 2;
+  if (top + till.offsetHeight < m || top > m + innerHeight) return setActive(vs.dir() > 0 ? 0 : tickets.length - 1, true);
+  const step = stops[1].offsetTop - stops[0].offsetTop;
+  setActive(Math.max(0, Math.min(tickets.length - 1, Math.floor((mid - top) / step))));
+});
+rowMode.addEventListener("change", observe);
+
+/* Receipt builder */
+const selected = new Set(["launch", "audit"]);
+let printed = new Set(selected);
+function renderPicks() {
+  $("#picks").innerHTML = PICKS.map((k) => `
+    <li class="pick"><label>
+      <input class="switch" type="checkbox" role="switch" id="pick-${k}" data-pick="${k}" ${selected.has(k) ? "checked" : ""}>
+      <span><span class="pick-name">${t("i." + k)}</span><span class="pick-desc">${t("i." + k + ".d")}</span></span>
+      <span class="pick-price">${PRICES[k].usd === 0 ? t("free") : "+" + money(k)}</span>
+    </label></li>`).join("");
+  $$("[data-pick]").forEach((inp) => inp.addEventListener("change", () => {
+    inp.checked ? selected.add(inp.dataset.pick) : selected.delete(inp.dataset.pick);
+    $$(`[data-add="${inp.dataset.pick}"]`).forEach(syncAddButton);
+    renderReceipt(true);
+  }));
+}
+function renderReceipt(animate) {
+  const list = $("#r-lines");
+  const items = PICKS.filter((k) => selected.has(k));
+  list.innerHTML = items.length ? items.map((k) => `
+    <li class="r-line${animate && !printed.has(k) && !reduce.matches ? " is-printing" : ""}"><span>${t("i." + k)}</span><span class="lead"></span><span class="v">${PRICES[k].usd === 0 ? t("r.free") : money(k)}</span></li>`).join("")
+    : `<li class="r-empty">${t("r.empty")}</li>`;
+  printed = new Set(items);
+  const sum = items.reduce((a, k) => a + PRICES[k][lang === "pt" ? "brl" : "usd"], 0);
+  setOdometer($("#r-total"), moneyOf(sum));
+}
+function setOdometer(el, str) {
+  const shape = str.replace(/\d/g, "0");
+  el.setAttribute("aria-label", str);
+  if (el.dataset.shape !== shape) {
+    el.dataset.shape = shape;
+    // New columns start from the old digits, right-aligned, so the till rolls from the last total.
+    const prev = (el.dataset.digits || "").split("");
+    const count = str.replace(/\D/g, "").length;
+    let k = 0;
+    el.innerHTML = [...str].map((c) => {
+      if (!/\d/.test(c)) return `<span aria-hidden="true">${c}</span>`;
+      const from = prev[prev.length - (count - k++)] ?? 0;
+      return `<span class="roll" aria-hidden="true"><span class="roll-col" style="--v:${from}">${"0123456789".split("").map((n) => `<span>${n}</span>`).join("")}</span></span>`;
+    }).join("");
+    requestAnimationFrame(() => requestAnimationFrame(() => fill()));
+  } else fill();
+  function fill() { const digits = str.replace(/\D/g, ""); el.dataset.digits = digits; $$(".roll-col", el).forEach((col, k) => col.style.setProperty("--v", digits[k])); }
+}
+function syncAddButton(b) {
+  const on = selected.has(b.dataset.add);
+  b.setAttribute("aria-pressed", String(on));
+  $("span", b).textContent = t(on ? "pk.added" : "pk.add");
+}
+$$("[data-add]").forEach((b) => b.addEventListener("click", () => {
+  const k = b.dataset.add;
+  selected.has(k) ? selected.delete(k) : selected.add(k);
+  const sw = $("#pick-" + k); if (sw) sw.checked = selected.has(k);
+  syncAddButton(b);
+  renderReceipt(true);
+}));
+
+/* Contact */
+$$("[data-copy]").forEach((b) => b.addEventListener("click", async () => {
+  const el = $("#" + b.dataset.copy);
+  try { await navigator.clipboard.writeText(el.textContent); b.textContent = t("c.copied"); setTimeout(() => (b.textContent = t("c.copy")), 1600); }
+  catch (e) { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+}));
+const form = $("#form");
+function fieldError(id, key) {
+  const input = $("#f-" + id), err = $("#e-" + id);
+  input.setAttribute("aria-invalid", key ? "true" : "false");
+  err.hidden = !key; err.textContent = key ? t(key) : "";
+  return !key;
+}
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const name = $("#f-name").value.trim(), url = $("#f-url").value.trim(), msg = $("#f-msg").value.trim();
+  const ok = [
+    fieldError("name", name ? "" : "e.name"),
+    fieldError("url", !url || /^https?:\/\/\S+\.\S+/.test(url) ? "" : "e.url"),
+    fieldError("msg", msg ? "" : "e.msg"),
+  ];
+  const first = ["name", "url", "msg"][ok.indexOf(false)];
+  if (first) { $("#f-" + first).focus(); return; }
+  $("#sent-msg").textContent = t("c.sent").replace("{name}", name.split(" ")[0]);
+  form.hidden = true; $("#sent").hidden = false;
+});
+$("#again").addEventListener("click", () => { form.reset(); form.hidden = false; $("#sent").hidden = true; $("#f-name").focus(); });
+
+/* The till prints its tickets once on load, the center one first, then outward. */
+function printTickets() {
+  tickets.forEach((tk, k) => {
+    if (reduce.matches) { tk.classList.add("is-printed"); return; }
+    setTimeout(() => {
+      tk.classList.add("is-printed", "is-printing");
+      tk.addEventListener("animationend", () => tk.classList.remove("is-printing"), { once: true });
+    }, 250 + Math.abs(k - Math.max(active, 0)) * 160);
+  });
+}
+
+applyLang();
+drawFigures();
+observe();
+setActive(0);
+printTickets();
+</script>
