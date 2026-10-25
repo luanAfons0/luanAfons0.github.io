@@ -1,0 +1,448 @@
+<title>Demo Stores Mock A</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap">
+<style>
+/* Layout: the Demo stores section of the Home page. One split card at a time: the store's proof and
+   its one action on the left, the same store on a laptop and a phone on the right; a pager of three
+   store names under it. With JavaScript off, the three cards stack. Tokens are the Home page tokens. */
+:root {
+  --ground: #f8f9f8;
+  --surface: #ffffff;
+  --tile: #eef1ee;
+  --ink: #0f1110;
+  --ink-2: #454c48;
+  --ink-3: #626b66;
+  --rule: #e0e4e0;
+  --rule-2: #c9cfca;
+  --pass: #08704a;
+  --pass-soft: #e2f1e9;
+
+  --sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --r-tile: 20px;
+  --r-field: 12px;
+  --gutter-l: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  --cycle: 9s;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0; background: var(--ground); color: var(--ink);
+  font: 400 16px/1.55 var(--sans); -webkit-font-smoothing: antialiased; caret-color: var(--pass);
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 50; background: var(--ground); }
+::selection { background: var(--pass); color: var(--surface); }
+h1, h2, h3, p, dl, dd, figure { margin: 0; }
+a { color: inherit; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--pass); outline-offset: 3px; border-radius: 6px; }
+.wrap { max-width: 1280px; margin-inline: auto; padding-left: var(--gutter-l); padding-right: var(--gutter-r); }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+svg.i { width: 1em; height: 1em; flex: none; fill: currentColor; }
+
+/* Buttons: the Home page pill language. */
+.pill {
+  display: inline-flex; align-items: center; gap: 10px; height: 48px; padding: 0 6px 0 22px;
+  border-radius: 999px; border: 0; background: var(--ink); color: var(--surface);
+  font-weight: 560; font-size: 1rem; letter-spacing: -.01em; text-decoration: none; white-space: nowrap; cursor: pointer;
+  transition: background-color .15s var(--ease-out), transform .15s var(--ease-out);
+}
+.pill .disc { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 999px; background: var(--surface); color: var(--ink); transition: transform .25s var(--ease-out); }
+.pill:active { transform: scale(.97); }
+.ghost {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px;
+  border-radius: 999px; border: 1px solid var(--rule-2); background: var(--surface); color: var(--ink);
+  font-weight: 540; font-size: .8125rem; white-space: nowrap; cursor: pointer;
+  transition: border-color .15s var(--ease-out), transform .15s var(--ease-out);
+}
+.ghost:active { transform: scale(.97); }
+@media (hover: hover) and (pointer: fine) {
+  .pill:hover { background: #262a28; }
+  .pill:hover .disc { transform: translate(1px, -1px); }
+  .ghost:hover { border-color: var(--ink); }
+  .tab:not([aria-selected="true"]):hover { box-shadow: 0 0 0 1px var(--ink); }
+  .tab:hover .tab-go { transform: translateX(2px); }
+}
+
+/* Mock bar: only the name and the EN/PT toggle of the nav, so the language can be checked. */
+.bar { height: 64px; border-bottom: 1px solid var(--rule); background: var(--ground); }
+.bar .wrap { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.mark { font-weight: 640; font-size: 1.1875rem; letter-spacing: -.035em; }
+.lang { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--tile); }
+.lang button { border: 0; background: none; height: 30px; min-width: 40px; padding: 0 10px; border-radius: 999px; font: 600 .8125rem var(--sans); color: var(--ink-3); cursor: pointer; transition: background-color .15s, color .15s; }
+.lang button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgb(15 17 16 / .12); }
+
+/* Section head: the Home page head block. */
+.section { padding-block: clamp(72px, 10vw, 128px); }
+.head { display: grid; gap: 14px; max-width: 760px; margin-bottom: clamp(36px, 5vw, 56px); }
+.head h2 { font-size: clamp(2.25rem, 5vw, 4rem); font-weight: 620; line-height: .98; letter-spacing: -.04em; text-wrap: balance; }
+.head p { font-size: 1.125rem; color: var(--ink-2); max-width: 54ch; text-wrap: pretty; }
+
+/* The showcase: panels share one grid cell when JavaScript runs, so the card keeps its height. */
+.panels { display: grid; gap: 24px; }
+.js .panels { gap: 0; }
+.js .store { grid-area: 1 / 1; }
+.store {
+  display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  border-radius: var(--r-tile); background: var(--surface); box-shadow: 0 0 0 1px var(--rule); overflow: hidden;
+}
+.js .store { transition: opacity 280ms var(--ease-out), filter 280ms var(--ease-out), translate 280ms var(--ease-out), visibility 0s linear 0s; }
+.js .store:not(.is-on) { opacity: 0; filter: blur(4px); translate: 0 6px; visibility: hidden; pointer-events: none; transition: opacity 180ms ease-out, filter 180ms ease-out, translate 180ms ease-out, visibility 0s linear 180ms; }
+/* A switch from the keyboard is instant. */
+.panels.is-instant .store { transition: none !important; }
+
+.store-copy { padding: clamp(26px, 3.4vw, 44px); display: grid; gap: 22px; align-content: start; }
+.store-title { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.store-title h3 { font-size: clamp(1.75rem, 2.6vw, 2.25rem); font-weight: 640; line-height: 1.05; letter-spacing: -.035em; }
+.tag { flex: none; font: 600 .75rem/1 var(--sans); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); border: 1px solid var(--rule-2); border-radius: 99px; padding: 6px 10px; }
+.store-kind { margin-top: -14px; font-weight: 500; font-size: .9375rem; color: var(--ink-3); }
+.store-line { color: var(--ink-2); font-size: 1.0625rem; max-width: 40ch; text-wrap: pretty; }
+
+/* Proof: the measured score, in the mono of measured data. */
+.proof { display: flex; align-items: center; gap: 16px; padding-block: 18px; border-block: 1px solid var(--rule); }
+/* The ring is the Filmstrip score ring: green to the score, pass wash for the rest. */
+.score {
+  position: absolute; inset: 0; border-radius: 999px;
+  background: conic-gradient(var(--pass) calc(var(--s) * 1%), var(--pass-soft) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3.5px));
+          mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3.5px));
+}
+.score-wrap { position: relative; width: 64px; height: 64px; flex: none; }
+.score-wrap .n { position: absolute; inset: 0; display: grid; place-items: center; font: 600 1.375rem/1 var(--mono); font-variant-numeric: tabular-nums; color: var(--pass); }
+.proof b { display: block; font-weight: 600; font-size: .9375rem; }
+.proof small { display: block; font: 500 .75rem/1.5 var(--mono); color: var(--ink-3); }
+
+/* Access: the password chip, then the one action. */
+.access { display: grid; gap: 14px; }
+.chip {
+  display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 8px 0 16px;
+  border: 1px solid var(--rule-2); border-radius: var(--r-field); background: var(--ground);
+}
+.chip-k { font-weight: 500; font-size: .875rem; color: var(--ink-3); }
+.chip code { font: 500 1rem var(--mono); letter-spacing: .02em; color: var(--ink); user-select: all; }
+.chip .ghost { margin-left: auto; }
+.chip .ghost .i-done { display: none; color: var(--pass); }
+.chip .ghost.is-done .i-done { display: block; animation: pop 180ms var(--ease-out); }
+@keyframes pop { from { opacity: 0; transform: scale(.85); } }
+.chip .ghost.is-done .i-copy { display: none; }
+.access .pill { justify-self: start; }
+.hint { font-size: .875rem; color: var(--ink-3); }
+
+/* Stage: the store on a laptop and a phone, on the tile mist well. */
+.stage {
+  position: relative; background: var(--tile); display: grid; place-items: center;
+  padding: clamp(64px, 6vw, 80px) clamp(20px, 3vw, 40px) clamp(40px, 5vw, 64px); min-height: 100%;
+}
+.devices { display: flex; align-items: flex-end; justify-content: center; gap: clamp(14px, 2vw, 28px); width: 100%; }
+.laptop { flex: 1 1 auto; max-width: 560px; min-width: 0; }
+.laptop .lid { background: #1b1e1c; border-radius: 14px 14px 4px 4px; padding: 3.2% 3.2% 4.2%; box-shadow: 0 0 0 1px rgb(15 17 16 / .5), 0 24px 40px -24px rgb(15 17 16 / .45); }
+.laptop .screen { aspect-ratio: 16 / 10; border-radius: 4px; overflow: hidden; background: var(--surface); }
+.laptop .base { height: 12px; margin-inline: -7%; border-radius: 2px 2px 12px 12px; background: linear-gradient(#e4e8e5, #b9bfbb 70%, #9aa19c); box-shadow: 0 10px 18px -10px rgb(15 17 16 / .45); position: relative; }
+.laptop .base::before { content: ""; position: absolute; left: 50%; top: 0; width: 18%; height: 5px; translate: -50% 0; border-radius: 0 0 8px 8px; background: #a7aea9; }
+.phone { flex: none; width: clamp(96px, 17%, 150px); background: #1b1e1c; border-radius: 26px; padding: 5px; box-shadow: 0 0 0 1px rgb(15 17 16 / .5), 0 24px 40px -22px rgb(15 17 16 / .5); margin-bottom: 2px; }
+.phone .screen { aspect-ratio: 390 / 844; border-radius: 21px; overflow: hidden; background: var(--surface); }
+.screen video, .screen img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.stage-url { position: absolute; top: 16px; left: 50%; translate: -50% 0; font: 500 .75rem var(--mono); color: var(--ink-3); background: var(--surface); border-radius: 999px; padding: 5px 12px; box-shadow: 0 0 0 1px var(--rule); white-space: nowrap; max-width: calc(100% - 32px); overflow: hidden; text-overflow: ellipsis; }
+
+/* Pager: three store names on one hairline; the active one fills while its loop plays. */
+/* Each store is a control tile: a ruled white tile with a thumbnail, the name, and an arrow disc. */
+.tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+.tab {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px;
+  text-align: left; cursor: pointer; position: relative; overflow: hidden;
+  padding: 10px 12px 10px 10px; border: 0; border-radius: var(--r-field);
+  background: var(--surface); box-shadow: 0 0 0 1px var(--rule-2);
+  transition: box-shadow .2s var(--ease-out), transform 160ms var(--ease-out);
+}
+.tab:active { transform: scale(.98); }
+.tab-thumb { width: 44px; height: 44px; border-radius: 8px; overflow: hidden; background: var(--tile); box-shadow: 0 0 0 1px var(--rule); }
+.tab-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.tab-text { display: grid; gap: 2px; min-width: 0; }
+.tab b { font-weight: 600; font-size: 1rem; letter-spacing: -.01em; color: var(--ink); }
+.tab small { font-size: .8125rem; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tab-go { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 999px; background: var(--tile); color: var(--ink); transition: background-color .2s var(--ease-out), color .2s var(--ease-out), transform .25s var(--ease-out); }
+.tab[aria-selected="true"] { box-shadow: 0 0 0 1.5px var(--ink), 0 14px 28px -18px rgb(15 17 16 / .4); }
+.tab[aria-selected="true"] .tab-go { background: var(--ink); color: var(--surface); }
+/* The loop timer runs along the bottom edge of the active tile. */
+.tab::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--ink); transform: scaleX(0); transform-origin: left; }
+.tabs.is-auto .tab[aria-selected="true"]::after { animation: fill var(--cycle) linear both; }
+@keyframes fill { from { transform: scaleX(0); } to { transform: none; } }
+
+@media (max-width: 960px) {
+  .store { grid-template-columns: minmax(0, 1fr); }
+  .stage { order: -1; min-height: 0; padding-top: 56px; }
+}
+@media (max-width: 560px) {
+  .tabs { gap: 8px; }
+  .tab { grid-template-columns: auto minmax(0, 1fr); gap: 8px; padding: 8px; }
+  .tab-thumb { width: 32px; height: 32px; border-radius: 6px; }
+  .tab b { font-size: .875rem; line-height: 1.2; }
+  .tab small, .tab-go { display: none; }
+  .phone { width: 27%; border-radius: 18px; padding: 4px; }
+  .phone .screen { border-radius: 14px; }
+  .chip { flex-wrap: wrap; padding: 10px 8px 10px 14px; }
+  .access .pill { justify-self: stretch; justify-content: space-between; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .js .store, .js .store:not(.is-on) { filter: none; translate: none; transition: opacity 200ms ease, visibility 0s linear 200ms; }
+  .js .store.is-on { transition: opacity 200ms ease, visibility 0s; }
+  .tabs.is-auto .tab[aria-selected="true"]::after { animation: none; transform: none; }
+  .chip .ghost.is-done .i-done { animation: none; }
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-up-right" viewBox="0 0 256 256"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 256 256"><path d="M216,32H88a8,8,0,0,0-8,8V80H40a8,8,0,0,0-8,8V216a8,8,0,0,0,8,8H168a8,8,0,0,0,8-8V176h40a8,8,0,0,0,8-8V40A8,8,0,0,0,216,32ZM160,208H48V96H160Zm48-48H176V88a8,8,0,0,0-8-8H96V48H208Z"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 256 256"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 256 256"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"/></symbol>
+</svg>
+
+<header class="bar">
+  <div class="wrap">
+    <span class="mark">Luan Afonso</span>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+      <button type="button" data-lang="pt" aria-pressed="false">PT</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="section" id="demos" aria-labelledby="d-title">
+    <div class="wrap">
+      <div class="head">
+        <h2 id="d-title" data-t="d.title">Demo stores</h2>
+        <p data-t="d.sub">I am new to freelancing, so there are no client stories here yet. These demo stores show how I work, and each one says it is a demo.</p>
+      </div>
+
+      <div class="showcase" data-showcase>
+        <div class="panels">
+
+          <article class="store is-on" id="p-serra" role="tabpanel" aria-labelledby="t-serra">
+            <div class="store-copy">
+              <div class="store-title"><h3>Café Serra</h3><span class="tag" data-t="d.tag">Demo</span></div>
+              <p class="store-kind" data-t="s1.kind">Coffee roaster</p>
+              <p class="store-line" data-t="s1.line">Specialty coffee with a subscription every 2 or 4 weeks, a roast guide, and brew guides.</p>
+              <div class="proof">
+                <div class="score-wrap"><div class="score" style="--s:83"></div><span class="n">83</span></div>
+                <div><b data-t="d.speed">Mobile speed score</b><small data-t="d.speedsrc">Lighthouse, home page, median of 3 runs</small></div>
+              </div>
+              <div class="access">
+                <div class="chip">
+                  <span class="chip-k" data-t="d.pw">Password</span>
+                  <code id="pw-serra">serra</code>
+                  <button class="ghost" type="button" data-copy="pw-serra"><svg class="i i-copy" aria-hidden="true"><use href="#i-copy"/></svg><svg class="i i-done" aria-hidden="true"><use href="#i-check"/></svg><span data-t="c.copy">Copy</span></button>
+                </div>
+                <a class="pill" href="https://cafe-serra.myshopify.com/" target="_blank" rel="noopener"><span data-t="d.open">Open the store</span><span class="disc"><svg class="i" aria-hidden="true"><use href="#i-up-right"/></svg></span></a>
+                <p class="hint" data-t="d.hint">The store asks for the password once.</p>
+              </div>
+            </div>
+            <figure class="stage">
+              <span class="stage-url">cafe-serra.myshopify.com</span>
+              <div class="devices">
+              <div class="laptop" aria-hidden="true">
+                <div class="lid"><div class="screen"><video data-loop muted loop playsinline preload="none" poster="../../../public/demo-stores/cafe-serra-desktop-poster.jpg" src="../../../public/demo-stores/cafe-serra-desktop.mp4"></video></div></div>
+                <div class="base"></div>
+              </div>
+              <div class="phone" aria-hidden="true"><div class="screen"><video data-loop muted loop playsinline preload="none" poster="../../../public/demo-stores/cafe-serra-phone-poster.jpg" src="../../../public/demo-stores/cafe-serra-phone.mp4"></video></div></div>
+              </div>
+              <figcaption class="sr" data-t="s1.cap">Screen recording of the Café Serra home page on a laptop and a phone.</figcaption>
+            </figure>
+          </article>
+
+          <article class="store" id="p-lume" role="tabpanel" aria-labelledby="t-lume">
+            <div class="store-copy">
+              <div class="store-title"><h3>Ateliê Lume</h3><span class="tag" data-t="d.tag">Demo</span></div>
+              <p class="store-kind" data-t="s2.kind">Clothing store</p>
+              <p class="store-line" data-t="s2.line">Linen clothing in 70 color and size options. You set your measure once, and every size table marks your fit.</p>
+              <div class="proof">
+                <div class="score-wrap"><div class="score" style="--s:86"></div><span class="n">86</span></div>
+                <div><b data-t="d.speed">Mobile speed score</b><small data-t="d.speedsrc">Lighthouse, home page, median of 3 runs</small></div>
+              </div>
+              <div class="access">
+                <div class="chip">
+                  <span class="chip-k" data-t="d.pw">Password</span>
+                  <code id="pw-lume">lume</code>
+                  <button class="ghost" type="button" data-copy="pw-lume"><svg class="i i-copy" aria-hidden="true"><use href="#i-copy"/></svg><svg class="i i-done" aria-hidden="true"><use href="#i-check"/></svg><span data-t="c.copy">Copy</span></button>
+                </div>
+                <a class="pill" href="https://atelielume.myshopify.com/" target="_blank" rel="noopener"><span data-t="d.open">Open the store</span><span class="disc"><svg class="i" aria-hidden="true"><use href="#i-up-right"/></svg></span></a>
+                <p class="hint" data-t="d.hint">The store asks for the password once.</p>
+              </div>
+            </div>
+            <figure class="stage">
+              <span class="stage-url">atelielume.myshopify.com</span>
+              <div class="devices">
+              <div class="laptop" aria-hidden="true">
+                <div class="lid"><div class="screen"><video data-loop muted loop playsinline preload="none" poster="../../../public/demo-stores/atelie-lume-desktop-poster.jpg" src="../../../public/demo-stores/atelie-lume-desktop.mp4"></video></div></div>
+                <div class="base"></div>
+              </div>
+              <div class="phone" aria-hidden="true"><div class="screen"><video data-loop muted loop playsinline preload="none" poster="../../../public/demo-stores/atelie-lume-phone-poster.jpg" src="../../../public/demo-stores/atelie-lume-phone.mp4"></video></div></div>
+              </div>
+              <figcaption class="sr" data-t="s2.cap">Screen recording of the Ateliê Lume home page on a laptop and a phone.</figcaption>
+            </figure>
+          </article>
+
+          <article class="store" id="p-orvalho" role="tabpanel" aria-labelledby="t-orvalho">
+            <div class="store-copy">
+              <div class="store-title"><h3>Orvalho</h3><span class="tag" data-t="d.tag">Demo</span></div>
+              <p class="store-kind" data-t="s3.kind">Skin care</p>
+              <p class="store-line" data-t="s3.line">Skin care sold as a morning and a night routine, with kits that cost less than the products one by one.</p>
+              <div class="proof">
+                <div class="score-wrap"><div class="score" style="--s:79"></div><span class="n">79</span></div>
+                <div><b data-t="d.speed">Mobile speed score</b><small data-t="d.speedsrc">Lighthouse, home page, median of 3 runs</small></div>
+              </div>
+              <div class="access">
+                <div class="chip">
+                  <span class="chip-k" data-t="d.pw">Password</span>
+                  <code id="pw-orvalho">orvalho</code>
+                  <button class="ghost" type="button" data-copy="pw-orvalho"><svg class="i i-copy" aria-hidden="true"><use href="#i-copy"/></svg><svg class="i i-done" aria-hidden="true"><use href="#i-check"/></svg><span data-t="c.copy">Copy</span></button>
+                </div>
+                <a class="pill" href="https://orvalho-ovejqhyy.myshopify.com/" target="_blank" rel="noopener"><span data-t="d.open">Open the store</span><span class="disc"><svg class="i" aria-hidden="true"><use href="#i-up-right"/></svg></span></a>
+                <p class="hint" data-t="d.hint">The store asks for the password once.</p>
+              </div>
+            </div>
+            <figure class="stage">
+              <span class="stage-url">orvalho-ovejqhyy.myshopify.com</span>
+              <div class="devices">
+              <div class="laptop" aria-hidden="true">
+                <div class="lid"><div class="screen"><video data-loop muted loop playsinline preload="none" poster="../../../public/demo-stores/orvalho-desktop-poster.jpg" src="../../../public/demo-stores/orvalho-desktop.mp4"></video></div></div>
+                <div class="base"></div>
+              </div>
+              <div class="phone" aria-hidden="true"><div class="screen"><video data-loop muted loop playsinline preload="none" poster="../../../public/demo-stores/orvalho-phone-poster.jpg" src="../../../public/demo-stores/orvalho-phone.mp4"></video></div></div>
+              </div>
+              <figcaption class="sr" data-t="s3.cap">Screen recording of the Orvalho home page on a laptop and a phone.</figcaption>
+            </figure>
+          </article>
+
+        </div>
+
+        <div class="tabs" role="tablist" aria-label="Demo stores" data-t-aria="d.title" hidden>
+          <button class="tab" type="button" role="tab" id="t-serra" aria-controls="p-serra" aria-selected="true"><span class="tab-thumb" aria-hidden="true"><img src="../../../public/demo-stores/cafe-serra-phone-poster.jpg" alt="" width="390" height="844"></span><span class="tab-text"><b>Café Serra</b><small data-t="s1.kind">Coffee roaster</small></span><span class="tab-go" aria-hidden="true"><svg class="i"><use href="#i-arrow"/></svg></span></button>
+          <button class="tab" type="button" role="tab" id="t-lume" aria-controls="p-lume" aria-selected="false" tabindex="-1"><span class="tab-thumb" aria-hidden="true"><img src="../../../public/demo-stores/atelie-lume-phone-poster.jpg" alt="" width="390" height="844"></span><span class="tab-text"><b>Ateliê Lume</b><small data-t="s2.kind">Clothing store</small></span><span class="tab-go" aria-hidden="true"><svg class="i"><use href="#i-arrow"/></svg></span></button>
+          <button class="tab" type="button" role="tab" id="t-orvalho" aria-controls="p-orvalho" aria-selected="false" tabindex="-1"><span class="tab-thumb" aria-hidden="true"><img src="../../../public/demo-stores/orvalho-phone-poster.jpg" alt="" width="390" height="844"></span><span class="tab-text"><b>Orvalho</b><small data-t="s3.kind">Skin care</small></span><span class="tab-go" aria-hidden="true"><svg class="i"><use href="#i-arrow"/></svg></span></button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const T = {
+  en: {
+    "d.title": "Demo stores",
+    "d.sub": "I am new to freelancing, so there are no client stories here yet. These demo stores show how I work, and each one says it is a demo.",
+    "d.tag": "Demo", "d.speed": "Mobile speed score", "d.speedsrc": "Lighthouse, home page, median of 3 runs",
+    "d.pw": "Password", "c.copy": "Copy", "c.copied": "Copied", "d.open": "Open the store", "d.hint": "The store asks for the password once.",
+    "s1.kind": "Coffee roaster", "s1.line": "Specialty coffee with a subscription every 2 or 4 weeks, a roast guide, and brew guides.",
+    "s1.cap": "Screen recording of the Café Serra home page on a laptop and a phone.",
+    "s2.kind": "Clothing store", "s2.line": "Linen clothing in 70 color and size options. You set your measure once, and every size table marks your fit.",
+    "s2.cap": "Screen recording of the Ateliê Lume home page on a laptop and a phone.",
+    "s3.kind": "Skin care", "s3.line": "Skin care sold as a morning and a night routine, with kits that cost less than the products one by one.",
+    "s3.cap": "Screen recording of the Orvalho home page on a laptop and a phone."
+  },
+  pt: {
+    "d.title": "Lojas de demonstração",
+    "d.sub": "Estou começando como freelancer, então ainda não há histórias de clientes aqui. Estas lojas de demonstração mostram como eu trabalho, e cada uma avisa que é demo.",
+    "d.tag": "Demo", "d.speed": "Nota de velocidade no celular", "d.speedsrc": "Lighthouse, página inicial, mediana de 3 testes",
+    "d.pw": "Senha", "c.copy": "Copiar", "c.copied": "Copiado", "d.open": "Abrir a loja", "d.hint": "A loja pede a senha uma vez.",
+    "s1.kind": "Torrefação de café", "s1.line": "Café especial com assinatura a cada 2 ou 4 semanas, guia de torra e guias de preparo.",
+    "s1.cap": "Gravação de tela da página inicial da Café Serra em um notebook e um celular.",
+    "s2.kind": "Loja de roupas", "s2.line": "Roupas de linho em 70 opções de cor e tamanho. Você informa sua medida uma vez, e cada tabela de tamanhos marca o seu.",
+    "s2.cap": "Gravação de tela da página inicial da Ateliê Lume em um notebook e um celular.",
+    "s3.kind": "Cuidados com a pele", "s3.line": "Skin care vendido como rotina da manhã e da noite, com kits mais baratos que os produtos avulsos.",
+    "s3.cap": "Gravação de tela da página inicial da Orvalho em um notebook e um celular."
+  }
+};
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+let lang = "en";
+const t = (k) => T[lang][k] ?? T.en[k] ?? k;
+
+function applyLang() {
+  document.documentElement.lang = lang === "pt" ? "pt-BR" : "en";
+  $$("[data-t]").forEach((el) => { el.textContent = t(el.dataset.t); });
+  $$("[data-t-aria]").forEach((el) => el.setAttribute("aria-label", t(el.dataset.tAria)));
+  $$(".lang button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+}
+$$(".lang button").forEach((b) => b.addEventListener("click", () => { lang = b.dataset.lang; applyLang(); }));
+
+// Copy: the clipboard, or a text selection when the clipboard refuses.
+$$("[data-copy]").forEach((b) => b.addEventListener("click", () => {
+  const src = document.getElementById(b.dataset.copy);
+  const label = b.querySelector("[data-t]");
+  const done = () => {
+    b.classList.add("is-done"); label.dataset.t = "c.copied"; label.textContent = t("c.copied");
+    clearTimeout(b._t);
+    b._t = setTimeout(() => { b.classList.remove("is-done"); label.dataset.t = "c.copy"; label.textContent = t("c.copy"); }, 1600);
+  };
+  const select = () => { const r = document.createRange(); r.selectNodeContents(src); const s = getSelection(); s.removeAllRanges(); s.addRange(r); };
+  if (navigator.clipboard?.writeText) navigator.clipboard.writeText(src.textContent).then(done, select);
+  else select();
+}));
+
+// Loops play only on screen, only in the shown card, and never under reduced motion.
+const visible = new Set();
+const io = new IntersectionObserver((es) => es.forEach((e) => { e.isIntersecting ? visible.add(e.target) : visible.delete(e.target); syncVideos(); }), { threshold: 0.25 });
+const videos = $$("video[data-loop]");
+videos.forEach((v) => io.observe(v));
+function syncVideos() {
+  videos.forEach((v) => {
+    const on = !reduce.matches && visible.has(v) && v.closest(".store").classList.contains("is-on");
+    if (on && v.paused) { v.preload = "auto"; v.play().catch(() => {}); }
+    if (!on && !v.paused) v.pause();
+  });
+}
+
+// Pager: one card at a time. It moves on by itself with the loop until the visitor picks a store.
+const root = document.querySelector("[data-showcase]");
+const tabs = $$(".tab", root);
+const tablist = root.querySelector(".tabs");
+const panels = $$(".store", root);
+document.documentElement.classList.add("js");
+tablist.hidden = false;
+let current = 0, auto = !reduce.matches, timer = 0, inView = false;
+function show(i, focus) {
+  current = (i + tabs.length) % tabs.length;
+  root.querySelector(".panels").classList.toggle("is-instant", Boolean(focus));
+  tabs.forEach((tab, k) => { tab.setAttribute("aria-selected", String(k === current)); tab.tabIndex = k === current ? 0 : -1; });
+  panels.forEach((p, k) => { p.classList.toggle("is-on", k === current); p.inert = k !== current; });
+  panels[current].querySelectorAll("video").forEach((v) => { v.currentTime = 0; });
+  if (focus) tabs[current].focus();
+  syncVideos();
+  schedule();
+}
+function schedule() {
+  clearTimeout(timer);
+  // Restart the fill line of the active tab: drop the class, force a style pass, put it back.
+  tablist.classList.remove("is-auto");
+  if (!auto || !inView || document.hidden) return;
+  void tablist.offsetWidth;
+  tablist.classList.add("is-auto");
+  timer = setTimeout(() => show(current + 1), 9000);
+}
+function stopAuto() { auto = false; schedule(); }
+tabs.forEach((tab, k) => {
+  tab.addEventListener("click", () => { stopAuto(); show(k); });
+  tab.addEventListener("keydown", (e) => {
+    const step = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+    if (step) { e.preventDefault(); stopAuto(); show(current + step, true); }
+    if (e.key === "Home") { e.preventDefault(); stopAuto(); show(0, true); }
+    if (e.key === "End") { e.preventDefault(); stopAuto(); show(tabs.length - 1, true); }
+  });
+});
+root.addEventListener("pointerdown", stopAuto);
+root.addEventListener("focusin", (e) => { if (!e.target.closest(".tab")) stopAuto(); });
+new IntersectionObserver(([e]) => { inView = e.isIntersecting; schedule(); }, { threshold: 0.4 }).observe(root);
+document.addEventListener("visibilitychange", schedule);
+reduce.addEventListener("change", () => { if (reduce.matches) auto = false; schedule(); syncVideos(); });
+show(0);
+applyLang();
+</script>

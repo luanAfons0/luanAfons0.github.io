@@ -43,7 +43,7 @@ The page reads as the audit that Luan sends to a store owner: a store measured F
 
 ## Evidence on Hand
 
-- Luan has no client work yet. The Demo stores, the demo metrics, and the audits are samples, and the page labels each one as a demo. Never invent clients, results, dates, or metrics.
+- Luan has no client work yet. The Demo stores are real Shopify development stores that Luan built (Café Serra, Ateliê Lume, Orvalho), with a Store password each; they are not client work, and the page labels each one as a demo. Their speed scores are real Lighthouse mobile medians (83, 86, 79, measured on 2026-10-24). The Filmstrip Frames and their metrics are still drawn demo data. Never invent clients, results, dates, or metrics.
 - The WhatsApp number (+55 16 99763-8477), the email (luan.hmatao@gmail.com), and the LinkedIn profile are real. There is no booking link: the visitor writes, and Luan sets the call time in the reply.
 - Source code: https://github.com/luanAfons0/luanAfons0.github.io. GitHub profile: https://github.com/luanAfons0.
 

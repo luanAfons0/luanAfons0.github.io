@@ -9,11 +9,11 @@ The one page of the site, "The Store Audit". The approved mock (`.impeccable/moc
 _Avoid_: Landing page, Title Screen, portfolio (as the name of the page)
 
 **Mock value**:
-A placeholder value that Luan replaces with the real value later: the sample Demo stores. The page marks each group of Mock values with a dashed note (`.mock-note`), and the code marks them with a `MOCK VALUES` comment. Do not remove a mark until Luan gives the real value.
+A placeholder value that Luan replaces with the real value later. The page has none now: the three Demo stores are real. A new Mock value gets a dashed note on the page (`.mock-note`) and a `MOCK VALUES` comment in the code, and keeps both until Luan gives the real value.
 _Avoid_: Fake data, dummy value. "The mock" alone is the approved design file, not a Mock value.
 
 **Demo store**:
-A sample Shopify store that shows how Luan works. It is not client work, and the page always labels it "Demo" or "Demo data". Demo stores show in the Frames of the Filmstrip and in the Demo stores section, with free-license photos and credits.
+A real Shopify development store that Luan built as a work sample: Café Serra, Ateliê Lume, and Orvalho. It is not client work, and the page always labels it "Demo" or "Demo data". The Demo stores section opens each store and gives its Store password; the Frames of the Filmstrip still show a drawn Demo store.
 _Avoid_: Case study, client, project (as a name for a Demo store)
 
 ## Filmstrip

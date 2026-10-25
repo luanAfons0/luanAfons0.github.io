@@ -16,14 +16,9 @@ export const PICKS: readonly PickKey[] = ["launch", "fix", "care", "audit", "imp
 export const DEFAULT_PICKS: readonly PickKey[] = ["launch", "audit"];
 
 /** A product of a Demo store. */
-export type DemoProductKey = "coffee" | "coffee2" | "box" | "shirt" | "dress" | "tee";
+export type DemoProductKey = "coffee";
 
-/* MOCK VALUES: Demo store product prices, shown only inside the labelled demo screens (mock lines 661–665). */
+/* The Demo store product price of the Filmstrip, shown only inside its labelled demo Frame (mock lines 661–665). */
 export const DEMO_PRICES: Readonly<Record<DemoProductKey, Price>> = {
 	coffee: { brl: 54.9, usd: 12 },
-	coffee2: { brl: 64.9, usd: 15 },
-	box: { brl: 119, usd: 28 },
-	shirt: { brl: 189, usd: 46 },
-	dress: { brl: 279, usd: 68 },
-	tee: { brl: 89, usd: 22 },
 };
