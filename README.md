@@ -9,7 +9,7 @@ The portfolio of Luan Afonso, a freelance Shopify developer from Brazil. I build
 The site is one page, in English and Portuguese:
 
 - **How I work:** the steps from the first call to launch day.
-- **Demo stores:** sample stores, each one marked as a demo.
+- **Demo stores:** three real Shopify development stores (Café Serra, Ateliê Lume, Orvalho), each one marked as a demo. Each card opens the store and gives its password.
 - **Questions:** short answers to common questions.
 - **Build your project:** switch on the services you need. "Book a call" then writes the list into the contact form.
 - **Tell me about your store:** a contact form that sends the message to my inbox, plus WhatsApp, email, and LinkedIn.
@@ -61,7 +61,8 @@ The first version of this repo was a Doom-style raycaster game in TypeScript. Th
 ## Credits
 
 - Fonts: [Geist and Geist Mono](https://vercel.com/font) by Vercel, under the SIL Open Font License.
-- The Demo store photos come from Wikimedia Commons. The footer of the site credits each author and license.
+- The Filmstrip photo comes from Wikimedia Commons. The footer of the site credits its author and license.
+- The store screens are recordings of my demo stores, whose photos come from Unsplash and Pexels.
 
 ## Contact
 

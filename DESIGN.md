@@ -98,7 +98,7 @@ typography:
 rounded:
   pill: "999px"
   tile: "20px"
-  browser: "14px"
+  laptop: "14px"
   field: "12px"
   seg: "8px"
   focus: "6px"
@@ -219,8 +219,8 @@ A cool near-white and near-black pair with a faint green cast, and one deep gree
 
 ### Neutral
 - **Report Ground** (`ground`): the page background, the nav, the table head row, and the contact channels column.
-- **Paper White** (`surface`): the face of every tile (Frames, package table, Project estimate, demo cards, contact panel), field backgrounds, and the text on ink.
-- **Tile Mist** (`tile`): recessed fills: the EN/PT toggle track, the demo screenshot well, photo placeholders, the neutral timestamp chip.
+- **Paper White** (`surface`): the face of every tile (Frames, package table, Project estimate, store cards, store tiles, contact panel), field backgrounds, and the text on ink.
+- **Tile Mist** (`tile`): recessed fills: the EN/PT toggle track, the demo stage, the idle arrow disc of a store tile, photo placeholders, the neutral timestamp chip.
 - **Ink** (`ink`): headings, body text, primary pills, switches that are on, filled project strip segments, the Page map fill, done ticks.
 - **Ink Two** (`ink-2`): secondary text: subtitles, section intros, list items, table cells, FAQ answers.
 - **Ink Three** (`ink-3`): tertiary text: labels, captions, placeholders, idle timestamps, idle icons.
@@ -256,7 +256,7 @@ A cool near-white and near-black pair with a faint green cast, and one deep gree
 - **Body Small** (`body-sm`): nav links, list items, field labels, ghost pills.
 - **Label** (`label`): the Timeline end labels, the table head row, channel labels, Mock value notes.
 - **Tag** (`tag`): the uppercase "Demo" tag on a demo card only.
-- **Mono Data** (`mono-data`): Timeline timestamps, Frame URLs and times, the estimate date, browser bar URLs.
+- **Mono Data** (`mono-data`): Timeline timestamps, Frame URLs and times, the estimate date, the store URL pill on the demo stage.
 - **Mono Price** (`mono-price`): prices in the switch rows and the line values of the Project estimate.
 
 ### Named Rules
@@ -273,7 +273,7 @@ A cool near-white and near-black pair with a faint green cast, and one deep gree
 - **Section rhythm:** each section starts with `section` space above. A heading block takes `head-gap` space below it. More space goes above a heading than below it.
 - **Two-column blocks:** the Project builder (switches, then a 440px estimate column), the FAQ (heading, then answers at 1 to 1.5), and the contact panel (channels, then form at 1 to 1.4). Each collapses to one column at 900px or 860px.
 - **Package table:** a 5-column grid (name, contents, time, price, action at 168px). At 980px it becomes a 2-column card per row and the head row hides.
-- **Breakpoints:** 980px (package table), 900px (nav links hide, builder stacks), 860px (process, demos, FAQ, contact panel stack), 767px (Filmstrip row mode), 560px (Timeline end labels hide, form is one column), 480px (demo card padding), 420px (the nav pill shows only its arrow disc).
+- **Breakpoints:** 980px (package table), 900px (nav links hide, builder stacks), 960px (the store card stacks, the stage goes on top), 860px (process, FAQ, contact panel stack), 767px (Filmstrip row mode), 560px (Timeline end labels hide, form is one column, store tiles show only the thumbnail and the name, the store pill fills the row), 420px (the nav pill shows only its arrow disc).
 - **Hover:** hover styles apply only under `(hover: hover) and (pointer: fine)`.
 
 ## Elevation & Depth
@@ -281,10 +281,11 @@ A cool near-white and near-black pair with a faint green cast, and one deep gree
 The page is mostly flat. Flat tiles carry a 1px hairline ring, not a shadow. Two tiles float: the Frames and the Project estimate. They use one soft tile shadow. Depth also comes from tone: tile mist recesses, paper white lifts off the ground.
 
 ### Shadow Vocabulary
-- **Hairline ring** (`box-shadow: 0 0 0 1px var(--rule)`): the package table, demo cards, the contact panel.
+- **Hairline ring** (`box-shadow: 0 0 0 1px var(--rule)`): the package table, store cards, the contact panel.
 - **Tile shadow** (`--shadow-tile`): the Frames and the Project estimate.
 - **Active Frame** (a 1.5px pass ring plus a deeper drop): the active Frame only.
-- **Browser drop**: the storefront frame inside a demo card.
+- **Device drop** (a dark 1px ring plus `0 24px 40px -24px rgb(15 17 16 / 0.45)`): the laptop lid and the phone on the demo stage.
+- **Shown tile** (a 1.5px ink ring plus `0 14px 28px -18px rgb(15 17 16 / 0.4)`): the shown store tile only.
 - **Knob**: the switch knob and the pressed EN/PT button.
 - **Field focus** (`box-shadow: 0 0 0 3px var(--pass-soft)`): a focused field.
 
@@ -293,7 +294,7 @@ The page is mostly flat. Flat tiles carry a 1px hairline ring, not a shadow. Two
 
 ## Shapes
 
-Corners are soft and constant. Tiles use 20px. The browser frame in a demo uses 14px on its top corners only. Fields, photos inside Frames, booking days, and the green banner use 12px. Strip segments, photo thumbnails, and Mock value notes use 8px. Every action, toggle, chip, tag, slot, and timestamp chip is a full pill. Small status dots and check discs are circles. The focus outline has a 6px radius. Lines are always 1px.
+Corners are soft and constant. Tiles use 20px. The laptop lid on the demo stage uses 14px on its top corners and 4px on its bottom corners. The phone uses 26px, and its screen 21px. Fields, store tiles, the Store password field, photos inside Frames, booking days, and the green banner use 12px. Strip segments, photo thumbnails, store tile thumbnails, and Mock value notes use 8px. Every action, toggle, chip, tag, slot, and timestamp chip is a full pill. Small status dots and check discs are circles. The focus outline has a 6px radius. Lines are always 1px.
 
 ## Components
 
@@ -334,8 +335,13 @@ A white tile with a hairline ring. A ground-colored head row with labels. Each r
 ### Process steps
 Four columns on one hairline axis. Each step has a 15px ring mark (the first one filled ink), a mono step number, a title, and text. At 860px the axis turns vertical on the left.
 
-### Demos
-Two flat tiles. The top is a tile mist well that holds a browser frame (three dots, a mono URL pill, a mini store grid), cut by the tile edge. The body has the title, the uppercase "Demo" tag, and a definition list.
+### Demo stores
+- **Store card:** one flat tile with the hairline ring, split 5 to 7. The left column has the store name (weight 640, -0.035em), the uppercase "Demo" tag, the store type in ink-3, and one line in ink-2. One card shows at a time. At 960px the card stacks and the stage goes on top.
+- **Proof row:** between two hairlines. A 64px Lighthouse ring (4px, pass green on pass wash, filled to the score) holds the mobile speed score in pass green. Next to it are the label and the source line in ink-3.
+- **Access:** the Store password field (52px high, strong hairline border, 12px corners, ground fill) holds the label, the password, and a ghost "Copy" pill. After a copy, the copy icon swaps to a pass check that pops in 180ms. Under it is the primary pill "Open the store" with an up-right arrow in its disc, then a hint in ink-3. On hover the disc moves 1px up and 1px right.
+- **Stage:** a tile mist well. A white URL pill with the hairline ring sits at the top center. A laptop and a phone stand on one base line. Each has a dark body (`#1b1e1c`) and the device drop, and holds a real screen recording of the store (laptop 16 by 10, phone 390 by 844). A recording plays only while it is on screen, in the shown card, and never with reduced motion.
+- **Store tiles:** a row of 3 ruled white tiles under the card (12px corners, `rule-2` ring, 12px gap). Each has a 44px thumbnail, the name, the store type, and a 32px tile mist arrow disc. The shown tile gets a 1.5px ink ring and the shown tile drop, and its disc turns ink. A 2px ink timer line fills along its bottom edge in 9s. Then the next store shows. The tiles move on by themselves while the section is in view, until the visitor picks a store or uses the card. Hover on an idle tile makes the ring ink. With JavaScript off, the cards stack and the tiles stay hidden.
+- **Switch:** the new card comes in over 280ms (fade, 4px blur, 6px rise). The old card goes out in 180ms. A switch from the keyboard is instant. Reduced motion keeps only a 200ms fade, with no timer line and no automatic move.
 
 ### FAQ
 Hairline-divided disclosure rows. The summary is 1.125rem, weight 560. A plus icon in ink-3 rotates 45deg to ink when open.
