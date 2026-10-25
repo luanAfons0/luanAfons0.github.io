@@ -1,0 +1,369 @@
+<title>Demo Stores Mock B</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap">
+<style>
+/* Layout: the Demo stores section of the Home page. One frame per store, stacked: a narrow panel that
+   explains the store (about 30%), and a wide panel (about 70%) where a strip of real screens runs off
+   both edges and drifts with the scroll. The address and the type sit under the strip. Home page tokens. */
+:root {
+  --ground: #f8f9f8;
+  --surface: #ffffff;
+  --tile: #eef1ee;
+  --ink: #0f1110;
+  --ink-2: #454c48;
+  --ink-3: #626b66;
+  --rule: #e0e4e0;
+  --rule-2: #c9cfca;
+  --pass: #08704a;
+  --pass-soft: #e2f1e9;
+
+  --sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --r-tile: 20px;
+  --r-field: 12px;
+  --gutter-l: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0; background: var(--ground); color: var(--ink);
+  font: 400 16px/1.55 var(--sans); -webkit-font-smoothing: antialiased; caret-color: var(--pass);
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 50; background: var(--ground); }
+::selection { background: var(--pass); color: var(--surface); }
+h1, h2, h3, p, dl, dd, figure { margin: 0; }
+a { color: inherit; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--pass); outline-offset: 3px; border-radius: 6px; }
+.wrap { max-width: 1280px; margin-inline: auto; padding-left: var(--gutter-l); padding-right: var(--gutter-r); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+svg.i { width: 1em; height: 1em; flex: none; fill: currentColor; }
+
+.pill {
+  display: inline-flex; align-items: center; gap: 10px; height: 48px; padding: 0 6px 0 22px;
+  border-radius: 999px; border: 0; background: var(--ink); color: var(--surface);
+  font-weight: 560; font-size: 1rem; letter-spacing: -.01em; text-decoration: none; white-space: nowrap; cursor: pointer;
+  transition: background-color .15s var(--ease-out), transform .15s var(--ease-out);
+}
+.pill .disc { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 999px; background: var(--surface); color: var(--ink); transition: transform .25s var(--ease-out); }
+.pill:active { transform: scale(.97); }
+.ghost {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px;
+  border-radius: 999px; border: 1px solid var(--rule-2); background: var(--surface); color: var(--ink);
+  font-weight: 540; font-size: .8125rem; white-space: nowrap; cursor: pointer;
+  transition: border-color .15s var(--ease-out), transform .15s var(--ease-out);
+}
+.ghost:active { transform: scale(.97); }
+@media (hover: hover) and (pointer: fine) {
+  .pill:hover { background: #262a28; }
+  .pill:hover .disc { transform: translate(1px, -1px); }
+  .ghost:hover { border-color: var(--ink); }
+}
+
+.bar { height: 64px; border-bottom: 1px solid var(--rule); background: var(--ground); }
+.bar .wrap { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.mark { font-weight: 640; font-size: 1.1875rem; letter-spacing: -.035em; }
+.lang { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--tile); }
+.lang button { border: 0; background: none; height: 30px; min-width: 40px; padding: 0 10px; border-radius: 999px; font: 600 .8125rem var(--sans); color: var(--ink-3); cursor: pointer; transition: background-color .15s, color .15s; }
+.lang button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgb(15 17 16 / .12); }
+
+.section { padding-block: clamp(72px, 10vw, 128px); }
+.head { display: grid; gap: 14px; max-width: 760px; margin-bottom: clamp(36px, 5vw, 56px); }
+.head h2 { font-size: clamp(2.25rem, 5vw, 4rem); font-weight: 620; line-height: .98; letter-spacing: -.04em; text-wrap: balance; }
+.head p { font-size: 1.125rem; color: var(--ink-2); max-width: 54ch; text-wrap: pretty; }
+
+/* The frame: the page-section box of the sketch. */
+.works { display: grid; gap: clamp(20px, 3vw, 32px); }
+.work {
+  display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 7fr); gap: 12px;
+  padding: 12px; border-radius: var(--r-tile); background: var(--surface); box-shadow: 0 0 0 1px var(--rule);
+}
+
+/* Text panel */
+.about {
+  display: grid; grid-template-rows: auto 1fr auto; gap: 24px;
+  padding: clamp(22px, 2.4vw, 30px); border-radius: var(--r-field); background: var(--ground); box-shadow: inset 0 0 0 1px var(--rule);
+}
+.about-top { display: grid; gap: 10px; }
+.title { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.title h3 { font-size: clamp(1.5rem, 2.2vw, 1.875rem); font-weight: 640; line-height: 1.05; letter-spacing: -.035em; }
+.tag { flex: none; font: 600 .75rem/1 var(--sans); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); border: 1px solid var(--rule-2); border-radius: 99px; padding: 6px 10px; }
+.about-top p { color: var(--ink-2); font-size: .9875rem; text-wrap: pretty; }
+.facts { display: grid; gap: 0; align-content: start; }
+.facts div { display: grid; grid-template-columns: 6.5em minmax(0, 1fr); gap: 12px; padding: 10px 0; border-top: 1px solid var(--rule); font-size: .875rem; }
+.facts dt { color: var(--ink-3); font-weight: 500; }
+.facts dd { color: var(--ink); font-weight: 500; }
+.facts .speed { color: var(--pass); font: 600 .9375rem var(--mono); font-variant-numeric: tabular-nums; }
+.facts dd small { font: 500 .75rem var(--sans); color: var(--ink-3); margin-left: 8px; }
+.access { display: grid; gap: 12px; }
+.chip {
+  display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 7px 0 14px;
+  border: 1px solid var(--rule-2); border-radius: var(--r-field); background: var(--surface);
+}
+.chip-k { font-weight: 500; font-size: .8125rem; color: var(--ink-3); }
+.chip code { font: 500 .9375rem var(--mono); letter-spacing: .02em; user-select: all; min-width: 0; overflow-wrap: anywhere; }
+.chip .ghost { margin-left: auto; }
+.chip .ghost .i-done { display: none; color: var(--pass); }
+.chip .ghost.is-done .i-done { display: block; animation: pop 180ms var(--ease-out); }
+@keyframes pop { from { opacity: 0; transform: scale(.85); } }
+@media (prefers-reduced-motion: reduce) { .chip .ghost.is-done .i-done { animation: none; } }
+.chip .ghost.is-done .i-copy { display: none; }
+.access .pill { justify-content: space-between; }
+
+/* Media panel: each store keeps its own color here, so the three frames read as three worlds. */
+.media {
+  position: relative; display: grid; grid-template-rows: 1fr auto; min-height: 460px;
+  border-radius: var(--r-field); overflow: hidden; background: var(--world); color: var(--on-world);
+}
+.work[data-store="serra"] { --world: #2a1f18; --on-world: #efe6da; }
+.work[data-store="lume"] { --world: #2d3866; --on-world: #ecebe4; }
+.work[data-store="orvalho"] { --world: #3a2633; --on-world: #f6e6e4; }
+.strip { overflow: hidden; display: flex; align-items: center; padding-block: 28px 0; }
+.track { display: flex; align-items: center; gap: 12px; height: 100%; max-height: 400px; padding-left: 28px; will-change: translate; }
+.shot { flex: none; height: 100%; border-radius: 10px; overflow: hidden; background: rgb(255 255 255 / .06); box-shadow: 0 18px 36px -18px rgb(0 0 0 / .55); }
+.shot.wide { aspect-ratio: 16 / 10; }
+.shot.tall { aspect-ratio: 390 / 844; }
+.shot.web { aspect-ratio: 1200 / 750; }
+.shot video, .shot img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.caption { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 18px 24px 18px; font-size: .875rem; }
+.caption .url { font: 500 .8125rem var(--mono); opacity: .82; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.caption .meta { white-space: nowrap; opacity: .82; }
+
+/* The drift: the strip moves left while its frame crosses the screen. Pure CSS, no scroll listener. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) and (min-width: 861px) {
+    .track { animation: drift linear both; animation-timeline: view(); animation-range: entry 10% exit 90%; }
+  }
+}
+@keyframes drift { from { translate: 0 0; } to { translate: var(--drift, -28%) 0; } }
+
+@media (max-width: 1080px) {
+  .work { grid-template-columns: minmax(0, 4fr) minmax(0, 6fr); }
+}
+@media (max-width: 860px) {
+  .work { grid-template-columns: minmax(0, 1fr); }
+  .media { order: -1; min-height: 0; }
+  .strip { overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding-block: 20px 0; }
+  .strip::-webkit-scrollbar { display: none; }
+  .track { height: 340px; padding-inline: 20px; }
+  .shot { scroll-snap-align: center; }
+  .caption { padding: 14px 20px; }
+}
+@media (max-width: 480px) {
+  .track { height: 300px; }
+  .caption .meta { display: none; }
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-up-right" viewBox="0 0 256 256"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 256 256"><path d="M216,32H88a8,8,0,0,0-8,8V80H40a8,8,0,0,0-8,8V216a8,8,0,0,0,8,8H168a8,8,0,0,0,8-8V176h40a8,8,0,0,0,8-8V40A8,8,0,0,0,216,32ZM160,208H48V96H160Zm48-48H176V88a8,8,0,0,0-8-8H96V48H208Z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 256 256"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"/></symbol>
+</svg>
+
+<header class="bar">
+  <div class="wrap">
+    <span class="mark">Luan Afonso</span>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+      <button type="button" data-lang="pt" aria-pressed="false">PT</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="section" id="demos" aria-labelledby="d-title">
+    <div class="wrap">
+      <div class="head">
+        <h2 id="d-title" data-t="d.title">Demo stores</h2>
+        <p data-t="d.sub">I am new to freelancing, so there are no client stories here yet. These demo stores show how I work, and each one says it is a demo.</p>
+      </div>
+
+      <div class="works">
+
+        <article class="work" data-store="serra" aria-labelledby="w1">
+          <div class="about">
+            <div class="about-top">
+              <div class="title"><h3 id="w1">Café Serra</h3><span class="tag" data-t="d.tag">Demo</span></div>
+              <p data-t="s1.line">Specialty coffee with a subscription every 2 or 4 weeks. A roast guide helps the visitor pick a coffee, and brew guides show how to make it.</p>
+            </div>
+            <dl class="facts">
+              <div><dt data-t="f.speed">Speed</dt><dd><span class="speed">83</span><small data-t="f.speedsrc">Lighthouse, mobile</small></dd></div>
+              <div><dt data-t="f.app">App</dt><dd>Shopify Subscriptions</dd></div>
+              <div><dt data-t="f.theme">Theme</dt><dd data-t="f.themev">Custom, from Shopify Skeleton</dd></div>
+              <div><dt data-t="f.lang">Languages</dt><dd data-t="f.langv">English and Portuguese</dd></div>
+            </dl>
+            <div class="access">
+              <div class="chip">
+                <span class="chip-k" data-t="d.pw">Password</span>
+                <code id="pw-serra">serra</code>
+                <button class="ghost" type="button" data-copy="pw-serra"><svg class="i i-copy" aria-hidden="true"><use href="#i-copy"/></svg><svg class="i i-done" aria-hidden="true"><use href="#i-check"/></svg><span data-t="c.copy">Copy</span></button>
+              </div>
+              <a class="pill" href="https://cafe-serra.myshopify.com/" target="_blank" rel="noopener"><span data-t="d.open">Open the store</span><span class="disc"><svg class="i" aria-hidden="true"><use href="#i-up-right"/></svg></span></a>
+            </div>
+          </div>
+          <figure class="media">
+            <div class="strip">
+              <div class="track">
+                <div class="shot tall"><img src="assets/demo-stores/cafe-serra-phone-product.jpg" alt="" width="520" height="1125" loading="lazy"></div>
+                <div class="shot wide"><video data-loop muted loop playsinline preload="none" poster="../../../public/demo-stores/cafe-serra-desktop-poster.jpg" src="../../../public/demo-stores/cafe-serra-desktop.mp4"></video></div>
+                <div class="shot tall"><img src="assets/demo-stores/cafe-serra-phone.jpg" alt="" width="520" height="1125" loading="lazy"></div>
+                <div class="shot web"><img src="assets/demo-stores/cafe-serra-desktop-product.jpg" alt="" width="1200" height="750" loading="lazy"></div>
+              </div>
+            </div>
+            <figcaption class="caption"><span class="url">cafe-serra.myshopify.com</span><span class="meta">2026 · <span data-t="s1.kind">Coffee roaster</span></span></figcaption>
+            <p class="sr" data-t="s1.cap">Screens of Café Serra: a product page and the home page on a phone, the home page on a laptop as a recording, and a product page on a laptop.</p>
+          </figure>
+        </article>
+
+        <article class="work" data-store="lume" aria-labelledby="w2">
+          <div class="about">
+            <div class="about-top">
+              <div class="title"><h3 id="w2">Ateliê Lume</h3><span class="tag" data-t="d.tag">Demo</span></div>
+              <p data-t="s2.line">Linen clothing in 70 color and size options. The visitor sets a measure once on the fitting tape, and every size table marks the right size.</p>
+            </div>
+            <dl class="facts">
+              <div><dt data-t="f.speed">Speed</dt><dd><span class="speed">86</span><small data-t="f.speedsrc">Lighthouse, mobile</small></dd></div>
+              <div><dt data-t="f.app">App</dt><dd>Search &amp; Discovery</dd></div>
+              <div><dt data-t="f.theme">Theme</dt><dd data-t="f.themev">Custom, from Shopify Skeleton</dd></div>
+              <div><dt data-t="f.lang">Languages</dt><dd data-t="f.langv">English and Portuguese</dd></div>
+            </dl>
+            <div class="access">
+              <div class="chip">
+                <span class="chip-k" data-t="d.pw">Password</span>
+                <code id="pw-lume">lume</code>
+                <button class="ghost" type="button" data-copy="pw-lume"><svg class="i i-copy" aria-hidden="true"><use href="#i-copy"/></svg><svg class="i i-done" aria-hidden="true"><use href="#i-check"/></svg><span data-t="c.copy">Copy</span></button>
+              </div>
+              <a class="pill" href="https://atelielume.myshopify.com/" target="_blank" rel="noopener"><span data-t="d.open">Open the store</span><span class="disc"><svg class="i" aria-hidden="true"><use href="#i-up-right"/></svg></span></a>
+            </div>
+          </div>
+          <figure class="media">
+            <div class="strip">
+              <div class="track">
+                <div class="shot tall"><img src="assets/demo-stores/atelie-lume-phone-product.jpg" alt="" width="520" height="1125" loading="lazy"></div>
+                <div class="shot wide"><video data-loop muted loop playsinline preload="none" poster="../../../public/demo-stores/atelie-lume-desktop-poster.jpg" src="../../../public/demo-stores/atelie-lume-desktop.mp4"></video></div>
+                <div class="shot tall"><img src="assets/demo-stores/atelie-lume-phone.jpg" alt="" width="520" height="1125" loading="lazy"></div>
+                <div class="shot web"><img src="assets/demo-stores/atelie-lume-desktop-product.jpg" alt="" width="1200" height="750" loading="lazy"></div>
+              </div>
+            </div>
+            <figcaption class="caption"><span class="url">atelielume.myshopify.com</span><span class="meta">2026 · <span data-t="s2.kind">Clothing store</span></span></figcaption>
+            <p class="sr" data-t="s2.cap">Screens of Ateliê Lume: a product page and the home page on a phone, the home page on a laptop as a recording, and a product page on a laptop.</p>
+          </figure>
+        </article>
+
+        <article class="work" data-store="orvalho" aria-labelledby="w3">
+          <div class="about">
+            <div class="about-top">
+              <div class="title"><h3 id="w3">Orvalho</h3><span class="tag" data-t="d.tag">Demo</span></div>
+              <p data-t="s3.line">Skin care sold as a morning and a night routine. Each kit holds one routine and costs less than its products one by one.</p>
+            </div>
+            <dl class="facts">
+              <div><dt data-t="f.speed">Speed</dt><dd><span class="speed">79</span><small data-t="f.speedsrc">Lighthouse, mobile</small></dd></div>
+              <div><dt data-t="f.app">App</dt><dd>Shopify Bundles</dd></div>
+              <div><dt data-t="f.theme">Theme</dt><dd data-t="f.themev">Custom, from Shopify Skeleton</dd></div>
+              <div><dt data-t="f.lang">Languages</dt><dd data-t="f.langv">English and Portuguese</dd></div>
+            </dl>
+            <div class="access">
+              <div class="chip">
+                <span class="chip-k" data-t="d.pw">Password</span>
+                <code id="pw-orvalho">orvalho</code>
+                <button class="ghost" type="button" data-copy="pw-orvalho"><svg class="i i-copy" aria-hidden="true"><use href="#i-copy"/></svg><svg class="i i-done" aria-hidden="true"><use href="#i-check"/></svg><span data-t="c.copy">Copy</span></button>
+              </div>
+              <a class="pill" href="https://orvalho-ovejqhyy.myshopify.com/" target="_blank" rel="noopener"><span data-t="d.open">Open the store</span><span class="disc"><svg class="i" aria-hidden="true"><use href="#i-up-right"/></svg></span></a>
+            </div>
+          </div>
+          <figure class="media">
+            <div class="strip">
+              <div class="track">
+                <div class="shot tall"><img src="assets/demo-stores/orvalho-phone-product.jpg" alt="" width="520" height="1125" loading="lazy"></div>
+                <div class="shot wide"><video data-loop muted loop playsinline preload="none" poster="../../../public/demo-stores/orvalho-desktop-poster.jpg" src="../../../public/demo-stores/orvalho-desktop.mp4"></video></div>
+                <div class="shot tall"><img src="assets/demo-stores/orvalho-phone.jpg" alt="" width="520" height="1125" loading="lazy"></div>
+                <div class="shot web"><img src="assets/demo-stores/orvalho-desktop-product.jpg" alt="" width="1200" height="750" loading="lazy"></div>
+              </div>
+            </div>
+            <figcaption class="caption"><span class="url">orvalho-ovejqhyy.myshopify.com</span><span class="meta">2026 · <span data-t="s3.kind">Skin care</span></span></figcaption>
+            <p class="sr" data-t="s3.cap">Screens of Orvalho: a product page and the home page on a phone, the home page on a laptop as a recording, and a product page on a laptop.</p>
+          </figure>
+        </article>
+
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const T = {
+  en: {
+    "d.title": "Demo stores",
+    "d.sub": "I am new to freelancing, so there are no client stories here yet. These demo stores show how I work, and each one says it is a demo.",
+    "d.tag": "Demo", "d.pw": "Password", "c.copy": "Copy", "c.copied": "Copied", "d.open": "Open the store",
+    "f.speed": "Speed", "f.speedsrc": "Lighthouse, mobile", "f.app": "App", "f.theme": "Theme", "f.themev": "Custom, from Shopify Skeleton",
+    "f.lang": "Languages", "f.langv": "English and Portuguese",
+    "s1.kind": "Coffee roaster", "s1.line": "Specialty coffee with a subscription every 2 or 4 weeks. A roast guide helps the visitor pick a coffee, and brew guides show how to make it.",
+    "s1.cap": "Screens of Café Serra: a product page and the home page on a phone, the home page on a laptop as a recording, and a product page on a laptop.",
+    "s2.kind": "Clothing store", "s2.line": "Linen clothing in 70 color and size options. The visitor sets a measure once on the fitting tape, and every size table marks the right size.",
+    "s2.cap": "Screens of Ateliê Lume: a product page and the home page on a phone, the home page on a laptop as a recording, and a product page on a laptop.",
+    "s3.kind": "Skin care", "s3.line": "Skin care sold as a morning and a night routine. Each kit holds one routine and costs less than its products one by one.",
+    "s3.cap": "Screens of Orvalho: a product page and the home page on a phone, the home page on a laptop as a recording, and a product page on a laptop."
+  },
+  pt: {
+    "d.title": "Lojas de demonstração",
+    "d.sub": "Estou começando como freelancer, então ainda não há histórias de clientes aqui. Estas lojas de demonstração mostram como eu trabalho, e cada uma avisa que é demo.",
+    "d.tag": "Demo", "d.pw": "Senha", "c.copy": "Copiar", "c.copied": "Copiado", "d.open": "Abrir a loja",
+    "f.speed": "Velocidade", "f.speedsrc": "Lighthouse, celular", "f.app": "App", "f.theme": "Tema", "f.themev": "Próprio, a partir do Skeleton da Shopify",
+    "f.lang": "Idiomas", "f.langv": "Inglês e português",
+    "s1.kind": "Torrefação de café", "s1.line": "Café especial com assinatura a cada 2 ou 4 semanas. Um guia de torra ajuda a escolher o café, e guias de preparo mostram como fazer.",
+    "s1.cap": "Telas da Café Serra: uma página de produto e a página inicial no celular, a página inicial no notebook em gravação, e uma página de produto no notebook.",
+    "s2.kind": "Loja de roupas", "s2.line": "Roupas de linho em 70 opções de cor e tamanho. O visitante informa a medida uma vez na fita, e cada tabela de tamanhos marca o tamanho certo.",
+    "s2.cap": "Telas da Ateliê Lume: uma página de produto e a página inicial no celular, a página inicial no notebook em gravação, e uma página de produto no notebook.",
+    "s3.kind": "Cuidados com a pele", "s3.line": "Skin care vendido como rotina da manhã e da noite. Cada kit traz uma rotina e custa menos que os produtos avulsos.",
+    "s3.cap": "Telas da Orvalho: uma página de produto e a página inicial no celular, a página inicial no notebook em gravação, e uma página de produto no notebook."
+  }
+};
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+let lang = "en";
+const t = (k) => T[lang][k] ?? T.en[k] ?? k;
+
+function applyLang() {
+  document.documentElement.lang = lang === "pt" ? "pt-BR" : "en";
+  $$("[data-t]").forEach((el) => { el.textContent = t(el.dataset.t); });
+  $$(".lang button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+}
+$$(".lang button").forEach((b) => b.addEventListener("click", () => { lang = b.dataset.lang; applyLang(); }));
+
+$$("[data-copy]").forEach((b) => b.addEventListener("click", () => {
+  const src = document.getElementById(b.dataset.copy);
+  const label = b.querySelector("[data-t]");
+  const done = () => {
+    b.classList.add("is-done"); label.dataset.t = "c.copied"; label.textContent = t("c.copied");
+    clearTimeout(b._t);
+    b._t = setTimeout(() => { b.classList.remove("is-done"); label.dataset.t = "c.copy"; label.textContent = t("c.copy"); }, 1600);
+  };
+  const select = () => { const r = document.createRange(); r.selectNodeContents(src); const s = getSelection(); s.removeAllRanges(); s.addRange(r); };
+  if (navigator.clipboard?.writeText) navigator.clipboard.writeText(src.textContent).then(done, select);
+  else select();
+}));
+
+// Each strip drifts exactly as far as it overflows its panel, so the last screen ends at the edge.
+const ro = new ResizeObserver((es) => es.forEach(({ target }) => {
+  const track = target.querySelector(".track");
+  track.style.setProperty("--drift", `${Math.min(0, target.clientWidth - track.scrollWidth - 28)}px`);
+}));
+$$(".strip").forEach((s) => ro.observe(s));
+
+// The recordings play only on screen, and never under reduced motion.
+const io = new IntersectionObserver((es) => es.forEach(({ target: v, isIntersecting }) => {
+  if (isIntersecting && !reduce.matches) { v.preload = "auto"; v.play().catch(() => {}); }
+  else v.pause();
+}), { threshold: 0.3 });
+$$("video[data-loop]").forEach((v) => io.observe(v));
+reduce.addEventListener("change", () => { if (reduce.matches) $$("video[data-loop]").forEach((v) => v.pause()); });
+applyLang();
+</script>
