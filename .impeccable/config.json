@@ -20,6 +20,15 @@
         ],
         "createdAt": "2026-10-20T13:21:43.378Z",
         "reason": "Claude: user approved the Store Audit mock (v8) with Geist and Geist Mono; the mock is the approved rule and stays as it is, and DESIGN.md records the same Geist world of the built page"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/ui-studio/demo-stores-b.html"
+        ],
+        "createdAt": "2026-10-25T01:44:25.347Z",
+        "reason": "Claude: Mock B is the archived mock that was not chosen; it is not shipped, and the live section follows Mock D"
       }
     ]
   }

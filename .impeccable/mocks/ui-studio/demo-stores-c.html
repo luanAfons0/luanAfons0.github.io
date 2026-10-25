@@ -1,0 +1,343 @@
+<title>Demo Stores Mock C</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap">
+<style>
+/* Layout: the Demo stores section with the three stores listed one under the other, inside the page container.
+   Each store is a rounded frame with a text panel and a media panel; the side changes on each row
+   (text then media, media then text, text then media). Home page tokens and the Mock A parts. */
+:root {
+  --ground: #f8f9f8;
+  --surface: #ffffff;
+  --tile: #eef1ee;
+  --ink: #0f1110;
+  --ink-2: #454c48;
+  --ink-3: #626b66;
+  --rule: #e0e4e0;
+  --rule-2: #c9cfca;
+  --pass: #08704a;
+  --pass-soft: #e2f1e9;
+
+  --sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --r-tile: 20px;
+  --r-field: 12px;
+  --gutter-l: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0; background: var(--ground); color: var(--ink);
+  font: 400 16px/1.55 var(--sans); -webkit-font-smoothing: antialiased; caret-color: var(--pass);
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 50; background: var(--ground); }
+::selection { background: var(--pass); color: var(--surface); }
+h1, h2, h3, p, figure { margin: 0; }
+a { color: inherit; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--pass); outline-offset: 3px; border-radius: 6px; }
+.wrap { max-width: 1280px; margin-inline: auto; padding-left: var(--gutter-l); padding-right: var(--gutter-r); }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+svg.i { width: 1em; height: 1em; flex: none; fill: currentColor; }
+
+.pill {
+  display: inline-flex; align-items: center; gap: 10px; height: 48px; padding: 0 6px 0 22px;
+  border-radius: 999px; border: 0; background: var(--ink); color: var(--surface);
+  font-weight: 560; font-size: 1rem; letter-spacing: -.01em; text-decoration: none; white-space: nowrap; cursor: pointer;
+  transition: background-color .15s var(--ease-out), transform .15s var(--ease-out);
+}
+.pill .disc { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 999px; background: var(--surface); color: var(--ink); transition: transform .25s var(--ease-out); }
+.pill:active { transform: scale(.97); }
+.ghost {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px;
+  border-radius: 999px; border: 1px solid var(--rule-2); background: var(--surface); color: var(--ink);
+  font-weight: 540; font-size: .8125rem; white-space: nowrap; cursor: pointer;
+  transition: border-color .15s var(--ease-out), transform .15s var(--ease-out);
+}
+.ghost:active { transform: scale(.97); }
+@media (hover: hover) and (pointer: fine) {
+  .pill:hover { background: #262a28; }
+  .pill:hover .disc { transform: translate(1px, -1px); }
+  .ghost:hover { border-color: var(--ink); }
+}
+
+.bar { height: 64px; border-bottom: 1px solid var(--rule); background: var(--ground); }
+.bar .wrap { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.mark { font-weight: 640; font-size: 1.1875rem; letter-spacing: -.035em; }
+.lang { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--tile); }
+.lang button { border: 0; background: none; height: 30px; min-width: 40px; padding: 0 10px; border-radius: 999px; font: 600 .8125rem var(--sans); color: var(--ink-3); cursor: pointer; transition: background-color .15s, color .15s; }
+.lang button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgb(15 17 16 / .12); }
+
+.section { padding-block: clamp(72px, 10vw, 128px); }
+.head { display: grid; gap: 14px; max-width: 760px; margin-bottom: clamp(36px, 5vw, 56px); }
+.head h2 { font-size: clamp(2.25rem, 5vw, 4rem); font-weight: 620; line-height: .98; letter-spacing: -.04em; text-wrap: balance; }
+.head p { font-size: 1.125rem; color: var(--ink-2); max-width: 54ch; text-wrap: pretty; }
+
+/* A row: the page-section frame of the sketch, holding the text panel and the media panel. */
+.rows { display: grid; gap: clamp(16px, 2vw, 24px); }
+.row { display: grid; gap: 12px; padding: 12px; background: var(--surface); }
+.row.text-first { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+.row.media-first { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+.row.media-first .about { order: 2; }
+
+/* Text panel */
+.about {
+  display: grid; gap: 22px; align-content: center;
+  padding: clamp(24px, 3vw, 40px); border-radius: var(--r-field); background: var(--ground); box-shadow: inset 0 0 0 1px var(--rule);
+}
+.store-title { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.store-title h3 { font-size: clamp(1.75rem, 2.6vw, 2.25rem); font-weight: 640; line-height: 1.05; letter-spacing: -.035em; }
+.tag { flex: none; font: 600 .75rem/1 var(--sans); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); border: 1px solid var(--rule-2); border-radius: 99px; padding: 6px 10px; }
+.store-kind { margin-top: -14px; font-weight: 500; font-size: .9375rem; color: var(--ink-3); }
+.store-line { color: var(--ink-2); font-size: 1.0625rem; max-width: 40ch; text-wrap: pretty; }
+.proof { display: flex; align-items: center; gap: 16px; padding-block: 18px; border-block: 1px solid var(--rule); }
+.store-score { position: relative; flex: none; display: grid; place-items: center; width: 64px; height: 64px; }
+.store-score::before {
+  content: ""; position: absolute; inset: 0; border-radius: 999px;
+  background: conic-gradient(var(--pass) calc(var(--s) * 1%), var(--pass-soft) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3.5px));
+          mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3.5px));
+}
+.store-score .num { font-weight: 600; font-size: 1.375rem; line-height: 1; color: var(--pass); }
+.proof b { display: block; font-weight: 600; font-size: .9375rem; }
+.proof small { display: block; font: 500 .75rem/1.5 var(--mono); color: var(--ink-3); }
+.access { display: grid; gap: 14px; }
+.pw { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 8px 0 16px; border: 1px solid var(--rule-2); border-radius: var(--r-field); background: var(--surface); }
+.pw-k { font-weight: 500; font-size: .875rem; color: var(--ink-3); }
+.pw code { font: 500 1rem var(--mono); letter-spacing: .02em; user-select: all; }
+.pw .ghost { margin-left: auto; }
+.pw .ghost .i-done { display: none; color: var(--pass); }
+.pw .ghost.is-done .i-done { display: block; animation: pop 180ms var(--ease-out); }
+.pw .ghost.is-done .i-copy { display: none; }
+@keyframes pop { from { opacity: 0; transform: scale(.85); } }
+.access .pill { justify-self: start; }
+.hint { font-size: .875rem; color: var(--ink-3); }
+
+/* Media panel: the store on a laptop and a phone, on the tile mist well. */
+.stage {
+  position: relative; display: grid; place-items: center; min-height: 100%;
+  padding: clamp(64px, 6vw, 80px) clamp(20px, 3vw, 40px) clamp(40px, 5vw, 64px);
+  border-radius: var(--r-field); background: var(--tile);
+}
+.stage-url { position: absolute; top: 16px; left: 50%; translate: -50% 0; max-width: calc(100% - 32px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 500 .75rem var(--mono); color: var(--ink-3); background: var(--surface); border-radius: 999px; padding: 5px 12px; box-shadow: 0 0 0 1px var(--rule); }
+.devices { display: flex; align-items: flex-end; justify-content: center; gap: clamp(14px, 2vw, 28px); width: 100%; }
+.laptop { flex: 1 1 auto; min-width: 0; max-width: 600px; }
+.lid { background: #1b1e1c; border-radius: 14px 14px 4px 4px; padding: 3.2% 3.2% 4.2%; box-shadow: 0 0 0 1px rgb(15 17 16 / .5), 0 24px 40px -24px rgb(15 17 16 / .45); }
+.base { position: relative; height: 12px; margin-inline: -7%; border-radius: 2px 2px 12px 12px; background: linear-gradient(#e4e8e5, #b9bfbb 70%, #9aa19c); box-shadow: 0 10px 18px -10px rgb(15 17 16 / .45); }
+.base::before { content: ""; position: absolute; left: 50%; top: 0; width: 18%; height: 5px; translate: -50% 0; border-radius: 0 0 8px 8px; background: #a7aea9; }
+.phone { flex: none; width: clamp(96px, 17%, 150px); margin-bottom: 2px; padding: 5px; border-radius: 26px; background: #1b1e1c; box-shadow: 0 0 0 1px rgb(15 17 16 / .5), 0 24px 40px -22px rgb(15 17 16 / .5); }
+.screen { overflow: hidden; background: var(--surface); }
+.laptop .screen { aspect-ratio: 16 / 10; border-radius: 4px; }
+.phone .screen { aspect-ratio: 390 / 844; border-radius: 21px; }
+.screen video { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+/* On the media-first rows the phone stands on the outer side, so the devices face the text. */
+.row.media-first .devices { flex-direction: row-reverse; }
+
+@media (max-width: 960px) {
+  .row.text-first, .row.media-first { grid-template-columns: minmax(0, 1fr); }
+  .row .stage { order: -1; min-height: 0; padding-top: 56px; }
+  .row.media-first .about { order: 0; }
+  .row.media-first .devices { flex-direction: row; }
+}
+@media (max-width: 560px) {
+  .phone { width: 27%; padding: 4px; border-radius: 18px; }
+  .phone .screen { border-radius: 14px; }
+  .pw { flex-wrap: wrap; padding: 10px 8px 10px 14px; }
+  .access .pill { justify-self: stretch; justify-content: space-between; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pw .ghost.is-done .i-done { animation: none; }
+}
+
+.row { border-radius: var(--r-tile); box-shadow: 0 0 0 1px var(--rule); }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-up-right" viewBox="0 0 256 256"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 256 256"><path d="M216,32H88a8,8,0,0,0-8,8V80H40a8,8,0,0,0-8,8V216a8,8,0,0,0,8,8H168a8,8,0,0,0,8-8V176h40a8,8,0,0,0,8-8V40A8,8,0,0,0,216,32ZM160,208H48V96H160Zm48-48H176V88a8,8,0,0,0-8-8H96V48H208Z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 256 256"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"/></symbol>
+</svg>
+
+<header class="bar">
+  <div class="wrap">
+    <span class="mark">Luan Afonso</span>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+      <button type="button" data-lang="pt" aria-pressed="false">PT</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="section" id="demos" aria-labelledby="d-title">
+      <div class="wrap">
+        <div class="head">
+          <h2 id="d-title" data-t="d.title">Demo stores</h2>
+          <p data-t="d.sub">I am new to freelancing, so there are no client stories here yet. These demo stores show how I work, and each one says it is a demo.</p>
+        </div>
+        <div class="rows">
+        <article class="row text-first" aria-labelledby="h-serra">
+          <div class="about">
+            <div class="store-title"><h3 id="h-serra">Café Serra</h3><span class="tag" data-t="d.tag">Demo</span></div>
+            <p class="store-kind" data-t="s1.kind">Coffee roaster</p>
+            <p class="store-line" data-t="s1.line">Specialty coffee with a subscription every 2 or 4 weeks, a roast guide, and brew guides.</p>
+            <div class="proof">
+              <div class="store-score" style="--s: 83"><span class="num">83</span></div>
+              <div><b data-t="d.speed">Mobile speed score</b><small data-t="d.speedsrc">Lighthouse, home page, median of 3 runs</small></div>
+            </div>
+            <div class="access">
+              <div class="pw">
+                <span class="pw-k" data-t="d.pw">Password</span>
+                <code id="pw-serra">serra</code>
+                <button class="ghost" type="button" data-copy="pw-serra"><svg class="i i-copy" aria-hidden="true"><use href="#i-copy"/></svg><svg class="i i-done" aria-hidden="true"><use href="#i-check"/></svg><span data-t="c.copy">Copy</span></button>
+              </div>
+              <a class="pill" href="https://cafe-serra.myshopify.com/" target="_blank" rel="noopener"><span data-t="d.open">Open the store</span><span class="disc"><svg class="i" aria-hidden="true"><use href="#i-up-right"/></svg></span></a>
+              <p class="hint" data-t="d.hint">The store asks for the password once.</p>
+            </div>
+          </div>
+          <figure class="stage">
+            <span class="stage-url">cafe-serra.myshopify.com</span>
+            <div class="devices" aria-hidden="true">
+              <div class="laptop">
+                <div class="lid"><div class="screen"><video data-loop muted loop playsinline preload="none" poster="../../../public/demo-stores/cafe-serra-desktop-poster.jpg" src="../../../public/demo-stores/cafe-serra-desktop.mp4"></video></div></div>
+                <div class="base"></div>
+              </div>
+              <div class="phone"><div class="screen"><video data-loop muted loop playsinline preload="none" poster="../../../public/demo-stores/cafe-serra-phone-poster.jpg" src="../../../public/demo-stores/cafe-serra-phone.mp4"></video></div></div>
+            </div>
+            <figcaption class="sr" data-t="s1.cap">Screen recording of the Café Serra home page on a laptop and a phone.</figcaption>
+          </figure>
+        </article>
+        <article class="row media-first" aria-labelledby="h-lume">
+          <div class="about">
+            <div class="store-title"><h3 id="h-lume">Ateliê Lume</h3><span class="tag" data-t="d.tag">Demo</span></div>
+            <p class="store-kind" data-t="s2.kind">Clothing store</p>
+            <p class="store-line" data-t="s2.line">Linen clothing in 70 color and size options. You set your measure once, and every size table marks your fit.</p>
+            <div class="proof">
+              <div class="store-score" style="--s: 86"><span class="num">86</span></div>
+              <div><b data-t="d.speed">Mobile speed score</b><small data-t="d.speedsrc">Lighthouse, home page, median of 3 runs</small></div>
+            </div>
+            <div class="access">
+              <div class="pw">
+                <span class="pw-k" data-t="d.pw">Password</span>
+                <code id="pw-lume">lume</code>
+                <button class="ghost" type="button" data-copy="pw-lume"><svg class="i i-copy" aria-hidden="true"><use href="#i-copy"/></svg><svg class="i i-done" aria-hidden="true"><use href="#i-check"/></svg><span data-t="c.copy">Copy</span></button>
+              </div>
+              <a class="pill" href="https://atelielume.myshopify.com/" target="_blank" rel="noopener"><span data-t="d.open">Open the store</span><span class="disc"><svg class="i" aria-hidden="true"><use href="#i-up-right"/></svg></span></a>
+              <p class="hint" data-t="d.hint">The store asks for the password once.</p>
+            </div>
+          </div>
+          <figure class="stage">
+            <span class="stage-url">atelielume.myshopify.com</span>
+            <div class="devices" aria-hidden="true">
+              <div class="laptop">
+                <div class="lid"><div class="screen"><video data-loop muted loop playsinline preload="none" poster="../../../public/demo-stores/atelie-lume-desktop-poster.jpg" src="../../../public/demo-stores/atelie-lume-desktop.mp4"></video></div></div>
+                <div class="base"></div>
+              </div>
+              <div class="phone"><div class="screen"><video data-loop muted loop playsinline preload="none" poster="../../../public/demo-stores/atelie-lume-phone-poster.jpg" src="../../../public/demo-stores/atelie-lume-phone.mp4"></video></div></div>
+            </div>
+            <figcaption class="sr" data-t="s2.cap">Screen recording of the Ateliê Lume home page on a laptop and a phone.</figcaption>
+          </figure>
+        </article>
+        <article class="row text-first" aria-labelledby="h-orvalho">
+          <div class="about">
+            <div class="store-title"><h3 id="h-orvalho">Orvalho</h3><span class="tag" data-t="d.tag">Demo</span></div>
+            <p class="store-kind" data-t="s3.kind">Skin care</p>
+            <p class="store-line" data-t="s3.line">Skin care sold as a morning and a night routine, with kits that cost less than the products one by one.</p>
+            <div class="proof">
+              <div class="store-score" style="--s: 79"><span class="num">79</span></div>
+              <div><b data-t="d.speed">Mobile speed score</b><small data-t="d.speedsrc">Lighthouse, home page, median of 3 runs</small></div>
+            </div>
+            <div class="access">
+              <div class="pw">
+                <span class="pw-k" data-t="d.pw">Password</span>
+                <code id="pw-orvalho">orvalho</code>
+                <button class="ghost" type="button" data-copy="pw-orvalho"><svg class="i i-copy" aria-hidden="true"><use href="#i-copy"/></svg><svg class="i i-done" aria-hidden="true"><use href="#i-check"/></svg><span data-t="c.copy">Copy</span></button>
+              </div>
+              <a class="pill" href="https://orvalho-ovejqhyy.myshopify.com/" target="_blank" rel="noopener"><span data-t="d.open">Open the store</span><span class="disc"><svg class="i" aria-hidden="true"><use href="#i-up-right"/></svg></span></a>
+              <p class="hint" data-t="d.hint">The store asks for the password once.</p>
+            </div>
+          </div>
+          <figure class="stage">
+            <span class="stage-url">orvalho-ovejqhyy.myshopify.com</span>
+            <div class="devices" aria-hidden="true">
+              <div class="laptop">
+                <div class="lid"><div class="screen"><video data-loop muted loop playsinline preload="none" poster="../../../public/demo-stores/orvalho-desktop-poster.jpg" src="../../../public/demo-stores/orvalho-desktop.mp4"></video></div></div>
+                <div class="base"></div>
+              </div>
+              <div class="phone"><div class="screen"><video data-loop muted loop playsinline preload="none" poster="../../../public/demo-stores/orvalho-phone-poster.jpg" src="../../../public/demo-stores/orvalho-phone.mp4"></video></div></div>
+            </div>
+            <figcaption class="sr" data-t="s3.cap">Screen recording of the Orvalho home page on a laptop and a phone.</figcaption>
+          </figure>
+        </article>
+        </div>
+      </div>
+  </section>
+</main>
+
+<script>
+const T = {
+  en: {
+    "d.title": "Demo stores",
+    "d.sub": "I am new to freelancing, so there are no client stories here yet. These demo stores show how I work, and each one says it is a demo.",
+    "d.tag": "Demo", "d.speed": "Mobile speed score", "d.speedsrc": "Lighthouse, home page, median of 3 runs",
+    "d.pw": "Password", "c.copy": "Copy", "c.copied": "Copied", "d.open": "Open the store", "d.hint": "The store asks for the password once.",
+    "s1.kind": "Coffee roaster", "s1.line": "Specialty coffee with a subscription every 2 or 4 weeks, a roast guide, and brew guides.",
+    "s1.cap": "Screen recording of the Café Serra home page on a laptop and a phone.",
+    "s2.kind": "Clothing store", "s2.line": "Linen clothing in 70 color and size options. You set your measure once, and every size table marks your fit.",
+    "s2.cap": "Screen recording of the Ateliê Lume home page on a laptop and a phone.",
+    "s3.kind": "Skin care", "s3.line": "Skin care sold as a morning and a night routine, with kits that cost less than the products one by one.",
+    "s3.cap": "Screen recording of the Orvalho home page on a laptop and a phone."
+  },
+  pt: {
+    "d.title": "Lojas de demonstração",
+    "d.sub": "Estou começando como freelancer, então ainda não há histórias de clientes aqui. Estas lojas de demonstração mostram como eu trabalho, e cada uma avisa que é demo.",
+    "d.tag": "Demo", "d.speed": "Nota de velocidade no celular", "d.speedsrc": "Lighthouse, página inicial, mediana de 3 testes",
+    "d.pw": "Senha", "c.copy": "Copiar", "c.copied": "Copiado", "d.open": "Abrir a loja", "d.hint": "A loja pede a senha uma vez.",
+    "s1.kind": "Torrefação de café", "s1.line": "Café especial com assinatura a cada 2 ou 4 semanas, guia de torra e guias de preparo.",
+    "s1.cap": "Gravação de tela da página inicial da Café Serra em um notebook e um celular.",
+    "s2.kind": "Loja de roupas", "s2.line": "Roupas de linho em 70 opções de cor e tamanho. Você informa sua medida uma vez, e cada tabela de tamanhos marca o seu.",
+    "s2.cap": "Gravação de tela da página inicial da Ateliê Lume em um notebook e um celular.",
+    "s3.kind": "Cuidados com a pele", "s3.line": "Skin care vendido como rotina da manhã e da noite, com kits mais baratos que os produtos avulsos.",
+    "s3.cap": "Gravação de tela da página inicial da Orvalho em um notebook e um celular."
+  }
+};
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+let lang = "en";
+const t = (k) => T[lang][k] ?? T.en[k] ?? k;
+function applyLang() {
+  document.documentElement.lang = lang === "pt" ? "pt-BR" : "en";
+  $$("[data-t]").forEach((el) => { el.textContent = t(el.dataset.t); });
+  $$(".lang button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+}
+$$(".lang button").forEach((b) => b.addEventListener("click", () => { lang = b.dataset.lang; applyLang(); }));
+
+// Copy: the clipboard, or a text selection when the clipboard refuses.
+$$("[data-copy]").forEach((b) => b.addEventListener("click", () => {
+  const src = document.getElementById(b.dataset.copy);
+  const label = b.querySelector("[data-t]");
+  const done = () => {
+    b.classList.add("is-done"); label.dataset.t = "c.copied"; label.textContent = t("c.copied");
+    clearTimeout(b._t);
+    b._t = setTimeout(() => { b.classList.remove("is-done"); label.dataset.t = "c.copy"; label.textContent = t("c.copy"); }, 1600);
+  };
+  const select = () => { const r = document.createRange(); r.selectNodeContents(src); const s = getSelection(); s.removeAllRanges(); s.addRange(r); };
+  if (navigator.clipboard?.writeText) navigator.clipboard.writeText(src.textContent).then(done, select);
+  else select();
+}));
+
+// The recordings play only on screen, and never with reduced motion.
+const io = new IntersectionObserver((es) => es.forEach(({ target: v, isIntersecting }) => {
+  if (isIntersecting && !reduce.matches) { v.preload = "auto"; v.play().catch(() => {}); }
+  else v.pause();
+}), { threshold: 0.25 });
+$$("video[data-loop]").forEach((v) => io.observe(v));
+reduce.addEventListener("change", () => { if (reduce.matches) $$("video[data-loop]").forEach((v) => v.pause()); });
+applyLang();
+</script>

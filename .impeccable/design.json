@@ -243,7 +243,7 @@
       {
         "name": "hairline-ring",
         "value": "0 0 0 1px #e0e4e0",
-        "purpose": "Flat report tiles: the package table, store cards, the contact panel."
+        "purpose": "Flat report tiles: the package table, the contact panel. Also the store URL pill."
       },
       {
         "name": "shadow-tile",
@@ -259,11 +259,6 @@
         "name": "device",
         "value": "0 0 0 1px rgb(15 17 16 / 0.5), 0 24px 40px -24px rgb(15 17 16 / 0.45)",
         "purpose": "The laptop lid and the phone on the demo stage (the phone uses -22px and 0.5)."
-      },
-      {
-        "name": "tab-shown",
-        "value": "0 0 0 1.5px #0f1110, 0 14px 28px -18px rgb(15 17 16 / 0.4)",
-        "purpose": "The shown store tile only."
       },
       {
         "name": "knob",
@@ -333,16 +328,6 @@
         "purpose": "The success state of the form."
       },
       {
-        "name": "store-in",
-        "value": "280ms ease-out; opacity, translateY(6px), blur(4px)",
-        "purpose": "The shown store card comes in. The old card goes out in 180ms. A switch from the keyboard is instant."
-      },
-      {
-        "name": "store-timer",
-        "value": "9s linear, scaleX 0 to 1",
-        "purpose": "The timer line along the bottom edge of the shown store tile. Then the next store shows, while the section is in view, until the visitor picks one."
-      },
-      {
         "name": "copy-pop",
         "value": "180ms ease-out, from opacity 0 and scale(0.85)",
         "purpose": "The pass check that takes the place of the copy icon after a copy."
@@ -355,10 +340,15 @@
       {
         "name": "reduced-motion",
         "value": "prefers-reduced-motion: reduce",
-        "purpose": "All durations go to 0. The Virtual scroll jumps to its target. The Filmstrip uses row mode. Chapters only cross-fade in 200ms. Store cards only fade in 200ms; the store timer and the automatic move stop; recordings do not play."
+        "purpose": "All durations go to 0. The Virtual scroll jumps to its target. The Filmstrip uses row mode. Chapters only cross-fade in 200ms. Store recordings do not play."
       }
     ],
     "breakpoints": [
+      {
+        "name": "store-wide",
+        "value": "1600px (min-width)",
+        "purpose": "The devices on the demo stage grow: the laptop goes up to 820px and the phone up to 190px."
+      },
       {
         "name": "package-table",
         "value": "980px",
@@ -367,7 +357,7 @@
       {
         "name": "store-stack",
         "value": "960px",
-        "purpose": "The store card goes to one column; the stage goes on top."
+        "purpose": "A store band goes to one column; the stage goes on top and the phone moves back to the right."
       },
       {
         "name": "nav",
@@ -387,7 +377,7 @@
       {
         "name": "compact",
         "value": "560px",
-        "purpose": "Timeline end labels hide; the form is one column; store tiles show only the thumbnail and the name; the store pill fills the row."
+        "purpose": "Timeline end labels hide; the form is one column; the phone on the demo stage narrows to 27%; the Store password field wraps; the store pill fills the row."
       },
       {
         "name": "nav-pill",
@@ -485,7 +475,7 @@
       "name": "Demo tag and Mock value note",
       "kind": "chip",
       "refersTo": "tag",
-      "description": "The uppercase Demo tag on a store card, and the dashed note that marks Mock values.",
+      "description": "The uppercase Demo tag on a store band, and the dashed note that marks Mock values.",
       "html": "<span class=\"ds-tag\">Demo</span> <span class=\"ds-mock\">Mock prices. Luan sets the real ones.</span>",
       "css": ".ds-tag{display:inline-block;font:600 .75rem/1 var(--sans,'Geist',sans-serif);letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2,#454c48);border:1px solid var(--rule-2,#c9cfca);border-radius:99px;padding:6px 10px}.ds-mock{display:inline-block;font:500 .8125rem/1.4 var(--sans,'Geist',sans-serif);color:var(--ink-3,#626b66);border:1px dashed var(--rule-2,#c9cfca);border-radius:8px;padding:4px 10px}"
     }
