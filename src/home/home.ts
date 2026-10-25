@@ -5,6 +5,7 @@ import { mountFilmstrip } from "./filmstrip";
 import { createLanguage, type Language } from "./language";
 import { mountPageMap } from "./page-map";
 import { mountScroll, type Scroll } from "./scroll";
+import { mountShowcase } from "./showcase";
 import { mountTracking } from "./tracking";
 
 /** What each part of the page gets from the mount. */
@@ -41,6 +42,8 @@ export function mountHome(doc: Document = document): Home {
 	mountFilmstrip(ctx);
 
 	mountPageMap(ctx);
+
+	mountShowcase(ctx);
 
 	mountBuilder(ctx);
 

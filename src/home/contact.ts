@@ -21,7 +21,9 @@ export function mountContact({ doc, win, signal, language }: HomeContext): void 
 	const byId = <E extends HTMLElement>(id: string) => doc.getElementById(id) as E | null;
 
 	// Copy buttons: the clipboard can refuse inside some viewers, so fall back to selecting the text.
+	// A button with icons keeps them: only its `[data-t]` label changes, and `is-done` swaps the icon.
 	for (const button of doc.querySelectorAll<HTMLElement>("[data-copy]")) {
+		const label = button.querySelector<HTMLElement>("[data-t]") ?? button;
 		button.addEventListener(
 			"click",
 			() => {
@@ -30,11 +32,13 @@ export function mountContact({ doc, win, signal, language }: HomeContext): void 
 				// The clipboard can answer after dispose(): then nothing changes.
 				const done = () => {
 					if (signal.aborted) return;
-					button.textContent = language.t("c.copied");
+					label.textContent = language.t("c.copied");
+					button.classList.add("is-done");
 					const stop = () => win.clearTimeout(timer);
 					const timer = win.setTimeout(() => {
 						signal.removeEventListener("abort", stop);
-						button.textContent = language.t("c.copy");
+						label.textContent = language.t("c.copy");
+						button.classList.remove("is-done");
 					}, COPIED_MS);
 					signal.addEventListener("abort", stop, { once: true });
 				};

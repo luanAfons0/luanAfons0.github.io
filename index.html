@@ -31,6 +31,8 @@
       <symbol id="i-check" viewBox="0 0 256 256"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"/></symbol>
       <symbol id="i-plus" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"/></symbol>
       <symbol id="i-flag" viewBox="0 0 256 256"><path d="M128,24a8,8,0,0,1,8,8v112a8,8,0,0,1-16,0V32A8,8,0,0,1,128,24Zm0,176a12,12,0,1,0,12,12A12,12,0,0,0,128,200Z"/></symbol>
+      <symbol id="i-up-right" viewBox="0 0 256 256"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></symbol>
+      <symbol id="i-copy" viewBox="0 0 256 256"><path d="M216,32H88a8,8,0,0,0-8,8V80H40a8,8,0,0,0-8,8V216a8,8,0,0,0,8,8H168a8,8,0,0,0,8-8V176h40a8,8,0,0,0,8-8V40A8,8,0,0,0,216,32ZM160,208H48V96H160Zm48-48H176V88a8,8,0,0,0-8-8H96V48H208Z"/></symbol>
     </svg>
 
     <header class="nav">
@@ -172,55 +174,108 @@
           <div class="head">
             <h2 id="d-title" data-t="d.title">Demo stores</h2>
             <p data-t="d.sub">I am new to freelancing, so there are no client stories here yet. These demo stores show how I work, and each one says it is a demo.</p>
-            <p><span class="mock-note" data-t="mock.demos">Sample entries. Luan replaces them with his real demo stores.</span></p>
           </div>
-          <div class="demos">
-            <article class="demo">
-              <div class="shot" aria-hidden="true">
-                <div class="browser">
-                  <div class="b-bar"><i></i><span>cafeserra.demo</span></div>
-                  <div class="b-page">
-                    <div class="b-nav"><span>Café Serra</span><small data-t="d1.nav">Coffee · Subscriptions · About</small></div>
-                    <div class="b-grid">
-                      <div class="b-item"><img class="ph" src="/photos/demo-coffee.jpg" alt="" width="400" height="500"><b data-t="d1.i1">Serra blend</b><small data-demo-price="coffee">$12</small></div>
-                      <div class="b-item"><img class="ph" src="/photos/demo-coffee2.jpg" alt="" width="400" height="500"><b>Mantiqueira</b><small data-demo-price="coffee2">$15</small></div>
-                      <div class="b-item"><img class="ph" src="/photos/demo-box.jpg" alt="" width="400" height="500"><b data-t="d1.i3">Monthly box</b><small data-demo-price="box">$28</small></div>
-                    </div>
+          <div class="showcase" data-showcase>
+            <div class="panels">
+            <article class="store is-on" id="p-serra" role="tabpanel" aria-labelledby="t-serra">
+              <div class="store-copy">
+                <div class="store-title"><h3>Café Serra</h3><span class="tag" data-t="d.tag">Demo</span></div>
+                <p class="store-kind" data-t="d1.kind">Coffee roaster</p>
+                <p class="store-line" data-t="d1.line">Specialty coffee with a subscription every 2 or 4 weeks, a roast guide, and brew guides.</p>
+                <div class="proof">
+                  <div class="store-score" style="--s: 83"><span class="num">83</span></div>
+                  <div><b data-t="d.speed">Mobile speed score</b><small data-t="d.speedsrc">Lighthouse, home page, median of 3 runs</small></div>
+                </div>
+                <div class="access">
+                  <div class="pw">
+                    <span class="pw-k" data-t="d.pw">Password</span>
+                    <code id="pw-serra">serra</code>
+                    <button class="ghost copy" type="button" data-copy="pw-serra"><svg class="i i-copy" aria-hidden="true"><use href="#i-copy"/></svg><svg class="i i-done" aria-hidden="true"><use href="#i-check"/></svg><span data-t="c.copy">Copy</span></button>
                   </div>
+                  <a class="pill" href="https://cafe-serra.myshopify.com/" target="_blank" rel="noopener"><span data-t="d.open">Open the store</span><span class="disc"><svg class="i" aria-hidden="true"><use href="#i-up-right"/></svg></span></a>
+                  <p class="hint" data-t="d.hint">The store asks for the password once.</p>
                 </div>
               </div>
-              <div class="demo-body">
-                <div class="demo-title"><h3 data-t="d1.n">Coffee roaster on Shopify</h3><span class="tag" data-t="d.tag">Demo</span></div>
-                <dl>
-                  <div><dt data-t="d.p">Problem</dt><dd data-t="d1.p">Needs coffee subscriptions and fast pages on a phone.</dd></div>
-                  <div><dt data-t="d.a">Approach</dt><dd data-t="d1.a">A free theme, a subscription app and compressed photos.</dd></div>
-                  <div><dt data-t="d.r">Result</dt><dd data-t="d.rr">Live link and speed report here when it is built.</dd></div>
-                </dl>
-              </div>
-            </article>
-            <article class="demo">
-              <div class="shot" aria-hidden="true">
-                <div class="browser">
-                  <div class="b-bar"><i></i><span>atelielume.demo</span></div>
-                  <div class="b-page">
-                    <div class="b-nav"><span>Ateliê Lume</span><small data-t="d2.nav">New · Shirts · Dresses</small></div>
-                    <div class="b-grid">
-                      <div class="b-item"><img class="ph" src="/photos/demo-tee2.jpg" alt="" width="400" height="500"><b data-t="d2.i1">Crop tee</b><small data-demo-price="shirt">$46</small></div>
-                      <div class="b-item"><img class="ph" src="/photos/demo-dress.jpg" alt="" width="400" height="500"><b data-t="d2.i2">Midi dress</b><small data-demo-price="dress">$68</small></div>
-                      <div class="b-item"><img class="ph" src="/photos/demo-tee.jpg" alt="" width="400" height="500"><b data-t="d2.i3">Cotton tee</b><small data-demo-price="tee">$22</small></div>
-                    </div>
+              <figure class="stage">
+                <span class="stage-url">cafe-serra.myshopify.com</span>
+                <div class="devices" aria-hidden="true">
+                  <div class="laptop">
+                    <div class="lid"><div class="screen"><video data-loop muted loop playsinline preload="none" poster="/demo-stores/cafe-serra-desktop-poster.jpg" src="/demo-stores/cafe-serra-desktop.mp4" width="960" height="600"></video></div></div>
+                    <div class="base"></div>
                   </div>
+                  <div class="phone"><div class="screen"><video data-loop muted loop playsinline preload="none" poster="/demo-stores/cafe-serra-phone-poster.jpg" src="/demo-stores/cafe-serra-phone.mp4" width="390" height="844"></video></div></div>
+                </div>
+                <figcaption class="sr" data-t="d1.cap">Screen recording of the Café Serra home page on a laptop and a phone.</figcaption>
+              </figure>
+            </article>
+            <article class="store" id="p-lume" role="tabpanel" aria-labelledby="t-lume">
+              <div class="store-copy">
+                <div class="store-title"><h3>Ateliê Lume</h3><span class="tag" data-t="d.tag">Demo</span></div>
+                <p class="store-kind" data-t="d2.kind">Clothing store</p>
+                <p class="store-line" data-t="d2.line">Linen clothing in 70 color and size options. You set your measure once, and every size table marks your fit.</p>
+                <div class="proof">
+                  <div class="store-score" style="--s: 86"><span class="num">86</span></div>
+                  <div><b data-t="d.speed">Mobile speed score</b><small data-t="d.speedsrc">Lighthouse, home page, median of 3 runs</small></div>
+                </div>
+                <div class="access">
+                  <div class="pw">
+                    <span class="pw-k" data-t="d.pw">Password</span>
+                    <code id="pw-lume">lume</code>
+                    <button class="ghost copy" type="button" data-copy="pw-lume"><svg class="i i-copy" aria-hidden="true"><use href="#i-copy"/></svg><svg class="i i-done" aria-hidden="true"><use href="#i-check"/></svg><span data-t="c.copy">Copy</span></button>
+                  </div>
+                  <a class="pill" href="https://atelielume.myshopify.com/" target="_blank" rel="noopener"><span data-t="d.open">Open the store</span><span class="disc"><svg class="i" aria-hidden="true"><use href="#i-up-right"/></svg></span></a>
+                  <p class="hint" data-t="d.hint">The store asks for the password once.</p>
                 </div>
               </div>
-              <div class="demo-body">
-                <div class="demo-title"><h3 data-t="d2.n">Clothing store on Shopify</h3><span class="tag" data-t="d.tag">Demo</span></div>
-                <dl>
-                  <div><dt data-t="d.p">Problem</dt><dd data-t="d2.p">Sizes and colors per product, and Pix at checkout.</dd></div>
-                  <div><dt data-t="d.a">Approach</dt><dd data-t="d2.a">Product variants, a Pix payment app and optimized images.</dd></div>
-                  <div><dt data-t="d.r">Result</dt><dd data-t="d.rr">Live link and speed report here when it is built.</dd></div>
-                </dl>
-              </div>
+              <figure class="stage">
+                <span class="stage-url">atelielume.myshopify.com</span>
+                <div class="devices" aria-hidden="true">
+                  <div class="laptop">
+                    <div class="lid"><div class="screen"><video data-loop muted loop playsinline preload="none" poster="/demo-stores/atelie-lume-desktop-poster.jpg" src="/demo-stores/atelie-lume-desktop.mp4" width="960" height="600"></video></div></div>
+                    <div class="base"></div>
+                  </div>
+                  <div class="phone"><div class="screen"><video data-loop muted loop playsinline preload="none" poster="/demo-stores/atelie-lume-phone-poster.jpg" src="/demo-stores/atelie-lume-phone.mp4" width="390" height="844"></video></div></div>
+                </div>
+                <figcaption class="sr" data-t="d2.cap">Screen recording of the Ateliê Lume home page on a laptop and a phone.</figcaption>
+              </figure>
             </article>
+            <article class="store" id="p-orvalho" role="tabpanel" aria-labelledby="t-orvalho">
+              <div class="store-copy">
+                <div class="store-title"><h3>Orvalho</h3><span class="tag" data-t="d.tag">Demo</span></div>
+                <p class="store-kind" data-t="d3.kind">Skin care</p>
+                <p class="store-line" data-t="d3.line">Skin care sold as a morning and a night routine, with kits that cost less than the products one by one.</p>
+                <div class="proof">
+                  <div class="store-score" style="--s: 79"><span class="num">79</span></div>
+                  <div><b data-t="d.speed">Mobile speed score</b><small data-t="d.speedsrc">Lighthouse, home page, median of 3 runs</small></div>
+                </div>
+                <div class="access">
+                  <div class="pw">
+                    <span class="pw-k" data-t="d.pw">Password</span>
+                    <code id="pw-orvalho">orvalho</code>
+                    <button class="ghost copy" type="button" data-copy="pw-orvalho"><svg class="i i-copy" aria-hidden="true"><use href="#i-copy"/></svg><svg class="i i-done" aria-hidden="true"><use href="#i-check"/></svg><span data-t="c.copy">Copy</span></button>
+                  </div>
+                  <a class="pill" href="https://orvalho-ovejqhyy.myshopify.com/" target="_blank" rel="noopener"><span data-t="d.open">Open the store</span><span class="disc"><svg class="i" aria-hidden="true"><use href="#i-up-right"/></svg></span></a>
+                  <p class="hint" data-t="d.hint">The store asks for the password once.</p>
+                </div>
+              </div>
+              <figure class="stage">
+                <span class="stage-url">orvalho-ovejqhyy.myshopify.com</span>
+                <div class="devices" aria-hidden="true">
+                  <div class="laptop">
+                    <div class="lid"><div class="screen"><video data-loop muted loop playsinline preload="none" poster="/demo-stores/orvalho-desktop-poster.jpg" src="/demo-stores/orvalho-desktop.mp4" width="960" height="600"></video></div></div>
+                    <div class="base"></div>
+                  </div>
+                  <div class="phone"><div class="screen"><video data-loop muted loop playsinline preload="none" poster="/demo-stores/orvalho-phone-poster.jpg" src="/demo-stores/orvalho-phone.mp4" width="390" height="844"></video></div></div>
+                </div>
+                <figcaption class="sr" data-t="d3.cap">Screen recording of the Orvalho home page on a laptop and a phone.</figcaption>
+              </figure>
+            </article>
+            </div>
+            <div class="tabs" role="tablist" aria-label="Demo stores" data-t-aria="d.title" hidden>
+            <button class="tab" type="button" role="tab" id="t-serra" aria-controls="p-serra" aria-selected="true"><span class="tab-thumb" aria-hidden="true"><img src="/demo-stores/cafe-serra-phone-poster.jpg" alt="" width="390" height="844"></span><span class="tab-text"><b>Café Serra</b><small data-t="d1.kind">Coffee roaster</small></span><span class="tab-go"><svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></button>
+            <button class="tab" type="button" role="tab" id="t-lume" aria-controls="p-lume" aria-selected="false" tabindex="-1"><span class="tab-thumb" aria-hidden="true"><img src="/demo-stores/atelie-lume-phone-poster.jpg" alt="" width="390" height="844"></span><span class="tab-text"><b>Ateliê Lume</b><small data-t="d2.kind">Clothing store</small></span><span class="tab-go"><svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></button>
+            <button class="tab" type="button" role="tab" id="t-orvalho" aria-controls="p-orvalho" aria-selected="false" tabindex="-1"><span class="tab-thumb" aria-hidden="true"><img src="/demo-stores/orvalho-phone-poster.jpg" alt="" width="390" height="844"></span><span class="tab-text"><b>Orvalho</b><small data-t="d3.kind">Skin care</small></span><span class="tab-go"><svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></button>
+            </div>
           </div>
         </div>
       </section>
@@ -351,7 +406,7 @@
           <span>© 2026 Luan Afonso</span>
           <nav aria-label="Footer"><a href="https://github.com/luanAfons0" target="_blank" rel="noopener">GitHub</a><a href="https://www.linkedin.com/in/luan-henrique-afonso/?locale=en-US" data-t-href="c.linkedinUrl" target="_blank" rel="noopener">LinkedIn</a><a href="#faq" data-t="nav.faq">FAQ</a><a href="#top" data-t="foot.top">Back to the top</a></nav>
         </div>
-        <p class="credits"><span data-t="foot.credits">Demo store photos from Wikimedia Commons, cropped:</span> <a href="https://commons.wikimedia.org/wiki/File:Roasted_coffee_beans_in_white_bowl.png">Alorin</a> (<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>), <a href="https://commons.wikimedia.org/wiki/File:Roasted_coffee_beans.jpg">MarkSweep</a> (public domain), <a href="https://commons.wikimedia.org/wiki/File:A_bag_of_coffee_J1.jpg">Jamain</a> (<a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>), <a href="https://commons.wikimedia.org/wiki/File:Clean-blank-shirt-hanger.jpg">Pajju12</a> (<a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>), <a href="https://commons.wikimedia.org/wiki/File:Grey_Linen_Pleated_Dress_designed_by_Sybil_Connolly_-_Full_Length_Back.jpg">Hunt Museum and Inés Rivilla López</a> (<a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>), <a href="https://commons.wikimedia.org/wiki/File:Ringflash_Tshirt_Blank_Template_(3214240974).jpg">THOR</a> (<a href="https://creativecommons.org/licenses/by/2.0/">CC BY 2.0</a>).</p>
+        <p class="credits"><span data-t="foot.credits">Demo store photo from Wikimedia Commons, cropped:</span> <a href="https://commons.wikimedia.org/wiki/File:Roasted_coffee_beans_in_white_bowl.png">Alorin</a> (<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>). <span data-t="foot.screens">Store screens recorded from my demo stores. The photos in them come from Unsplash and Pexels.</span></p>
         <p class="foot-name" aria-hidden="true">Luan Afonso</p>
       </div>
     </footer>

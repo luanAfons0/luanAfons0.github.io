@@ -41,9 +41,16 @@ describe("the Home page markup", () => {
 	});
 
 	it("keeps the Phosphor symbols the page uses", () => {
-		expect(all("svg symbol").map((s) => s.id)).toEqual(["i-arrow", "i-check", "i-plus", "i-flag"]);
+		expect(all("svg symbol").map((s) => s.id)).toEqual([
+			"i-arrow",
+			"i-check",
+			"i-plus",
+			"i-flag",
+			"i-up-right",
+			"i-copy",
+		]);
 		const used = new Set(all("use").map((u) => u.getAttribute("href")));
-		expect([...used].sort()).toEqual(["#i-arrow", "#i-check", "#i-flag", "#i-plus"]);
+		expect([...used].sort()).toEqual(["#i-arrow", "#i-check", "#i-copy", "#i-flag", "#i-plus", "#i-up-right"]);
 	});
 
 	it("has the head of the page: lang, title, description, color scheme, viewport, favicon and styles", () => {
@@ -70,17 +77,9 @@ describe("the Home page markup", () => {
 		}
 	});
 
-	it("shows the demo-store photos as files with their size set", () => {
-		const photos = all("img");
-		expect(photos.map((img) => img.getAttribute("src"))).toEqual([
-			"/photos/demo-coffee.jpg",
-			"/photos/demo-coffee.jpg",
-			"/photos/demo-coffee2.jpg",
-			"/photos/demo-box.jpg",
-			"/photos/demo-tee2.jpg",
-			"/photos/demo-dress.jpg",
-			"/photos/demo-tee.jpg",
-		]);
+	it("shows the Filmstrip photo as a file with its size set", () => {
+		const photos = all("#services img");
+		expect(photos.map((img) => img.getAttribute("src"))).toEqual(["/photos/demo-coffee.jpg"]);
 		for (const img of photos) {
 			expect([img.getAttribute("width"), img.getAttribute("height"), img.getAttribute("alt")]).toEqual([
 				"400",
@@ -90,26 +89,56 @@ describe("the Home page markup", () => {
 		}
 	});
 
-	it("credits each photo author with the license link and the cropped note", () => {
+	it("credits the photo author with the license link and the cropped note, and names the store screens", () => {
 		const credits = page.querySelector(".credits");
 		expect(credits?.textContent).toMatch(/cropped/);
+		expect(credits?.querySelector('[data-t="foot.screens"]')?.textContent).toMatch(/recorded from my demo stores/);
 		const links = [...(credits?.querySelectorAll("a") ?? [])].map((a) => [a.textContent, a.getAttribute("href")]);
 		expect(links).toEqual([
 			["Alorin", "https://commons.wikimedia.org/wiki/File:Roasted_coffee_beans_in_white_bowl.png"],
 			["CC BY 4.0", "https://creativecommons.org/licenses/by/4.0/"],
-			["MarkSweep", "https://commons.wikimedia.org/wiki/File:Roasted_coffee_beans.jpg"],
-			["Jamain", "https://commons.wikimedia.org/wiki/File:A_bag_of_coffee_J1.jpg"],
-			["CC BY-SA 4.0", "https://creativecommons.org/licenses/by-sa/4.0/"],
-			["Pajju12", "https://commons.wikimedia.org/wiki/File:Clean-blank-shirt-hanger.jpg"],
-			["CC BY-SA 4.0", "https://creativecommons.org/licenses/by-sa/4.0/"],
-			[
-				"Hunt Museum and Inés Rivilla López",
-				"https://commons.wikimedia.org/wiki/File:Grey_Linen_Pleated_Dress_designed_by_Sybil_Connolly_-_Full_Length_Back.jpg",
-			],
-			["CC BY-SA 4.0", "https://creativecommons.org/licenses/by-sa/4.0/"],
-			["THOR", "https://commons.wikimedia.org/wiki/File:Ringflash_Tshirt_Blank_Template_(3214240974).jpg"],
-			["CC BY 2.0", "https://creativecommons.org/licenses/by/2.0/"],
 		]);
+	});
+
+	it("shows the three Demo stores, each labelled Demo, with its link in a new tab and its password", () => {
+		const stores = all("#demos .store");
+		const rows = stores.map((store) => {
+			const link = store.querySelector("a.pill");
+			return [
+				store.querySelector("h3")?.textContent,
+				store.querySelector(".tag")?.textContent,
+				link?.getAttribute("href"),
+				link?.getAttribute("target"),
+				link?.getAttribute("rel"),
+				store.querySelector(".pw code")?.textContent,
+				store.querySelector(".pw [data-copy]")?.getAttribute("data-copy"),
+			];
+		});
+		expect(rows).toEqual([
+			["Café Serra", "Demo", "https://cafe-serra.myshopify.com/", "_blank", "noopener", "serra", "pw-serra"],
+			["Ateliê Lume", "Demo", "https://atelielume.myshopify.com/", "_blank", "noopener", "lume", "pw-lume"],
+			["Orvalho", "Demo", "https://orvalho-ovejqhyy.myshopify.com/", "_blank", "noopener", "orvalho", "pw-orvalho"],
+		]);
+		expect(all("#demos .store-score .num").map((n) => n.textContent)).toEqual(["83", "86", "79"]);
+		expect(all("#demos .mock-note")).toHaveLength(0);
+	});
+
+	it("shows every store card with JavaScript off, and keeps the store tiles hidden until the script runs", () => {
+		expect(all("#demos .store")).toHaveLength(3);
+		expect(page.querySelector<HTMLElement>("#demos .tabs")?.hidden).toBe(true);
+		expect(all("#demos .tab").map((t) => t.getAttribute("aria-controls"))).toEqual(["p-serra", "p-lume", "p-orvalho"]);
+	});
+
+	it("loads the store recordings only on demand, muted, with a poster for each", () => {
+		const videos = all<HTMLVideoElement>("#demos video");
+		expect(videos).toHaveLength(6);
+		for (const video of videos) {
+			expect(video.hasAttribute("autoplay")).toBe(false);
+			expect(video.hasAttribute("muted")).toBe(true);
+			expect(video.getAttribute("preload")).toBe("none");
+			expect(video.getAttribute("poster")).toMatch(/^\/demo-stores\/[a-z-]+-poster\.jpg$/);
+			expect(video.getAttribute("src")).toMatch(/^\/demo-stores\/[a-z-]+\.mp4$/);
+		}
 	});
 
 	it("shows the Project builder as the mock first renders it: Store launch and Speed audit on", () => {

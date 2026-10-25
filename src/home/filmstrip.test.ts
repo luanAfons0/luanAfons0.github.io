@@ -261,9 +261,10 @@ describe("the Filmstrip as a swipe row (phones and reduced motion)", () => {
 		fakeFrames();
 		mount();
 
-		const watching = FakeObserver.all.filter((observer) => observer.watched.size > 0);
+		const frames = own(".frame");
+		const watching = FakeObserver.all.filter((observer) => frames.some((frame) => observer.watched.has(frame)));
 		expect(watching).toHaveLength(1);
-		expect([...watching[0].watched]).toEqual(own(".frame"));
+		expect([...watching[0].watched]).toEqual(frames);
 		expect(watching[0].options.root).toBe(own(".fan")[0]);
 		expect(watching[0].options.threshold).toBe(0.6);
 	});
