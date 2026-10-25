@@ -123,10 +123,17 @@ describe("the Home page markup", () => {
 		expect(all("#demos .mock-note")).toHaveLength(0);
 	});
 
-	it("shows every store card with JavaScript off, and keeps the store tiles hidden until the script runs", () => {
-		expect(all("#demos .store")).toHaveLength(3);
-		expect(page.querySelector<HTMLElement>("#demos .tabs")?.hidden).toBe(true);
-		expect(all("#demos .tab").map((t) => t.getAttribute("aria-controls"))).toEqual(["p-serra", "p-lume", "p-orvalho"]);
+	it("lists the three stores one under the other, with the side changing on each row", () => {
+		expect(all("#demos .store").map((store) => store.classList[1])).toEqual([
+			"text-first",
+			"media-first",
+			"text-first",
+		]);
+		for (const store of all("#demos .store")) {
+			const heading = store.querySelector("h3");
+			expect(store.getAttribute("aria-labelledby")).toBe(heading?.id);
+		}
+		expect(all("#demos .tabs, #demos .tab")).toHaveLength(0);
 	});
 
 	it("loads the store recordings only on demand, muted, with a poster for each", () => {

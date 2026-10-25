@@ -1167,53 +1167,44 @@ svg.i {
 	}
 }
 
-/* Demo stores: one store card at a time (its proof and its one action, then the store on a laptop and a phone),
-   and a row of store tiles under it. With JavaScript off, the cards stack and the tiles stay hidden. */
-.panels {
+/* Demo stores: the three stores listed one under the other, each a band across the screen. The text keeps to the
+   container line on its side; the grey stage runs to the screen edge on the other side. The side changes on each row. */
+.stores {
+	container-type: inline-size;
 	display: grid;
-	gap: 24px;
-}
-.js .panels {
-	gap: 0;
 }
 .store {
+	--edge: max(var(--gutter-l), calc((100cqw - 1280px) / 2 + 16px));
+	--text: calc(var(--edge) + clamp(340px, 34vw, 470px));
 	display: grid;
-	grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-	border-radius: var(--r-tile);
 	background: var(--surface);
-	box-shadow: 0 0 0 1px var(--rule);
-	overflow: hidden;
+	border-block: 1px solid var(--rule);
 }
-/* The cards share one grid cell, so the section keeps the height of the tallest card. */
-.js .store {
-	grid-area: 1 / 1;
-	transition:
-		opacity 280ms var(--ease-out),
-		filter 280ms var(--ease-out),
-		translate 280ms var(--ease-out),
-		visibility 0s linear 0s;
+.store + .store {
+	margin-top: -1px;
 }
-.js .store:not(.is-on) {
-	opacity: 0;
-	filter: blur(4px);
-	translate: 0 6px;
-	visibility: hidden;
-	pointer-events: none;
-	transition:
-		opacity 180ms var(--ease-out),
-		filter 180ms var(--ease-out),
-		translate 180ms var(--ease-out),
-		visibility 0s linear 180ms;
+.store.text-first {
+	grid-template-columns: var(--text) minmax(0, 1fr);
 }
-/* A switch from the keyboard is instant. */
-.panels.is-instant .store {
-	transition: none !important;
+.store.media-first {
+	grid-template-columns: minmax(0, 1fr) var(--text);
+}
+.store.media-first .store-copy {
+	order: 2;
 }
 .store-copy {
-	padding: clamp(26px, 3.4vw, 44px);
 	display: grid;
 	gap: 22px;
-	align-content: start;
+	align-content: center;
+	padding-block: clamp(28px, 3.4vw, 48px);
+}
+.store.text-first .store-copy {
+	padding-left: var(--edge);
+	padding-right: clamp(28px, 3.4vw, 48px);
+}
+.store.media-first .store-copy {
+	padding-right: var(--edge);
+	padding-left: clamp(28px, 3.4vw, 48px);
 }
 .store-title {
 	display: flex;
@@ -1345,13 +1336,12 @@ svg.i {
 	font-size: 0.875rem;
 	color: var(--ink-3);
 }
-/* Stage: the store on a laptop and a phone, on the tile mist well. */
+/* Stage: the store on a laptop and a phone, on the tile mist ground. The phone stands on the outer side. */
 .stage {
 	position: relative;
 	display: grid;
 	place-items: center;
-	min-height: 100%;
-	padding: clamp(64px, 6vw, 80px) clamp(20px, 3vw, 40px) clamp(40px, 5vw, 64px);
+	padding: clamp(64px, 6vw, 80px) clamp(20px, 3vw, 48px) clamp(40px, 5vw, 64px);
 	background: var(--tile);
 }
 .stage-url {
@@ -1377,10 +1367,13 @@ svg.i {
 	gap: clamp(14px, 2vw, 28px);
 	width: 100%;
 }
+.store.media-first .devices {
+	flex-direction: row-reverse;
+}
 .laptop {
 	flex: 1 1 auto;
 	min-width: 0;
-	max-width: 560px;
+	max-width: 680px;
 }
 .lid {
 	background: #1b1e1c;
@@ -1411,7 +1404,7 @@ svg.i {
 }
 .phone {
 	flex: none;
-	width: clamp(96px, 17%, 150px);
+	width: clamp(96px, 17%, 160px);
 	margin-bottom: 2px;
 	padding: 5px;
 	border-radius: 26px;
@@ -1439,131 +1432,36 @@ svg.i {
 	object-fit: cover;
 	object-position: top;
 }
-/* Store tiles: each store is a ruled white tile with a thumbnail, its name, and an arrow disc. */
-.tabs {
-	display: grid;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
-	gap: 12px;
-	margin-top: 16px;
-}
-.tab {
-	position: relative;
-	display: grid;
-	grid-template-columns: auto minmax(0, 1fr) auto;
-	align-items: center;
-	gap: 12px;
-	overflow: hidden;
-	padding: 10px 12px 10px 10px;
-	border: 0;
-	border-radius: var(--r-field);
-	background: var(--surface);
-	box-shadow: 0 0 0 1px var(--rule-2);
-	text-align: left;
-	cursor: pointer;
-	transition:
-		box-shadow 0.2s var(--ease-out),
-		transform 160ms var(--ease-out);
-}
-.tab:active {
-	transform: scale(0.98);
-}
-.tab-thumb {
-	width: 44px;
-	height: 44px;
-	overflow: hidden;
-	border-radius: 8px;
-	background: var(--tile);
-	box-shadow: 0 0 0 1px var(--rule);
-}
-.tab-thumb img {
-	display: block;
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
-	object-position: top;
-}
-.tab-text {
-	display: grid;
-	gap: 2px;
-	min-width: 0;
-}
-.tab b {
-	font-weight: 600;
-	font-size: 1rem;
-	letter-spacing: -0.01em;
-	color: var(--ink);
-}
-.tab small {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-	font-size: 0.8125rem;
-	color: var(--ink-3);
-}
-.tab-go {
-	display: grid;
-	place-items: center;
-	width: 32px;
-	height: 32px;
-	border-radius: 999px;
-	background: var(--tile);
-	color: var(--ink);
-	transition:
-		background-color 0.2s var(--ease-out),
-		color 0.2s var(--ease-out),
-		transform 0.25s var(--ease-out);
-}
-.tab[aria-selected="true"] {
-	box-shadow:
-		0 0 0 1.5px var(--ink),
-		0 14px 28px -18px rgb(15 17 16 / 0.4);
-}
-.tab[aria-selected="true"] .tab-go {
-	background: var(--ink);
-	color: var(--surface);
-}
-/* The timer line along the bottom edge of the shown tile: it fills while that store plays. */
-.tab::after {
-	content: "";
-	position: absolute;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	height: 2px;
-	background: var(--ink);
-	transform: scaleX(0);
-	transform-origin: left;
-}
-.tabs.is-auto .tab[aria-selected="true"]::after {
-	animation: fill 9s linear both;
-}
-@keyframes fill {
-	from {
-		transform: scaleX(0);
-	}
-	to {
-		transform: none;
-	}
-}
 @media (hover: hover) and (pointer: fine) {
 	.access .pill:hover .disc {
 		transform: translate(1px, -1px);
 	}
-	.tab:not([aria-selected="true"]):hover {
-		box-shadow: 0 0 0 1px var(--ink);
+}
+/* On very wide screens the devices grow, so the stage does not turn into empty space. */
+@media (min-width: 1600px) {
+	.laptop {
+		max-width: 820px;
 	}
-	.tab:hover .tab-go {
-		transform: translateX(2px);
+	.phone {
+		width: clamp(150px, 15%, 190px);
 	}
 }
 @media (max-width: 960px) {
-	.store {
+	.store.text-first,
+	.store.media-first {
 		grid-template-columns: minmax(0, 1fr);
 	}
-	.stage {
+	.store .stage {
 		order: -1;
-		min-height: 0;
 		padding-top: 56px;
+	}
+	.store.text-first .store-copy,
+	.store.media-first .store-copy {
+		order: 0;
+		padding: clamp(28px, 5vw, 40px) var(--gutter-r) clamp(28px, 5vw, 40px) var(--gutter-l);
+	}
+	.store.media-first .devices {
+		flex-direction: row;
 	}
 }
 @media (max-width: 560px) {
@@ -1583,47 +1481,8 @@ svg.i {
 		justify-self: stretch;
 		justify-content: space-between;
 	}
-	.tabs {
-		gap: 8px;
-	}
-	.tab {
-		grid-template-columns: auto minmax(0, 1fr);
-		gap: 8px;
-		padding: 8px;
-	}
-	.tab-thumb {
-		width: 32px;
-		height: 32px;
-		border-radius: 6px;
-	}
-	.tab b {
-		font-size: 0.875rem;
-		line-height: 1.2;
-	}
-	.tab small,
-	.tab-go {
-		display: none;
-	}
 }
-/* Reduced motion keeps a short fade, with no blur and no movement. */
 @media (prefers-reduced-motion: reduce) {
-	.js .store,
-	.js .store:not(.is-on) {
-		filter: none;
-		translate: none;
-		transition:
-			opacity 200ms ease,
-			visibility 0s linear 200ms;
-	}
-	.js .store.is-on {
-		transition:
-			opacity 200ms ease,
-			visibility 0s;
-	}
-	.tabs.is-auto .tab[aria-selected="true"]::after {
-		animation: none;
-		transform: none;
-	}
 	.pw .copy.is-done .i-done {
 		animation: none;
 	}

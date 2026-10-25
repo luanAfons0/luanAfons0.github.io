@@ -42,30 +42,15 @@ function mount(): Home {
 	return home;
 }
 
-/** The first copy of the section: the one that assistive technology reads. */
-function section(): HTMLElement {
-	const found = document.querySelector<HTMLElement>("#demos");
-	if (!found) throw new Error("no #demos");
-	return found;
-}
+/** The stores of the first copy of the section: the ones that assistive technology reads. */
+const stores = () => [...document.querySelectorAll<HTMLElement>("#demos .store")];
 
-/** The section in the Twin copy. */
+/** The stores in the Twin copy. */
 function twin(): HTMLElement {
 	const found = document.querySelector<HTMLElement>('.vs-copy[aria-hidden="true"] [data-showcase]');
 	if (!found) throw new Error("no Twin copy of the Demo stores");
 	return found;
 }
-
-const tabs = (root: HTMLElement = section()) => [...root.querySelectorAll<HTMLButtonElement>(".tab")];
-const cards = (root: HTMLElement = section()) => [...root.querySelectorAll<HTMLElement>(".store")];
-const shown = (root: HTMLElement = section()) =>
-	cards(root)
-		.map((card) => card.querySelector("h3")?.textContent)
-		.filter((_, k) => cards(root)[k].classList.contains("is-on"));
-const selected = (root: HTMLElement = section()) =>
-	tabs(root)
-		.filter((tab) => tab.getAttribute("aria-selected") === "true")
-		.map((tab) => tab.querySelector("b")?.textContent);
 
 beforeEach(() => {
 	loadHomeBody();
@@ -82,126 +67,43 @@ afterEach(() => {
 	vi.useRealTimers();
 });
 
-describe("the store tiles", () => {
-	it("show after the script runs, with the first store shown and the other cards out of reach", () => {
-		mount();
-
-		expect(section().querySelector<HTMLElement>(".tabs")?.hidden).toBe(false);
-		expect(shown()).toEqual(["Café Serra"]);
-		expect(selected()).toEqual(["Café Serra"]);
-		expect(cards().map((card) => card.inert)).toEqual([false, true, true]);
-		expect(tabs().map((tab) => tab.tabIndex)).toEqual([0, -1, -1]);
-	});
-
-	it("show the store of the tile that the visitor clicks", () => {
-		mount();
-
-		tabs()[2].click();
-
-		expect(shown()).toEqual(["Orvalho"]);
-		expect(selected()).toEqual(["Orvalho"]);
-		expect(cards().map((card) => card.inert)).toEqual([true, true, false]);
-		expect(tabs().map((tab) => tab.tabIndex)).toEqual([-1, -1, 0]);
-	});
-
-	it("move with the arrow keys, Home and End, and take the focus, with no transition", () => {
-		mount();
-		const key = (k: string) =>
-			document.activeElement?.dispatchEvent(new KeyboardEvent("keydown", { key: k, bubbles: true, cancelable: true }));
-		tabs()[0].focus();
-
-		key("ArrowRight");
-		expect(selected()).toEqual(["Ateliê Lume"]);
-		expect(document.activeElement).toBe(tabs()[1]);
-		expect(section().querySelector(".panels")?.classList.contains("is-instant")).toBe(true);
-
-		key("ArrowLeft");
-		key("ArrowLeft");
-		expect(selected()).toEqual(["Orvalho"]);
-
-		key("Home");
-		expect(selected()).toEqual(["Café Serra"]);
-		key("End");
-		expect(selected()).toEqual(["Orvalho"]);
-	});
-
-	it("move on by themselves while the section is in view, until the visitor picks a store", () => {
-		vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
-		mount();
-		show(section().querySelector("[data-showcase]") as Element);
-
-		vi.advanceTimersByTime(9000);
-		expect(shown()).toEqual(["Ateliê Lume"]);
-		expect(section().querySelector(".tabs")?.classList.contains("is-auto")).toBe(true);
-
-		tabs()[0].click();
-		vi.advanceTimersByTime(30000);
-		expect(shown()).toEqual(["Café Serra"]);
-		expect(section().querySelector(".tabs")?.classList.contains("is-auto")).toBe(false);
-	});
-
-	it("wait while the section is out of view", () => {
-		vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
-		mount();
-
-		vi.advanceTimersByTime(30000);
-
-		expect(shown()).toEqual(["Café Serra"]);
-	});
-
-	it("never move by themselves with reduced motion", () => {
-		fakeReducedMotion(true);
-		vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
-		mount();
-		show(section().querySelector("[data-showcase]") as Element);
-
-		vi.advanceTimersByTime(30000);
-
-		expect(shown()).toEqual(["Café Serra"]);
-	});
-
-	it("stop moving after dispose", () => {
-		vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
-		const home = mount();
-		show(section().querySelector("[data-showcase]") as Element);
-
-		home.dispose();
-		vi.advanceTimersByTime(30000);
-
-		expect(shown()).toEqual(["Café Serra"]);
-	});
-});
-
 describe("the store recordings", () => {
 	function spyVideos() {
 		const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
-		const pause = vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => {});
-		return { play, pause };
+		vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => {});
+		return play;
 	}
 
-	it("play only on screen and only in the shown card", () => {
-		const { play } = spyVideos();
+	it("play only while they are on screen", () => {
+		const play = spyVideos();
 		mount();
-		const [laptop, phone] = cards()[0].querySelectorAll("video");
-		const hidden = cards()[1].querySelector("video") as HTMLVideoElement;
+		const [laptop, phone] = stores()[0].querySelectorAll("video");
+		const below = stores()[2].querySelector("video") as HTMLVideoElement;
 
 		show(laptop);
 		show(phone);
-		show(hidden);
+		show(below, false);
 
 		// happy-dom keeps `paused` true, so a video can be asked to play more than once.
 		expect([...new Set(play.mock.contexts)]).toEqual([laptop, phone]);
 		expect(laptop.preload).toBe("auto");
+		expect(below.preload).toBe("none");
 	});
 
 	it("never play with reduced motion", () => {
 		fakeReducedMotion(true);
-		const { play } = spyVideos();
+		const play = spyVideos();
 		mount();
 
-		for (const video of cards()[0].querySelectorAll("video")) show(video);
+		for (const video of stores()[0].querySelectorAll("video")) show(video);
 
 		expect(play).not.toHaveBeenCalled();
+	});
+
+	it("stop being watched after dispose", () => {
+		mount().dispose();
+
+		expect(FakeObserver.all.every((observer) => observer.watched.size === 0)).toBe(true);
 	});
 });
 
@@ -211,7 +113,7 @@ describe("the password", () => {
 		vi.spyOn(navigator.clipboard, "writeText").mockImplementation(write);
 		mount();
 		vi.useFakeTimers({ toFake: ["setTimeout"] });
-		const button = cards()[1].querySelector<HTMLButtonElement>("[data-copy]") as HTMLButtonElement;
+		const button = stores()[1].querySelector<HTMLButtonElement>("[data-copy]") as HTMLButtonElement;
 
 		button.click();
 		await vi.advanceTimersByTimeAsync(0);
@@ -228,15 +130,13 @@ describe("the password", () => {
 });
 
 describe("the Twin copy of the Demo stores", () => {
-	it("has no ids and no tab stops, also after the visitor picks a store", () => {
+	it("has no ids and no tab stops", () => {
 		mount();
-		tabs(twin())[1].click();
-		tabs()[2].click();
 
 		expect(twin().querySelectorAll("[id]")).toHaveLength(0);
-		const focusable = twin().querySelectorAll<HTMLElement>("a[href], button, input, textarea, select, [tabindex]");
+		expect(twin().querySelectorAll("[aria-labelledby]")).toHaveLength(0);
+		const focusable = twin().querySelectorAll<HTMLElement>("a[href], button, [tabindex]");
 		expect(focusable.length).toBeGreaterThan(0);
 		for (const el of focusable) expect(el.tabIndex, el.outerHTML.slice(0, 60)).toBe(-1);
-		expect(shown(twin())).toEqual(["Ateliê Lume"]);
 	});
 });
